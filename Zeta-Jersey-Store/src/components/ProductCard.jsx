@@ -2,7 +2,7 @@ import { ShoppingCart } from "lucide-react";
 
 const ProductCard = () => {
   return (
-    <div className="card w-96 rounded-xl bg-yellow-200">
+    <div className="card w-96 rounded-xl bg-yellow-100">
       <figure className="px-5 pt-5">
         <img
           className="rounded-xl"
@@ -11,7 +11,7 @@ const ProductCard = () => {
         />
       </figure>
       <div className="card-body">
-        <h2 className="card-title text-2xl font-bold">
+        <h2 className="card-title text-2xl font-bold ">
           Liverpool FC 26/27 Home Jersey
         </h2>
         <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter  text-zeta-main">
@@ -21,14 +21,16 @@ const ProductCard = () => {
           jersey with Climacool technology for faster sweat release and cooling
           ...
         </p>
-        <div>
-          <div className="flex justify-between">
-            <span>Quantity</span>
-            <span>42 items</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Price</span>
-            <span>2,900</span>
+        <div className="flex flex-col gap-5">
+          <div>
+            <div className="flex justify-between">
+              <span>Quantity</span>
+              <span>42 items</span>
+            </div>
+            <div className="flex justify-between text-xl font-bold">
+              <span className="">Price</span>
+              <span className="text-zeta-main">2,900</span>
+            </div>
           </div>
 
           <button className="btn w-full bg-zeta-main text-white rounded-4xl ">
