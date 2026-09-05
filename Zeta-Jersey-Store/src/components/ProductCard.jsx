@@ -2,19 +2,23 @@ import { Heart, ShoppingCart } from "lucide-react";
 
 const ProductCard = ({ product }) => {
   return (
-    <div className="card w-96 rounded-xl bg-yellow-100">
-      <figure className="px-5 pt-5">
-        <img className="rounded-xl" src={product.imageUrl} alt={product.name} />
+    <div className="card w-96 rounded-xl bg-white-100">
+      <figure className="px-5 pt-5 ">
+        <img
+          className="rounded-xl aspect-square object-cover"
+          src={product.imageUrl}
+          alt={product.name}
+        />
         <span className="badge badge-outline absolute top-7 left-7 rounded-xl border-0 font-medium bg-zeta-sub-lighter text-zeta-sub-dark">
           NEW
         </span>
-        <button className="absolute top-7 right-7 bg-white rounded-full p-1">
+        <button className="absolute top-7 right-7 bg-white rounded-full p-2 m-1">
           <Heart size={20} />
         </button>
       </figure>
       <div className="card-body">
         <h2 className="card-title text-2xl font-bold ">{product.name}</h2>
-        <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter text-zeta-main">
+        <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
           {product.team}
         </div>
         <p>{product.description}</p>
