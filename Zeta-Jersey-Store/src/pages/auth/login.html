@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="referrer" content="no-referrer">
+<title>Sign In</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="brand">
+    <img src="../../assets/logo/Zeta_Default_Logo.png" alt="Zeta" class="brand__mark">
+    <div>
+      <h2 class="brand__pitch">Welcome<br>back.</h2>
+      <p class="brand__quote">
+        We cut our release cycle from two weeks to two days. Nothing else changed.
+        <span class="brand__cite">— Priya N., Head of Engineering</span>
+      </p>
+    </div>
+    <p class="brand__foot">© 2026 Zeta Inc.</p>
+  </aside>
+
+  <main class="pane">
+    <div class="card">
+      <h1 class="title">Sign in</h1>
+      <p class="sub">Use the email you signed up with.</p>
+
+      <form class="form" id="form" novalidate>
+        <div class="alert" id="alert" role="alert" hidden><span data-text></span></div>
+
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input class="field__input" id="email" type="email" name="email"
+                 autocomplete="username" inputmode="email"
+                 placeholder="you@company.com" required>
+          <span class="field__hint field__hint--error" id="emailHint" hidden></span>
+        </label>
+
+        <div class="field">
+          <span class="field__row">
+            <span class="field__label">Password</span>
+            <a class="link" id="forgotLink" href="password-reset.html">Forgot?</a>
+          </span>
+          <span class="field__wrap">
+            <input class="field__input" id="password" type="password"
+                   autocomplete="current-password" required>
+            <button class="field__toggle" type="button" data-target="password"
+                    aria-label="Show password">Show</button>
+          </span>
+          <span class="field__hint" id="capsHint" hidden>Caps Lock is on</span>
+        </div>
+
+        <div class="aux">
+          <label class="check">
+            <input class="check__input" id="remember" type="checkbox" checked>
+            <span class="check__box" aria-hidden="true"></span>
+            <span class="check__label">Keep me signed in</span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="submit" type="submit" disabled>
+            <span class="btn__text">Sign in</span>
+            <span class="btn__spinner" aria-hidden="true"></span>
+          </button>
+          <p class="foot">
+            New here? <a class="link" id="signupLink" href="register.html">Create an account</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script src="auth.js"></script>
+<script>
+(function () {
+  const { $, to, next, request, alertBox, busy, isDesktop, KEYS, local, session } = Auth;
+
+  $('forgotLink').href = to('password-reset.html');
+  $('signupLink').href = to('register.html');
+
+  const form = $('form'), password = $('password');
+  const remember = $('remember'), submit = $('submit');
+  const notice = alertBox($('alert'));
+
+  Auth.togglePasswords(form);
+  Auth.capsLock(password, $('capsHint'));
+
+  const email = Auth.emailField($('email'), $('emailHint'), () => { notice.hide(); paint(); });
+
+  const valid = () => email.ok() && password.value.length > 0;
+  function paint() { submit.disabled = !valid(); }
+
+  password.addEventListener('input', () => {
+    notice.hide();
+    password.classList.remove('is-error');
+    email.el.classList.remove('is-error');
+    paint();
+  });
+
+  let lock = null;
+  function lockForm(seconds) {
+    let n = seconds;
+    const label = submit.querySelector('.btn__text');
+    const fields = [email.el, password, remember];
+    fields.forEach((el) => (el.disabled = true));
+    submit.disabled = true;
+
+    clearInterval(lock);
+    const tick = () => {
+      notice.show('Too many attempts. Try again in ' + n + 's.');
+      label.textContent = 'Locked (' + n + 's)';
+      if (n <= 0) {
+        clearInterval(lock);
+        fields.forEach((el) => (el.disabled = false));
+        label.textContent = 'Sign in';
+        notice.hide();
+        paint();
+        return;
+      }
+      n -= 1;
+    };
+    tick();
+    lock = setInterval(tick, 1000);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!valid()) return;
+    const address = email.value();
+
+    notice.hide();
+    busy(submit, true);
+
+    try {
+      await request('/api/auth/login',
+        { email: address, password: password.value, remember: remember.checked },
+        { 401: 'bad', email_unverified: 'unverified', 403: 'forbidden', 429: 'locked' });
+
+      local.set(KEYS.last, address);
+      location.replace(next);
+    } catch (err) {
+      busy(submit, false);
+      submit.disabled = !valid();
+
+      if (err.unverified) {
+        session.set(KEYS.pending, address);
+        location.replace(to('confirm-email.html'));
+        return;
+      }
+      if (err.locked) return lockForm(err.retryAfter || 60);
+      if (err.bad) {
+        /* one message for both fields — never confirm which half was wrong */
+        notice.show('Email or password is incorrect.');
+        email.el.classList.add('is-error');
+        password.classList.add('is-error');
+        password.value = '';
+        password.focus();
+        paint();
+        return;
+      }
+      if (err.forbidden) return notice.show(err.detail || 'This account is not available.');
+      notice.show('Something went wrong. Please try again.');
+    }
+  });
+
+  const known = session.get(KEYS.pending) || local.get(KEYS.last);
+  if (known) email.el.value = known;
+
+  paint();
+  if (isDesktop()) (email.el.value ? password : email.el).focus();
+})();
+</script>
+</body>
+</html>

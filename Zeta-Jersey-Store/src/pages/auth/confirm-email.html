@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="referrer" content="no-referrer">
+<title>Confirm Your Email</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="brand">
+    <img src="../../assets/logo/Zeta_Default_Logo.png" alt="Zeta" class="brand__mark">
+    <div>
+      <h2 class="brand__pitch">One click<br>and you're in.</h2>
+      <p class="brand__note">Confirming your address keeps your account recoverable
+        and stops anyone else signing up with your email.</p>
+    </div>
+    <p class="brand__foot">© 2026 Zeta Inc.</p>
+  </aside>
+
+  <main class="pane">
+    <div class="card">
+
+      <section class="state" id="verifying" hidden>
+        <div class="icon"><div class="icon__spin" role="status" aria-label="Verifying"></div></div>
+        <h1 class="title">Confirming…</h1>
+        <p class="sub">Hang tight, this only takes a second.</p>
+      </section>
+
+      <section class="state" id="sent" hidden>
+        <div class="icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M3 7l9 6 9-6"/>
+          </svg>
+        </div>
+        <h1 class="title">Check your inbox</h1>
+        <p class="sub">
+          We sent a confirmation link to <span class="addr" id="addr">your email address</span>.
+          Open it on any device to finish setting up your account.
+        </p>
+        <ul class="tips">
+          <li>The link expires in 30 minutes.</li>
+          <li>Check spam or promotions if it hasn't arrived.</li>
+          <li>Corporate filters can delay delivery by a few minutes.</li>
+        </ul>
+        <div class="alert alert--ok" id="okNote" role="status" hidden><span data-text></span></div>
+        <div class="alert" id="errNote" role="alert" hidden><span data-text></span></div>
+        <div class="stack actions">
+          <button class="btn" id="resend" type="button">
+            <span class="btn__text">Resend link</span>
+            <span class="btn__spinner" aria-hidden="true"></span>
+          </button>
+          <p class="foot">Wrong address? <a class="link" id="changeLink" href="register.html">Sign up again</a></p>
+        </div>
+      </section>
+
+      <section class="state" id="done" hidden>
+        <div class="icon icon--ok">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg>
+        </div>
+        <h1 class="title">Email confirmed</h1>
+        <p class="sub" id="doneSub">Your account is ready.</p>
+        <div class="stack actions">
+          <button class="btn" id="continue" type="button">Continue</button>
+        </div>
+      </section>
+
+      <section class="state" id="expired" hidden>
+        <div class="icon icon--bad">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/>
+          </svg>
+        </div>
+        <h1 class="title" id="badTitle">Link expired</h1>
+        <p class="sub" id="badSub">
+          Confirmation links are valid for 30 minutes and can only be used once.
+        </p>
+        <div class="alert" id="badErr" role="alert" hidden><span data-text></span></div>
+        <div class="stack actions">
+          <button class="btn" id="resend2" type="button">
+            <span class="btn__text">Send a new link</span>
+            <span class="btn__spinner" aria-hidden="true"></span>
+          </button>
+          <a class="btn btn--ghost" id="backLink" href="login.html">Back to sign in</a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="auth.js"></script>
+<script>
+(function () {
+  const { $, to, next, param, request, alertBox, views, countdown, KEYS, session } = Auth;
+
+  const show = views();
+  const token = param('token');
+  const address = session.get(KEYS.pending);
+  const gap = Auth.cooldown(KEYS.verifyGap, 60);
+
+  $('changeLink').href = to('register.html');
+  $('backLink').href = to('login.html');
+
+  const ok = alertBox($('okNote'));
+  const err = alertBox($('errNote'));
+  const badErr = alertBox($('badErr'));
+
+  const send = (fail) => async () => {
+    ok.hide(); err.hide(); badErr.hide();
+    try {
+      await request('/api/auth/verify/resend', { email: address }, { 429: 'locked' });
+      ok.flash('Sent again. Check your inbox in a moment.');
+    } catch (e) {
+      if (!e.locked) fail.show("Couldn't send right now. Try again shortly.");
+      throw e;
+    }
+  };
+
+  function finish() {
+    session.del(KEYS.pending);
+    gap.clear();
+    show('done');
+    const stop = countdown($('doneSub'), 3,
+      (n) => 'Your account is ready. Taking you there in ' + n + 's…',
+      () => location.replace(next));
+    $('continue').addEventListener('click', () => { stop(); location.replace(next); });
+  }
+
+  if (token) {
+    show('verifying');
+    Auth.stripToken();
+    request('/api/auth/verify', { token }, { 400: 'expired', 410: 'expired' })
+      .then(finish)
+      .catch((e) => {
+        show('expired');
+        if (!e.expired) {
+          $('badTitle').textContent = 'Something went wrong';
+          $('badSub').textContent = 'We couldn\'t confirm that link. Try sending a new one.';
+        }
+        if (address) gap.attach($('resend2'), send(badErr));
+        else {
+          $('resend2').querySelector('.btn__text').textContent = 'Go to sign in';
+          $('resend2').addEventListener('click', () => location.replace(to('login.html')));
+        }
+      });
+  } else if (!address) {
+    /* nothing to resend to — send them somewhere useful */
+    location.replace(to('login.html'));
+  } else {
+    $('addr').textContent = address;
+    show('sent');
+    gap.attach($('resend'), send(err));
+  }
+})();
+</script>
+</body>
+</html>
