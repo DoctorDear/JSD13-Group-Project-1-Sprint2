@@ -1,39 +1,36 @@
 import { ShoppingCart } from "lucide-react";
 
-const ProductCard = () => {
+const ProductCard = ({ product, onSelect }) => {
   return (
     <div className="card w-96 rounded-xl bg-yellow-100">
       <figure className="px-5 pt-5">
-        <img
-          className="rounded-xl"
-          src="https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/2e9b3d1665f944f09c921c0174b355bf_9366/Liverpool_25-26_JV6423_21_model.jpg"
-          alt="Liverpool Jersey"
-        />
+        <img className="rounded-xl" src={product.imageUrl} alt={product.name} />
       </figure>
       <div className="card-body">
-        <h2 className="card-title text-2xl font-bold ">
-          Liverpool FC 26/27 Home Jersey
-        </h2>
+        <h2 className="card-title text-2xl font-bold ">{product.name}</h2>
         <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter  text-zeta-main">
-          Liverpool
+          {product.team}
         </div>
-        <p>
-          jersey with Climacool technology for faster sweat release and cooling
-          ...
-        </p>
+        <p>{product.description}</p>
         <div className="flex flex-col gap-5">
           <div>
             <div className="flex justify-between">
               <span>Quantity</span>
-              <span>42 items</span>
+              <span>{product.quantity}</span>
             </div>
             <div className="flex justify-between text-xl font-bold">
               <span className="">Price</span>
-              <span className="text-zeta-main">2,900</span>
+              <span className="text-zeta-main">
+                {product.price.toLocaleString()}
+                {/* convert number to string with format */}
+              </span>
             </div>
           </div>
 
-          <button className="btn w-full bg-zeta-main text-white rounded-4xl ">
+          <button
+            onClick={onSelect}
+            className="btn w-full bg-zeta-main text-white rounded-4xl "
+          >
             <span>
               <ShoppingCart size={20} />
             </span>

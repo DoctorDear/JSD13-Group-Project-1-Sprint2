@@ -1,0 +1,35 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Liverpool FC 26/27 Home Jersey",
+    "team": "Liverpool",
+    "description": "Jersey with Climacool technology for faster sweat release and cooling comfort on the pitch.",
+    "price": 2900,
+    "quantity": 42,
+    "imageUrl": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/2e9b3d1665f944f09c921c0174b355bf_9366/Liverpool_25-26_JV6423_21_model.jpg",
+    "sizes": ["S", "M", "L", "XL"],
+    "isAvailable": true
+  },
+  {
+    "id": "prod-002",
+    "name": "Real Madrid 25/26 Home Jersey",
+    "team": "Real Madrid",
+    "description": "Classic white elegance with gold accents and moisture-wicking AEROREADY fabric.",
+    "price": 3200,
+    "quantity": 18,
+    "imageUrl": "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=800&q=80",
+    "sizes": ["M", "L", "XL"],
+    "isAvailable": true
+  },
+  {
+    "id": "prod-003",
+    "name": "Arsenal 25/26 Away Jersey",
+    "team": "Arsenal",
+    "description": "Bold modern design celebrating north London culture with breathable mesh inserts.",
+    "price": 2850,
+    "quantity": 25,
+    "imageUrl": "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+    "sizes": ["S", "M", "L"],
+    "isAvailable": true
+  }
+]
