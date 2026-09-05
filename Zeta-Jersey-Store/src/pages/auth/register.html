@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="referrer" content="no-referrer">
+<title>Create Account</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="brand">
+    <img src="../../assets/logo/Zeta_Default_Logo.png" alt="Zeta" class="brand__mark">
+    <div>
+      <h2 class="brand__pitch">Ship faster.<br>Argue less.</h2>
+      <p class="brand__note">Free for 14 days. No card, no sales call, cancel from
+        settings in two clicks.</p>
+    </div>
+    <p class="brand__foot">© 2026 Zeta Inc.</p>
+  </aside>
+
+  <main class="pane">
+    <div class="card card--wide">
+      <h1 class="title">Create your account</h1>
+      <p class="sub">Already have one? <a class="link" id="loginLink" href="login.html">Sign in</a></p>
+
+      <form class="form" id="form" novalidate>
+        <div class="alert" id="alert" role="alert" hidden><span data-text></span></div>
+
+        <label class="field">
+          <span class="field__label">Work email</span>
+          <input class="field__input" id="email" type="email" name="email"
+                 autocomplete="username" inputmode="email"
+                 placeholder="you@company.com" required>
+          <span class="field__hint field__hint--error" id="emailHint" hidden></span>
+        </label>
+
+        <div class="field">
+          <span class="field__label">Password</span>
+          <span class="field__wrap">
+            <input class="field__input" id="password" type="password"
+                   autocomplete="new-password" required>
+            <button class="field__toggle" type="button" data-target="password"
+                    aria-label="Show password">Show</button>
+          </span>
+          <span class="field__hint" id="capsHint" hidden>Caps Lock is on</span>
+        </div>
+
+        <div class="meter" id="meter" hidden>
+          <div class="meter__track"><div class="meter__fill" id="meterFill"></div></div>
+          <span class="meter__label" id="meterLabel"></span>
+        </div>
+
+        <ul class="rules" id="rules"></ul>
+
+        <div class="field">
+          <span class="field__label">Confirm password</span>
+          <span class="field__wrap">
+            <input class="field__input" id="confirm" type="password"
+                   autocomplete="new-password" required>
+            <button class="field__toggle" type="button" data-target="confirm"
+                    aria-label="Show password">Show</button>
+          </span>
+          <span class="field__hint field__hint--error" id="matchHint" hidden>
+            Passwords don't match.
+          </span>
+        </div>
+
+        <label class="check check--top">
+          <input class="check__input" id="terms" type="checkbox" required>
+          <span class="check__box" aria-hidden="true"></span>
+          <span class="check__label">
+            I agree to the <a class="link" href="/terms">Terms</a> and
+            <a class="link" href="/privacy">Privacy Policy</a>.
+          </span>
+        </label>
+
+        <div class="actions">
+          <button class="btn" id="submit" type="submit" disabled>
+            <span class="btn__text">Create account</span>
+            <span class="btn__spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script src="auth.js"></script>
+<script>
+(function () {
+  const { $, to, request, alertBox, busy, isDesktop } = Auth;
+
+  $('loginLink').href = to('login.html');
+
+  const form = $('form'), password = $('password'), confirm = $('confirm');
+  const terms = $('terms'), submit = $('submit');
+  const notice = alertBox($('alert'));
+
+  Auth.togglePasswords(form);
+  Auth.capsLock(password, $('capsHint'));
+
+  const email = Auth.emailField($('email'), $('emailHint'), () => { notice.hide(); paint(); });
+  const meter = Auth.strength(password, {
+    meter: $('meter'), fill: $('meterFill'), label: $('meterLabel'), rules: $('rules'),
+  });
+  const pair = Auth.confirmField(password, confirm, $('matchHint'));
+
+  const valid = () => email.ok() && meter.valid() && pair.matches() && terms.checked;
+  function paint() { meter.paint(); submit.disabled = !valid(); }
+
+  [password, confirm].forEach((el) =>
+    el.addEventListener('input', () => { notice.hide(); pair.reset(); paint(); })
+  );
+  terms.addEventListener('change', paint);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!valid()) return;
+    notice.hide();
+    busy(submit, true);
+
+    try {
+      await request('/api/auth/register',
+        { email: email.value(), password: password.value },
+        { 409: 'taken', 422: 'weak', 429: 'locked' });
+
+      Auth.session.set(Auth.KEYS.pending, email.value());
+      location.replace(to('confirm-email.html'));
+    } catch (err) {
+      busy(submit, false);
+      submit.disabled = !valid();
+      if (err.taken)  return notice.show('That email is already registered. Try signing in instead.');
+      if (err.weak)   return notice.show(err.detail || 'Pick a stronger password.');
+      if (err.locked) return notice.show('Too many attempts. Try again in a minute.');
+      notice.show('Something went wrong. Please try again.');
+    }
+  });
+
+  paint();
+  if (isDesktop()) email.el.focus();
+})();
+</script>
+</body>
+</html>
