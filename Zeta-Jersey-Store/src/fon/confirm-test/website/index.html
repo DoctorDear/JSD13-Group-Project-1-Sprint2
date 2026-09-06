@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Confirmation — Zeta</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <div class="card">
+      <!-- Left: image panel -->
+      <section class="panel">
+        <img
+          class="panel__img"
+          src="https://plus.unsplash.com/premium_photo-1661893941582-3390d236d95f?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          alt="Young soccer player sitting on a ball holding a water bottle"
+        />
+        <div class="panel__overlay">
+          <a href="/" class="brand" aria-label="Zeta home">
+            Zeta<span class="brand__mark">journey</span>
+          </a>
+          <a href="/" class="btn-ghost">Back to website</a>
+        </div>
+      </section>
+
+      <!-- Right: content -->
+      <section class="content">
+        <h1 class="title">Email<br />Confirmation</h1>
+
+        <div class="actions">
+          <button class="btn" id="confirmBtn" type="button">Confirm email</button>
+          <button class="btn" id="resendBtn" type="button">Resend email</button>
+        </div>
+
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
