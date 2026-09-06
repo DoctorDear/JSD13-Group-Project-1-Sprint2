@@ -9,7 +9,7 @@ const ProductCard = ({ product }) => {
           src={product.imageUrl}
           alt={product.name}
         />
-        <span className="badge badge-outline absolute top-7 left-7 rounded-xl border-0 font-medium bg-zeta-sub-lighter text-zeta-sub-dark">
+        <span className="badge badge-outline absolute top-8 left-7 rounded-xl border-0 font-medium bg-zeta-sub-lighter text-zeta-sub-dark">
           NEW
         </span>
         <button className="absolute top-7 right-7 bg-white rounded-full p-2 m-1">
