@@ -81,7 +81,7 @@ const Navbar = ({ page = "home" }) => {
         </div>
 
         {/* right: search & action icons */}
-        <div class="flex items-center space-x-4 h-10">
+        <div className="flex items-center space-x-4 h-10">
           {/* DaisyUI: Search Bar */}
           <label
             className={`input rounded-full h-10 w-40 text-white flex items-center focus-within:outline-none focus-within:ring-1 focus-within:ring-white/30 ${
@@ -115,7 +115,7 @@ const Navbar = ({ page = "home" }) => {
           </label>
 
           {/* LudiceIcon: Wishlist, Cart, Profile */}
-          <div class="flex items-center gap-1.5 text-white">
+          <div className="flex items-center gap-1.5 text-white">
             <button
               type="button"
               aria-lable="whishlist"
