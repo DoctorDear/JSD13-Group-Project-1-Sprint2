@@ -5,7 +5,7 @@ const App = () => {
     <div>
       <div>
         <ProductDetail />
-        {/* <Suggestion /> */}
+        <Suggestion />
       </div>
     </div>
   );

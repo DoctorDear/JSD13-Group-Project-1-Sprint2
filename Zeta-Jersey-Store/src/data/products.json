@@ -19,12 +19,18 @@
       {
         "id": "stadium",
         "name": "Stadium Edition",
-        "detail": "Regular fit • Fan Replica"
+        "detail": "Regular fit • Fan Replica",
+        "price": 2900,
+        "originalPrice": 3600,
+        "discount": "20% OFF"
       },
       {
         "id": "player",
         "name": "Player Edition",
-        "detail": "Slim fit • Match Authentic"
+        "detail": "Slim fit • Match Authentic",
+        "price": 4600,
+        "originalPrice": 5400,
+        "discount": "15% OFF"
       }
     ],
     "sizes": ["S", "M", "L", "XL", "2XL"],
@@ -50,12 +56,18 @@
       {
         "id": "stadium",
         "name": "Stadium Edition",
-        "detail": "Regular fit • Fan Replica"
+        "detail": "Regular fit • Fan Replica",
+        "price": 3200,
+        "originalPrice": 3800,
+        "discount": "15% OFF"
       },
       {
         "id": "player",
         "name": "Player Edition",
-        "detail": "Slim fit • Match Authentic"
+        "detail": "Slim fit • Match Authentic",
+        "price": 4900,
+        "originalPrice": 5800,
+        "discount": "15% OFF"
       }
     ],
     "sizes": ["S", "M", "L", "XL", "2XL"],
@@ -81,12 +93,18 @@
       {
         "id": "stadium",
         "name": "Stadium Edition",
-        "detail": "Regular fit • Fan Replica"
+        "detail": "Regular fit • Fan Replica",
+        "price": 2850,
+        "originalPrice": 3500,
+        "discount": "18% OFF"
       },
       {
         "id": "player",
         "name": "Player Edition",
-        "detail": "Slim fit • Match Authentic"
+        "detail": "Slim fit • Match Authentic",
+        "price": 4500,
+        "originalPrice": 5300,
+        "discount": "15% OFF"
       }
     ],
     "sizes": ["S", "M", "L", "XL", "2XL"],
