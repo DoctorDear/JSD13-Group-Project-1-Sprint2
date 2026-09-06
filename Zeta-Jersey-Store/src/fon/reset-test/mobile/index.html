@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Reset password — Zeta</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="screen">
+    <header class="head">
+      <div class="logo">
+        Zeta<span class="logo-sup">jersey</span>
+      </div>
+      <h1 class="title">Reset password</h1>
+      <p class="subtitle">Password problem ?&nbsp; We got you!</p>
+    </header>
+
+    <section class="card">
+      <form id="resetForm" novalidate>
+        <label class="label" for="email">Email</label>
+        <input
+          class="input"
+          id="email"
+          name="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="Your email"
+        />
+        <p class="error" id="error" hidden></p>
+        <button class="btn" type="submit">Submit email address</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
