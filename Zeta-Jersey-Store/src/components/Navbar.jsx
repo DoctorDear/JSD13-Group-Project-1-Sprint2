@@ -7,10 +7,10 @@ const Navbar = ({ page = "home" }) => {
   return (
     <>
       <nav
-        className={`h-15 sticky top-4 z-50 flex items-center justify-between px-6 md:px-8 transition-all duration-300 ${
+        className={`h-16 sticky z-50 flex items-center justify-between px-6 md:px-8 transition-all duration-300 ${
           isHome
             ? "top-4 mt-4 max-w-full bg-[#2F2F2F]/80 backdrop-blur-lg rounded-full"
-            : "w-full bg-[#1E0E8A]"
+            : "top-0 w-full bg-[#1E0E8A]"
         }`}
       >
         {/* left: Logo */}
