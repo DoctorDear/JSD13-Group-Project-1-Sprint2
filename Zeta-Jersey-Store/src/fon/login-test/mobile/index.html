@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Zeta — Log in</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="screen">
+    <header class="head">
+      <div class="logo">
+        Zeta<span class="logo-sup">jersey</span>
+      </div>
+      <h1 class="title">Welcome back!</h1>
+      <p class="subtitle">Please enter your details</p>
+    </header>
+
+    <section class="card">
+      <form id="loginForm" novalidate>
+        <label class="label" for="email">Email</label>
+        <input class="input" id="email" name="email" type="email"
+               placeholder="Your email" autocomplete="email" inputmode="email" />
+        <p class="error" id="emailError"></p>
+
+        <label class="label" for="password">Password</label>
+        <input class="input" id="password" name="password" type="password"
+               placeholder="Your password" autocomplete="current-password" />
+        <p class="error" id="passwordError"></p>
+
+        <a class="forgot" href="#">Forget Password ?</a>
+
+        <button class="btn" type="submit">Log in</button>
+      </form>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
