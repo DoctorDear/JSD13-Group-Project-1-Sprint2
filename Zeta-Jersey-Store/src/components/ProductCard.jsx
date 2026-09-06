@@ -24,14 +24,18 @@ const ProductCard = ({ product }) => {
         <p>{product.description}</p>
         <div className="flex flex-col gap-5">
           <div>
-            <div className="flex justify-between">
-              <span>Quantity</span>
-              <span>{product.quantity}</span>
+            <div className="flex justify-between text-zeta-muted">
+              <span className="">Quantity</span>
+
+              <div className="flex gap-1">
+                <span>{product.quantity}</span>
+                <span>items</span>
+              </div>
             </div>
             <div className="flex justify-between text-xl font-bold">
               <span className="">Price</span>
               <span className="text-zeta-main">
-                <span className="text-sm font-medium mr-0.5">฿</span>
+                <span className="text-m font-medium mr-0.5">฿</span>
                 {product.price.toLocaleString()}
                 {/* convert number to string with format */}
               </span>

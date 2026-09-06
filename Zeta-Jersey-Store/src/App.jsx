@@ -1,9 +1,11 @@
+import ProductDetail from "./components/ProductDetail";
 import Suggestion from "./components/Suggestion";
 const App = () => {
   return (
     <div>
       <div>
-        <Suggestion />
+        <ProductDetail />
+        {/* <Suggestion /> */}
       </div>
     </div>
   );
