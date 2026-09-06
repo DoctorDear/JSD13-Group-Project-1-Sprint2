@@ -17,6 +17,8 @@ const ProductDetail = () => {
     (e) => e.id === selectedEdition,
   );
 
+  
+
   return (
     <div className="flex p-6">
       <div className="flex gap-2">
