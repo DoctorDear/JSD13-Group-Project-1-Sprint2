@@ -5,18 +5,18 @@ const Footer = () => {
   return (
     <>
       <footer className="bg-[#1E0E8A] text-[#D3D648] mt-20 pt-12 pb-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-6">
-          {/* <!-- Contact Info --> */}
-          <div className="flex flex-col items-start">
-            {/* LOGO */}
-            <div>
-              <img
-                className="w-40 object-contain mb-6"
-                src={logo}
-                alt="green-jersey-logo"
-              />
-            </div>
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
+          {/* LOGO */}
+          <div>
+            <img
+              className="w-40 object-contain mb-6"
+              src={logo}
+              alt="green-jersey-logo"
+            />
+          </div>
 
+          {/* Box: Contact info + Product + About Us + Payment */}
+          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             {/* info */}
             <div className="flex flex-col items-start gap-4">
               <div className="flex items-center gap-4">
@@ -38,45 +38,45 @@ const Footer = () => {
                 <p>Email: customer_service@zeta.com</p>
               </div>
             </div>
-          </div>
 
-          {/* Products */}
-          <div>
-            <h3 className="font-semibold text-2xl mb-3">Products</h3>
-            <ul className="grid grid-cols-1 gap-2 font-light">
-              <li>
-                <a href="#" className="hover:text-white">
-                  New Arrivals
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Best Seller
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Collections
-                </a>
-              </li>
-            </ul>
-          </div>
+            {/* Products */}
+            <div>
+              <h3 className="font-semibold text-2xl mb-3">Products</h3>
+              <ul className="grid grid-cols-1 gap-2 font-light">
+                <li>
+                  <a href="#" className="hover:text-white">
+                    New Arrivals
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Best Seller
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Collections
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-          {/* About Us */}
-          <div>
-            <a href="#" className="font-semibold text-xl hover:text-white">
-              About Us{" "}
-            </a>
-          </div>
+            {/* About Us */}
+            <div>
+              <a href="#" className="font-semibold text-xl hover:text-white">
+                About Us{" "}
+              </a>
+            </div>
 
-          {/* Payment Methods */}
-          <div>
-            <h3 className="font-semibold text-xl mb-3">We Accepted</h3>
-            <div className="grid grid-flow-col auto-cols-max items-center gap-4">
-              <span>VISA</span>
-              <span>DISCOVER</span>
-              <span>MasterCard</span>
-              <span>JCB</span>
+            {/* Payment Methods */}
+            <div>
+              <h3 className="font-semibold text-xl mb-3">We Accepted</h3>
+              <div className="grid grid-flow-col auto-cols-max items-center gap-4">
+                <span>VISA</span>
+                <span>DISCOVER</span>
+                <span>MasterCard</span>
+                <span>JCB</span>
+              </div>
             </div>
           </div>
         </div>
