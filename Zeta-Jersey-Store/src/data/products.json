@@ -17,7 +17,7 @@
     "description": "Classic white elegance with gold accents and moisture-wicking AEROREADY fabric.",
     "price": 3200,
     "quantity": 18,
-    "imageUrl": "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/d469289ff63043dfa85dda7aac99125f_9366/REAL_H_JSY_JZ7206_21_model.jpg",
     "sizes": ["M", "L", "XL"],
     "isAvailable": true
   },
@@ -28,7 +28,7 @@
     "description": "Bold modern design celebrating north London culture with breathable mesh inserts.",
     "price": 2850,
     "quantity": 25,
-    "imageUrl": "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/9c0919c0a7874e708f0640f4b53fc1b9_9366/Arsenal_FC_26-27_JZ3160_21_model.jpg",
     "sizes": ["S", "M", "L"],
     "isAvailable": true
   }
