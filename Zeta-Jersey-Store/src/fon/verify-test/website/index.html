@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeta — Verify Email</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <div class="card">
+      <!-- Left: hero image -->
+      <section class="hero">
+        <div class="hero-overlay">
+          <div class="logo">Zeta<sup>jersey</sup></div>
+          <a href="#" class="btn-back">Back to website</a>
+        </div>
+      </section>
+
+      <!-- Right: form -->
+      <section class="form-side">
+        <h1>Verify email</h1>
+        <p class="subtitle">Please enter your email</p>
+
+        <form id="verifyForm" novalidate>
+          <label for="email">Your email</label>
+          <input type="email" id="email" name="email" placeholder="Your email" />
+          <span class="error" id="emailError"></span>
+
+          <label for="password">Your password</label>
+          <div class="password-wrap">
+            <input type="password" id="password" name="password" placeholder="Enter your password" />
+            <button type="button" class="toggle" id="togglePwd" aria-label="Show password">Show</button>
+          </div>
+          <span class="error" id="passwordError"></span>
+
+          <button type="submit" class="btn-submit">Reset password</button>
+          <p class="success" id="success"></p>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
