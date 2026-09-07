@@ -1,4 +1,4 @@
-import { Ruler } from "lucide-react";
+import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 
@@ -17,6 +17,8 @@ const ProductDetail = () => {
   const currentEdition = product?.editions?.find(
     (e) => e.id === selectedEdition,
   );
+
+  const [selectedSize, setSelectedSize] = useState(product?.size?.[0] || "M");
 
   return (
     <div className="flex p-6">
@@ -40,7 +42,7 @@ const ProductDetail = () => {
             </button>
           ))}
         </div>
-        <div className="w-[450px] h-[550px] rounded-3xl overflow-hidden">
+        <div className="w-[450px] h-[600px] rounded-3xl overflow-hidden">
           <img
             src={selectedImg}
             alt={product?.name}
@@ -52,7 +54,7 @@ const ProductDetail = () => {
         <div className="badge rounded-xl border-0 bg-zeta-sub font-medium text-zeta-main ">
           {product?.tag}
         </div>
-        <div className="pt-3 pb-3">
+        <div className="pt-2 pb-1">
           <h1 className="text-4xl font-bold text-zeta-main">{product?.name}</h1>
         </div>
         <div className="flex gap-3 items-center">
@@ -81,24 +83,44 @@ const ProductDetail = () => {
               <button
                 key={edition.id}
                 onClick={() => setSelectedEdition(edition.id)}
-                className={`p-3 rounded-xl border text-left transition-all font-bold ${selectedEdition === edition.id ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10 " : "border-gray-200"}`}
+                className={`w-full p-3 rounded-xl border text-left transition-all font-bold ${selectedEdition === edition.id ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10 " : "border-gray-200"}`}
               >
                 <div className="text-sm">{edition.name}</div>
-                <div className="text-xs  font-light">{edition.detail}</div>
+                <div className="text-xs font-light">{edition.detail}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center ">
+            <span className="font-semibold ">
+              Select Size: <span>{selectedSize}</span>
+            </span>
+            <div className="flex gap-1 items-center">
+              <Ruler size={15} />
+              <button className="underline">Size Guide</button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {product?.sizes.map((size) => (
+              <button
+                key={size}
+                onClick={() => setSelectedSize(size)}
+                className={`w-full h-12 border rounded-xl font-bold text-sm transition-all ${selectedSize === size ? "bg-zeta-main text-white " : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"}`}
+              >
+                {size}
               </button>
             ))}
           </div>
         </div>
         <div>
-          <div className="flex justify-between">
-            <span className="font-semibold ">
-              Select Size: <span>M</span>
-            </span>
-            <div className="flex">
-              <Ruler />
-              <span>Size Guide</span>
-            </div>
-          </div>
+          <button className="btn btn-wide bg-zeta-main text-white rounded-xl">
+            <ShoppingBag />
+            <span>Add toc Cart</span>
+          </button>
+          <button className="btn">
+            <Heart />
+          </button>
         </div>
       </div>
     </div>
