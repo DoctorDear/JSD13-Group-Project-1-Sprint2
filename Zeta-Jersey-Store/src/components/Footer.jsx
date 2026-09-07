@@ -1,5 +1,11 @@
 import logo from "../assets/logo/Zeta_Default_Logo_Crop.png";
 import { Phone, Mail } from "lucide-react";
+import {
+  FaCcVisa,
+  FaCcDiscover,
+  FaCcMastercard,
+  FaCcJcb,
+} from "react-icons/fa6";
 
 const Footer = () => {
   return (
@@ -72,10 +78,10 @@ const Footer = () => {
             <div>
               <h3 className="font-semibold text-xl mb-3">We Accepted</h3>
               <div className="grid grid-flow-col auto-cols-max items-center gap-4">
-                <span>VISA</span>
-                <span>DISCOVER</span>
-                <span>MasterCard</span>
-                <span>JCB</span>
+                <FaCcVisa size={35} />
+                <FaCcDiscover size={35} />
+                <FaCcMastercard size={35} />
+                <FaCcJcb size={35} />
               </div>
             </div>
           </div>
@@ -83,7 +89,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="max-w-full mx-auto px-6 text-center text-base text-[#D3D648] border-t border-[#D3D648] pt-8 mt-12">
-          &copy; 2026 Zeta
+          &copy; 2026 Zeta | For educational purposes only.
         </div>
       </footer>
     </>
