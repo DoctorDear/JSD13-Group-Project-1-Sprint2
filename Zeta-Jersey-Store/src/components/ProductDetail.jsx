@@ -1,3 +1,4 @@
+import { Ruler } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 
@@ -16,8 +17,6 @@ const ProductDetail = () => {
   const currentEdition = product?.editions?.find(
     (e) => e.id === selectedEdition,
   );
-
-  
 
   return (
     <div className="flex p-6">
@@ -76,14 +75,29 @@ const ProductDetail = () => {
         <div className="w-[280px]">{product.description}</div>
         <div className="border border-zeta-muted w-full my-1"></div>
         <div>
-          <span>Select Edition</span>
-          <div>
+          <span className="font-semibold text-base">Select Edition</span>
+          <div className="flex gap-3 pt-2">
             {product?.editions?.map((edition) => (
               <button
                 key={edition.id}
                 onClick={() => setSelectedEdition(edition.id)}
-              ></button>
+                className={`p-3 rounded-xl border text-left transition-all font-bold ${selectedEdition === edition.id ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10 " : "border-gray-200"}`}
+              >
+                <div className="text-sm">{edition.name}</div>
+                <div className="text-xs  font-light">{edition.detail}</div>
+              </button>
             ))}
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-between">
+            <span className="font-semibold ">
+              Select Size: <span>M</span>
+            </span>
+            <div className="flex">
+              <Ruler />
+              <span>Size Guide</span>
+            </div>
           </div>
         </div>
       </div>
