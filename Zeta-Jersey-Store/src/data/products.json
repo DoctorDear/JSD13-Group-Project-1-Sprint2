@@ -1,0 +1,113 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Liverpool FC 2026/27 Home Jersey",
+    "team": "Liverpool",
+    "tag": "2026/27 OFFICIAL LIVERPOOL FC MATCH KIT",
+    "price": 2900,
+    "originalPrice": 3600,
+    "discount": "20% OFF",
+    "description": "Jersey with Climacool technology for faster sweat release and cooling comfort on the pitch.",
+    "quantity": 42,
+    "imageUrl": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/7e083827b22844499db6244f9b547763_9366/LFC_H_JSY_KA6852_21_model.jpg",
+    "images": [
+      "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/7e083827b22844499db6244f9b547763_9366/LFC_H_JSY_KA6852_21_model.jpg",
+      "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80"
+    ],
+    "editions": [
+      {
+        "id": "stadium",
+        "name": "Stadium Edition",
+        "detail": "Regular fit • Fan Replica",
+        "price": 2900,
+        "originalPrice": 3600,
+        "discount": "20% OFF"
+      },
+      {
+        "id": "player",
+        "name": "Player Edition",
+        "detail": "Slim fit • Match Authentic",
+        "price": 4600,
+        "originalPrice": 5400,
+        "discount": "15% OFF"
+      }
+    ],
+    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "isAvailable": true
+  },
+  {
+    "id": "prod-002",
+    "name": "Real Madrid 25/26 Home Jersey",
+    "team": "Real Madrid",
+    "tag": "2025/26 OFFICIAL REAL MADRID MATCH KIT",
+    "price": 3200,
+    "originalPrice": 3800,
+    "discount": "15% OFF",
+    "description": "Classic white elegance with gold accents and moisture-wicking AEROREADY fabric.",
+    "quantity": 18,
+    "imageUrl": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/d469289ff63043dfa85dda7aac99125f_9366/REAL_H_JSY_JZ7206_21_model.jpg",
+    "images": [
+      "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/d469289ff63043dfa85dda7aac99125f_9366/REAL_H_JSY_JZ7206_21_model.jpg",
+      "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=800&q=80"
+    ],
+    "editions": [
+      {
+        "id": "stadium",
+        "name": "Stadium Edition",
+        "detail": "Regular fit • Fan Replica",
+        "price": 3200,
+        "originalPrice": 3800,
+        "discount": "15% OFF"
+      },
+      {
+        "id": "player",
+        "name": "Player Edition",
+        "detail": "Slim fit • Match Authentic",
+        "price": 4900,
+        "originalPrice": 5800,
+        "discount": "15% OFF"
+      }
+    ],
+    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "isAvailable": true
+  },
+  {
+    "id": "prod-003",
+    "name": "Arsenal 25/26 Away Jersey",
+    "team": "Arsenal",
+    "tag": "2025/26 OFFICIAL ARSENAL MATCH KIT",
+    "price": 2850,
+    "originalPrice": 3500,
+    "discount": "18% OFF",
+    "description": "Bold modern design celebrating north London culture with breathable mesh inserts.",
+    "quantity": 25,
+    "imageUrl": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/9c0919c0a7874e708f0640f4b53fc1b9_9366/Arsenal_FC_26-27_JZ3160_21_model.jpg",
+    "images": [
+      "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/9c0919c0a7874e708f0640f4b53fc1b9_9366/Arsenal_FC_26-27_JZ3160_21_model.jpg",
+      "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=800&q=80"
+    ],
+    "editions": [
+      {
+        "id": "stadium",
+        "name": "Stadium Edition",
+        "detail": "Regular fit • Fan Replica",
+        "price": 2850,
+        "originalPrice": 3500,
+        "discount": "18% OFF"
+      },
+      {
+        "id": "player",
+        "name": "Player Edition",
+        "detail": "Slim fit • Match Authentic",
+        "price": 4500,
+        "originalPrice": 5300,
+        "discount": "15% OFF"
+      }
+    ],
+    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "isAvailable": true
+  }
+]
