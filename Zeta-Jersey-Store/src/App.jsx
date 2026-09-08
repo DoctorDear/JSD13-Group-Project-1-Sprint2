@@ -8,7 +8,7 @@ import Suggestion from "./components/Suggestion";
 const App = () => {
   return (
     <div>
-      <Navbar page="other" />
+      <Navbar page="home" />
       <PromoBar />
       <ProductDetail />
       <Suggestion />
