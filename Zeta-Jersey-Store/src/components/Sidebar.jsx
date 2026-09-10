@@ -1,5 +1,5 @@
 function Sidebar({ activeMenu, onMenuChange }) {
-  const menuItems = ["หน้าหลัก", "สินค้า", "คำสั่งซื้อ", "ข้อความ", "ตั้งค่าร้านค้า"];
+  const menuItems = ["หน้าหลัก", "บัญชีของฉัน", "รายการโปรด", "รีวิวของฉัน", "การชำระเงิน"];
 
   return (
     <aside className="hidden min-h-screen w-60 shrink-0 border-r border-[#dfe7df] bg-white px-6 py-8 lg:block">

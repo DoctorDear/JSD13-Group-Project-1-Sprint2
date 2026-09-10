@@ -26,7 +26,6 @@ function Body() {
           <div className="px-5 py-6 sm:px-10 sm:py-9">
             <ProfileHero />
             <ProfileCategories />
-            <ReviewsAndStats />
             <ProductSection
               activeProductTab={activeProductTab}
               onProductTabChange={setActiveProductTab}
