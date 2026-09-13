@@ -9,7 +9,7 @@ const Navbar = ({ page = "home" }) => {
       <nav
         className={`h-16 sticky z-50 flex items-center justify-between px-6 md:px-8 transition-all duration-300 ${
           isHome
-            ? "top-4 mt-4 max-w-full bg-[#2F2F2F]/80 backdrop-blur-lg rounded-full"
+            ? "top-4 mt-4 mx-4 max-w-full bg-[#2F2F2F]/80 backdrop-blur-lg rounded-full"
             : "top-0 w-full bg-[#1E0E8A]"
         }`}
       >
@@ -119,7 +119,11 @@ const Navbar = ({ page = "home" }) => {
             <button
               type="button"
               aria-lable="whishlist"
-              className="p-2 rounded-xl hover:bg-[#D3D648]/30 transition cursor-pointer"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
+                  : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <Heart className="w-6 h-6" />
             </button>
@@ -127,7 +131,11 @@ const Navbar = ({ page = "home" }) => {
             <button
               type="button"
               aria-lable="whishlist"
-              className="p-2 rounded-xl hover:bg-[#D3D648]/30 transition cursor-pointer"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
+                  : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <ShoppingCart className="w-6 h-6" />
             </button>
@@ -135,7 +143,11 @@ const Navbar = ({ page = "home" }) => {
             <button
               type="button"
               aria-lable="whishlist"
-              className="p-2 rounded-xl hover:bg-[#D3D648]/30 transition cursor-pointer"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
+                  : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <CircleUser className="w-6 h-6" />
             </button>
