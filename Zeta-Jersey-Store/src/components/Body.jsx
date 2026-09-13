@@ -6,8 +6,8 @@ import ReviewsAndStats from "./ReviewsAndStats.jsx";
 import Sidebar from "./Sidebar.jsx";
 
 function Body() {
-  const [activeMenu, setActiveMenu] = useState("สินค้า");
-  const [activeProductTab, setActiveProductTab] = useState("สินค้าขายดี");
+  const [activeMenu, setActiveMenu] = useState("Home");
+  const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [likedProducts, setLikedProducts] = useState([]);
 
   const toggleLike = (index) => {
