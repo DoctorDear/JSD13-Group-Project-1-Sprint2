@@ -1,11 +1,9 @@
 import logo from "../assets/logo/Zeta_Default_Logo_Crop.png";
 import { Phone, Mail } from "lucide-react";
-import {
-  FaCcVisa,
-  FaCcDiscover,
-  FaCcMastercard,
-  FaCcJcb,
-} from "react-icons/fa6";
+import visa from "../assets/bankIcon/visa.svg";
+import mastercard from "../assets/bankIcon/mastercard.svg";
+import discovercard from "../assets/bankIcon/discover.svg";
+import jcb from "../assets/bankIcon/jcb.png";
 
 const Footer = () => {
   return (
@@ -77,11 +75,35 @@ const Footer = () => {
             {/* Payment Methods */}
             <div>
               <h3 className="font-semibold text-xl mb-3">We Accepted</h3>
-              <div className="grid grid-flow-col auto-cols-max items-center gap-4">
-                <FaCcVisa size={35} />
-                <FaCcDiscover size={35} />
-                <FaCcMastercard size={35} />
-                <FaCcJcb size={35} />
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="bg-white px-2.5 py-1.5 rounded-lg h-10 w-16 flex items-center justify-center shadow-xs">
+                  <img
+                    src={visa}
+                    alt="visa-icon"
+                    className="h-6 w-auto object-contain"
+                  />
+                </div>
+                <div className="bg-white px-2.5 py-1.5 rounded-lg h-10 w-16 flex items-center justify-center shadow-xs">
+                  <img
+                    src={discovercard}
+                    alt="discovercard-icon"
+                    className="h-6 w-auto object-contain"
+                  />
+                </div>
+                <div className="bg-white px-2.5 py-1.5 rounded-lg h-10 w-16 flex items-center justify-center shadow-xs">
+                  <img
+                    src={mastercard}
+                    alt="mastercard-icon"
+                    className="h-7 w-auto object-contain"
+                  />
+                </div>
+                <div className="bg-white px-2.5 py-1.5 rounded-lg h-10 w-16 flex items-center justify-center shadow-xs">
+                  <img
+                    src={jcb}
+                    alt="jcb-icon"
+                    className="h-7 w-auto object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
