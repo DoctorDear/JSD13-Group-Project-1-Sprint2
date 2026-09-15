@@ -1,5 +1,5 @@
-import Body from "./components/Body.jsx";
+import ProfileBody from "./components/ProfileBody.jsx";
 
-const App = () => <Body />;
+const App = () => <ProfileBody />;
 
 export default App;

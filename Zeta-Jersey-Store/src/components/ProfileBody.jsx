@@ -1,11 +1,11 @@
 import { useState } from "react";
-import ProductSection from "./ProductSection.jsx";
+import ProfileProductSection from "./ProfileProductSection.jsx";
 import ProfileCategories from "./ProfileCategories.jsx";
 import ProfileHero from "./ProfileHero.jsx";
 import ReviewsAndStats from "./ReviewsAndStats.jsx";
 import Sidebar from "./Sidebar.jsx";
 
-function Body() {
+function ProfileBody() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [likedProducts, setLikedProducts] = useState([]);
@@ -26,7 +26,7 @@ function Body() {
           <div className="px-5 py-6 sm:px-10 sm:py-9">
             <ProfileHero />
             <ProfileCategories />
-            <ProductSection
+            <ProfileProductSection
               activeProductTab={activeProductTab}
               onProductTabChange={setActiveProductTab}
               likedProducts={likedProducts}
@@ -39,4 +39,4 @@ function Body() {
   );
 }
 
-export default Body;
+export default ProfileBody;
