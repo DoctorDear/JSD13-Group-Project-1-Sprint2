@@ -2,3 +2,20 @@
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark, cupcake;
 }
+
+@theme {
+  --font-sans: 'Poppins', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+
+  --color-zeta-main: #2E1F93;
+  --color-zeta-sub: #D3D648;
+  --color-zeta-main-lighter: #E8E7F4;
+  --color-zeta-sub-lighter: #FDFF8D;
+  --color-zeta-sub-dark: #5E6B00;
+
+  --color-zeta-muted: #9ca3af; 
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
