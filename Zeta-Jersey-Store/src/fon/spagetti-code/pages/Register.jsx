@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import React from 'react';
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png"; // นำเข้าไฟล์รูปภาพ
 
-const INITIAL = {
+const INITIALI = {
   firstName: "",
   lastName: "",
   email: "",

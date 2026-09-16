@@ -1,10 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import EmailConfirmation from "./pages/EmailConfirmation";
+import Register from "./spagetti-code/pages/Register";
+import Login from "./spagetti-code/pages/Login";
+import ResetPassword from "./spagetti-code/pages/ResetPassword";
+import VerifyEmail from "./spagetti-code/pages/VerifyEmail";
+import EmailConfirmation from "./spagetti-code/pages/EmailConfirmation";
 
 export default function App() {
   return (
