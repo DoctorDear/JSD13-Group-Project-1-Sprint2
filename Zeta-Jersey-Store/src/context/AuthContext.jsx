@@ -1,0 +1,61 @@
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { authService } from "../assets/services/auth";
+import { tokenStore, onUnauthorized } from "../lib/api";
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [booting, setBooting] = useState(true);
+
+  /* restore session on first load */
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!tokenStore.get()) {
+        if (alive) setBooting(false);
+        return;
+      }
+      try {
+        const me = await authService.me();
+        if (alive) setUser(me?.user ?? me);
+      } catch {
+        tokenStore.clear();
+        if (alive) setUser(null);
+      } finally {
+        if (alive) setBooting(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  /* api.js notifies us when a refresh failed */
+  useEffect(() => onUnauthorized(() => setUser(null)), []);
+
+  const login = useCallback(async (credentials, opts) => {
+    const data = await authService.login(credentials, opts);
+    const nextUser = data?.user ?? data;
+    setUser(nextUser);
+    return nextUser;
+  }, []);
+
+  const register = useCallback((payload, opts) => authService.register(payload, opts), []);
+
+  const logout = useCallback(async () => {
+    await authService.logout();
+    setUser(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, booting, isAuthenticated: !!user, login, register, logout, setUser }),
+    [user, booting, login, register, logout]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
+  return ctx;
+}
