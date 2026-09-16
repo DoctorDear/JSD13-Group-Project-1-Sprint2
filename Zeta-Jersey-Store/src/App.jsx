@@ -1,6 +1,3 @@
-import Body from "./components/Body.jsx";
-
-const App = () => <Body />;
 import React, { useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -13,6 +10,7 @@ import Subscribe from "./components/Subscribe";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import ProfileBody from "./components/ProfileBody";
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState("home");
@@ -52,12 +50,13 @@ const App = () => {
         {currentPage === "home" && (
           <div>
             <Navbar page="home" />
-            <PromoBar />
+            {/* <PromoBar />
             <LeagueCard />
             <Collections />
             <ProductDetail />
             <Suggestion />
-            <Subscribe />
+            <Subscribe /> */}
+            <ProfileBody />
             <Footer />
           </div>
         )}

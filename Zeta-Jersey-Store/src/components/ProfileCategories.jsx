@@ -19,12 +19,12 @@ function ProfileCategories() {
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {categories.map((category) => (
-          <div key={category.title} className="flex items-center gap-4 rounded-xl border border-[#e4e9dc] bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md">
-            <div className="grid size-11 place-items-center rounded-sm bg-[#eff2bd] text-[#777f00]">
+          <div key={category.title} className="flex items-center gap-4 rounded-xl border border-zeta-main-lighter bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer">
+            <div className="grid size-11 place-items-center rounded-sm bg-zeta-sub-lighter text-zeta-sub-dark">
               <category.icon size={20} strokeWidth={2.5} />
             </div>
-            <div><h2 className="text-sm font-black">{category.title}</h2><p className="mt-1 text-xs text-[#8b948e]">{category.detail}</p></div>
-            <span className="ml-auto text-[#abb3ac]">→</span>
+            <div><h2 className="text-sm font-black">{category.title}</h2><p className="mt-1 text-xs text-zeta-muted">{category.detail}</p></div>
+            <span className="ml-auto text-zeta-muted">→</span>
           </div>
         ))}
       </div>

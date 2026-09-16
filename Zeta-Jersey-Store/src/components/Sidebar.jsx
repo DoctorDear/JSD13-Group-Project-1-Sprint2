@@ -22,8 +22,12 @@ function Sidebar({ activeMenu, onMenuChange }) {
       <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#849087]">Main Menu</p>
       <nav className="space-y-2">
         {menuItems.map(({ label, icon: Icon }) => (
-          <button key={label} className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-semibold transition ${activeMenu === label ? "bg-[#ebf0b1] text-[#404900]" : "text-[#738078] hover:bg-[#f4f6ef]"}`} onClick={() => onMenuChange(label)}>
-            <span className="grid size-7 place-items-center rounded-sm bg-[#f1f4ec]">
+          <button
+            key={label}
+            className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-semibold transition ${activeMenu === label ? "bg-zeta-sub-lighter text-zeta-sub-dark" : "text-zeta-muted hover:bg-zeta-main-lighter/40"}`}
+            onClick={() => onMenuChange(label)}
+          >
+            <span className={`grid size-7 place-items-center rounded-sm ${activeMenu === label ? "bg-zeta-sub/40" : "bg-zeta-main-lighter"}`}>
               <Icon size={16} strokeWidth={2.5} />
             </span>
             {label}
