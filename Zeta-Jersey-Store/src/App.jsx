@@ -1,3 +1,6 @@
+import Body from "./components/Body.jsx";
+
+const App = () => <Body />;
 import React, { useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
