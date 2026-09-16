@@ -1,73 +1,46 @@
-import Body from "./components/Body.jsx";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute, GuestRoute } from "./components/RouteGuards";
+import MainLayout from "./components/MainLayout";
 
-const App = () => <Body />;
-import React, { useState } from "react";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import PromoBar from "./components/PromoBar";
-import LeagueCard from "./components/LeagueCard";
-import Collections from "./components/Collections";
-import ProductDetail from "./components/ProductDetail";
-import Suggestion from "./components/Suggestion";
-import Subscribe from "./components/Subscribe";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import EmailConfirmation from "./pages/EmailConfirmation";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
-const App = () => {
-  const [currentPage, setCurrentPage] = useState("home");
-
+export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
-      {/* Dev Navigation Bar for testing different pages */}
-      <div className="bg-neutral-900 text-white p-2.5 flex justify-center gap-3 text-xs sticky top-0 z-50 shadow-md">
-        <button
-          onClick={() => setCurrentPage("home")}
-          className={`px-3 py-1 rounded transition-colors ${currentPage === "home" ? "bg-indigo-600 font-semibold" : "hover:bg-neutral-750"}`}
-        >
-          Home Page
-        </button>
-        <button
-          onClick={() => setCurrentPage("cart")}
-          className={`px-3 py-1 rounded transition-colors ${currentPage === "cart" ? "bg-indigo-600 font-semibold" : "hover:bg-neutral-750"}`}
-        >
-          Cart Page
-        </button>
-        <button
-          onClick={() => setCurrentPage("checkout")}
-          className={`px-3 py-1 rounded transition-colors ${currentPage === "checkout" ? "bg-indigo-600 font-semibold" : "hover:bg-neutral-750"}`}
-        >
-          Checkout Page
-        </button>
-        <button
-          onClick={() => setCurrentPage("confirmation")}
-          className={`px-3 py-1 rounded transition-colors ${currentPage === "confirmation" ? "bg-indigo-600 font-semibold" : "hover:bg-neutral-750"}`}
-        >
-          Confirmation Page
-        </button>
-      </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* guests only — full-bleed auth pages, no navbar */}
+          <Route element={<GuestRoute />}>
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+          </Route>
 
-      {/* Pages Content */}
-      <main className="flex-1">
-        {currentPage === "home" && (
-          <div>
-            <Navbar page="home" />
-            <PromoBar />
-            <LeagueCard />
-            <Collections />
-            <ProductDetail />
-            <Suggestion />
-            <Subscribe />
-            <Footer />
-          </div>
-        )}
+          {/* open to everyone — magic link may open in any session state */}
+          <Route path="/email-confirmation" element={<EmailConfirmation />} />
 
-        {currentPage === "cart" && <CartPage />}
-        {currentPage === "checkout" && <CheckoutPage />}
-        {currentPage === "confirmation" && <OrderConfirmationPage />}
-      </main>
-    </div>
+          {/* authenticated — wrapped in MainLayout */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<MainLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+          </Route>
+
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
-};
-
-export default App;
+}
