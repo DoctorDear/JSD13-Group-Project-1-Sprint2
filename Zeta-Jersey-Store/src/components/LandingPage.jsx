@@ -12,7 +12,7 @@ const LandingPage = () => {
   return (
     <div>
       <Navbar page="home" />
-      <Navbar page="other" />
+
       <div className="-mt-24">
         <HeroSection className="realtive w-full min-h-[500px]" />
       </div>

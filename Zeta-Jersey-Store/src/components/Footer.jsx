@@ -8,7 +8,7 @@ import jcb from "../assets/bankIcon/jcb.png";
 const Footer = () => {
   return (
     <>
-      <footer className="bg-[#1E0E8A] text-[#D3D648] mt-20 pt-12 pb-8">
+      <footer className="bg-zeta-main text-zeta-sub mt-20 pt-12 pb-8">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           {/* LOGO */}
           <div>
@@ -25,7 +25,7 @@ const Footer = () => {
             <div className="flex flex-col items-start gap-4">
               <div className="flex items-center gap-4">
                 {/* phone icon */}
-                <div className="w-10 h-10 rounded-full bg-white text-[#1E0E8A] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-full bg-white text-zeta-main flex items-center justify-center shrink-0">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div className="font-medium">
@@ -36,13 +36,12 @@ const Footer = () => {
 
               {/* mail icon */}
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white text-[#1E0E8A] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-full bg-white text-zeta-main flex items-center justify-center shrink-0">
                   <Mail className="w-5 h-5" />
                 </div>
                 <p>Email: customer_service@zeta.com</p>
               </div>
             </div>
-
             {/* Products */}
             <div>
               <h3 className="font-semibold text-2xl mb-3">Products</h3>
@@ -64,14 +63,12 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-
             {/* About Us */}
             <div>
               <a href="#" className="font-semibold text-xl hover:text-white">
-                About Us{" "}
+                About Us
               </a>
             </div>
-
             {/* Payment Methods */}
             <div>
               <h3 className="font-semibold text-xl mb-3">We Accepted</h3>
@@ -110,7 +107,7 @@ const Footer = () => {
         </div>
 
         {/* Copyright */}
-        <div className="max-w-full mx-auto px-6 text-center text-base text-[#D3D648] border-t border-[#D3D648] pt-8 mt-12">
+        <div className="max-w-full mx-auto px-6 text-center text-base text-zeta-sub border-t border-zeta-sub pt-8 mt-12">
           &copy; 2026 Zeta | For educational purposes only.
         </div>
       </footer>

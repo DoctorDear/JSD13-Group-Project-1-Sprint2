@@ -20,7 +20,7 @@ const Collections = () => {
             </h3>
             <a
               href="#"
-              className="px-5 py-2.5 bg-[#D3D648]/95 hover:bg-gray-100 text-black font-semibold text-xs tracking-wide shadow-md transition-all flex items-center gap-1.5 shrink-0 hover:scale-105 active:scale-95"
+              className="px-5 py-2.5 bg-zeta-sub hover:bg-gray-100 text-black font-semibold text-xs tracking-wide shadow-md transition-all flex items-center gap-1.5 shrink-0 hover:scale-105 active:scale-95"
             >
               View Collection
             </a>
@@ -39,29 +39,29 @@ const Collections = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
             <a
               href="#"
-              className="relative z-20 ml-auto px-4 py-2 bg-[#D3D648]/95 hover:bg-gray-100 text-black font-semibold text-xs shadow-md transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
+              className="relative z-20 ml-auto px-4 py-2 bg-zeta-sub hover:bg-gray-100 text-black font-semibold text-xs shadow-md transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
             >
               View Collection
             </a>
           </div>
 
           {/* Champions League Blue Card */}
-          <div className="sm:col-span-5 bg-[#1E0E8A] rounded-3xl p-6 lg:p-7 flex flex-col justify-center shadow-sm min-h-[240px] lg:min-h-[262px]">
+          <div className="sm:col-span-5 bg-zeta-main rounded-3xl p-6 lg:p-7 flex flex-col justify-center shadow-sm min-h-[240px] lg:min-h-[262px]">
             <h3 className="text-lg lg:text-xl font-bold text-white uppercase tracking-tight mb-3 leading-snug">
               Champions League Jersey Collection
             </h3>
-            <p className="text-xs text-[#D3D648] leading-relaxed">
+            <p className="text-xs text-zeta-sub leading-relaxed">
               Explore our Champions League Jersey Edition now available in
               store.
             </p>
           </div>
 
           {/* Bottom Row - Blue Text Card */}
-          <div className="sm:col-span-5 bg-[#1E0E8A] rounded-3xl p-6 lg:p-7 flex flex-col justify-center shadow-sm min-h-[240px] lg:min-h-[262px]">
+          <div className="sm:col-span-5 bg-zeta-main rounded-3xl p-6 lg:p-7 flex flex-col justify-center shadow-sm min-h-[240px] lg:min-h-[262px]">
             <h3 className="text-lg lg:text-xl font-extrabold text-white uppercase tracking-tight mb-3 leading-snug">
               Explore Jerseys From Every Team, Across Every League
             </h3>
-            <p className="text-xs text-[#D3D648] leading-relaxed">
+            <p className="text-xs text-zeta-sub leading-relaxed">
               From every league, every club. Find the one that represents you.
             </p>
           </div>
@@ -76,7 +76,7 @@ const Collections = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
             <a
               href="#"
-              className="relative z-20 ml-auto px-4 py-2 bg-[#D3D648]/95 hover:bg-gray-100 text-black font-semibold text-xs shadow-md transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
+              className="relative z-20 ml-auto px-4 py-2 bg-zeta-sub hover:bg-gray-100 text-black font-semibold text-xs shadow-md transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
             >
               View Collection
             </a>
