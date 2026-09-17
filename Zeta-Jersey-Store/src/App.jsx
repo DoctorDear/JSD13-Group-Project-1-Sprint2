@@ -6,7 +6,7 @@ const App = () => {
   return (
     <div>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />s
         <Route path="/home" element={<LandingPage />} />
         {/* หน้ารายละเอียดสินค้า: :id คือตัวแปร Dynamic */}
         <Route path="/products/:id" element={<ProductDetailPage />} />

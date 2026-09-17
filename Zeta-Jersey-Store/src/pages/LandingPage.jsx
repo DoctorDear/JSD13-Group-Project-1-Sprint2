@@ -1,14 +1,31 @@
 import Navbar from "../components/Navbar";
 import PromoBar from "../components/PromoBar";
 import ProductCard from "../components/ProductCard";
-import { useCart } from "../context/CartContext";
 import LeagueCard from "../components/LeagueCard";
 import Collections from "../components/Collections";
 import Footer from "../components/Footer";
 import HeroSection from "../components/HeroSection";
+import { useState, useEffect } from "react";
 
 const LandingPage = () => {
-  const { products } = useCart();
+  const [products, setProducts] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/v1/products");
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+    fetchProduct();
+  }, []);
+
+  console.log(products);
+
   return (
     <div>
       <Navbar page="home" />
