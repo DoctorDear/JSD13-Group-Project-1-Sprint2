@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
+  const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
@@ -17,7 +18,8 @@ const ProductDetail = () => {
           `http://localhost:3001/api/v1/products/${id}`,
         );
         const data = await response.json();
-        setProduct(data);
+        setProduct(data.product);
+        setVariants(data.variants || []);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -103,21 +105,29 @@ const ProductDetail = () => {
         </div>
         <div className="w-[280px]">{product.description}</div>
         <div className="border border-zeta-muted w-full my-1"></div>
-        <div>
-          <span className="font-semibold text-base">Select Edition</span>
-          <div className="flex gap-3 pt-2">
-            {product?.editions?.map((edition) => (
-              <button
-                key={edition.id}
-                onClick={() => setSelectedEdition(edition.id)}
-                className={`w-full p-3 rounded-xl border text-left transition-all font-bold ${selectedEdition === edition.id ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10 " : "border-gray-200"}`}
-              >
-                <div className="text-sm">{edition.name}</div>
-                <div className="text-xs font-light">{edition.detail}</div>
-              </button>
-            ))}
+        {variants.length > 0 && (
+          <div>
+            <span className="font-semibold text-base">Select Edition</span>
+            <div className="flex gap-3 pt-2">
+              {variants.map((item) => (
+                <button
+                  key={item._id}
+                  onClick={() => setProduct(item)}
+                  className={`w-full p-3 rounded-xl border text-left transition-all font-bold ${
+                    product._id === item._id
+                      ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <div className="text-sm">{item.edition}</div>
+                  <div className="text-xs font-light text-zeta-muted">
+                    ฿{item.price?.toLocaleString()}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center ">
             <span className="font-semibold ">
