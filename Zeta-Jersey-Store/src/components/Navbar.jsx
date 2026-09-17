@@ -1,8 +1,11 @@
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = ({ page = "home" }) => {
   const isHome = page === "home";
+
+  const navigate = useNavigate();
 
   return (
     <>
@@ -14,14 +17,15 @@ const Navbar = ({ page = "home" }) => {
         }`}
       >
         {/* left: Logo */}
-        <div className="flex items-center">
-          <a href="#">
-            <img
-              className="h-20 w-auto -my-5 object-contain scale-250"
-              src={logo}
-              alt="green-jersey-logo"
-            />
-          </a>
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center cursor-pointer"
+        >
+          <img
+            className="h-20 w-auto -my-5 object-contain scale-250 "
+            src={logo}
+            alt="green-jersey-logo"
+          />
         </div>
 
         {/* center */}
