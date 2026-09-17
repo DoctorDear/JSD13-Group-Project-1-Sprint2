@@ -7,6 +7,8 @@ import Footer from "../components/Footer";
 import HeroSection from "../components/HeroSection";
 import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const LandingPage = () => {
   const [products, setProducts] = useState(null);
   const [error, setError] = useState(null);
@@ -14,7 +16,7 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/v1/products");
+        const response = await fetch(`${API_URL}/api/v1/products`);
         const data = await response.json();
         setProducts(data);
       } catch (err) {
