@@ -57,7 +57,9 @@ export const createProduct = async (req, res, next) => {
     const product = req.body;
     if (!product) res.status(400).json({ error: "Can't create product" });
     const newProduct = await Product.create(product);
-    return res.status(201).json(newProduct);
+    return res
+      .status(201)
+      .json({ message: "add new user completed ", data: product });
   } catch (err) {
     next(err);
   }
@@ -76,7 +78,7 @@ export const updateProduct = async (req, res, next) => {
     );
     if (!updateProduct) res.status(400).json({ error: "Product not found" });
 
-    return res.status(200).json(updateProduct);
+    return res.status(200).json({ message: "update product completed " });
   } catch (err) {
     next(err);
   }
