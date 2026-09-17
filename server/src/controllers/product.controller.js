@@ -1,5 +1,6 @@
 import { Product } from "../models/Product.model.js";
 
+// read all product and filter by searc name
 export const getProducts = async (req, res, next) => {
   try {
     const { search, ...filters } = req.query;
@@ -32,6 +33,7 @@ export const getProducts = async (req, res, next) => {
   }
 };
 
+// read specific product by id
 export const getProductById = async (req, res, next) => {
   try {
     const productById = await Product.findById(req.params.id);
