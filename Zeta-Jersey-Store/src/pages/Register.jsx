@@ -43,14 +43,14 @@ export default function Register() {
     >
       <AuthTitle>Register</AuthTitle>
 
-      <p className="mt-3 text-lg text-gray-900">
+      <p className="mt-3 text-base text-gray-900">
         Already have account?{" "}
         <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
           Log in
         </Link>
       </p>
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-5">
+      <form onSubmit={f.handleSubmit} noValidate className="mt-4 space-y-3">
         <FormError message={f.formError} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -71,8 +71,8 @@ export default function Register() {
             value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
             error={f.errorFor("password")} autoComplete="new-password" />
 
-          {f.values.password && (
-            <div className="mt-2 flex gap-1.5" aria-hidden="true">
+          <div className="h-2 mt-1" aria-hidden="true">
+            <div className={`flex gap-1.5 transition-opacity ${f.values.password ? "opacity-100" : "opacity-0"}`}>
               {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
@@ -82,31 +82,33 @@ export default function Register() {
                 />
               ))}
             </div>
-          )}
+          </div>
         </div>
 
         <div>
-          <label className="flex items-center gap-3 pt-2 cursor-pointer select-none">
+          <label className="flex items-center gap-3 pt-1 cursor-pointer select-none">
             <input
               type="checkbox"
               name="agreed"
               checked={f.values.agreed}
               onChange={f.handleChange}
               onBlur={f.handleBlur}
-              className="h-6 w-6 rounded border-2 border-black accent-indigo-900 focus:ring-indigo-900"
+              className="h-5 w-5 rounded border-2 border-black accent-indigo-900 focus:ring-indigo-900 shrink-0"
             />
-            <span className="text-lg text-gray-900">I'm agree to the Term &amp; Condition</span>
+            <span className="text-sm text-gray-900">I'm agree to the Term &amp; Condition</span>
           </label>
-          {f.errorFor("agreed") && (
-            <p className="mt-1.5 text-sm font-medium text-red-600">{f.errorFor("agreed")}</p>
-          )}
+          <div className="min-h-[18px] mt-1">
+            {f.errorFor("agreed") && (
+              <p className="text-xs font-medium text-red-600">{f.errorFor("agreed")}</p>
+            )}
+          </div>
         </div>
 
         <AuthButton type="submit" disabled={f.submitting} className="disabled:opacity-60">
           {f.submitting ? "Creating account…" : "Create account"}
         </AuthButton>
 
-        <div className="grid grid-cols-2 gap-4 pt-2">
+        <div className="grid grid-cols-2 gap-4 pt-1">
           <SocialButton icon={<GoogleIcon />} label="Google" />
           <SocialButton icon={<AppleIcon />} label="Apple" />
         </div>

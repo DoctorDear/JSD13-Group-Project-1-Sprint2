@@ -25,16 +25,21 @@ export default function Login() {
   });
 
   return (
-    <AuthLayout image={HERO} imageAlt="Football fan sitting in stadium seats at dusk">
+    <AuthLayout
+      image={HERO}
+      imageAlt="Football fan sitting in stadium seats at dusk"
+      showBackButton
+      onBack={() => navigate("/")}
+    >
       <AuthTitle>Log in</AuthTitle>
 
       {state?.verified && (
-        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800">
+        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-xs font-medium text-lime-800">
           Email confirmed — you can log in now.
         </p>
       )}
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-10 space-y-7">
+      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-4">
         <FormError message={f.formError} />
 
         <Field label="Email" name="email" type="email" placeholder="Your email"
@@ -45,7 +50,7 @@ export default function Login() {
           error={f.errorFor("password")} autoComplete="current-password" />
 
         <Link to="/reset-password"
-          className="block text-lg text-gray-900 hover:text-indigo-700 hover:underline underline-offset-2 transition">
+          className="block text-base text-gray-900 hover:text-indigo-700 hover:underline underline-offset-2 transition">
           Forget Password ?
         </Link>
 
@@ -53,7 +58,7 @@ export default function Login() {
           {f.submitting ? "Logging in…" : "Log in"}
         </AuthButton>
 
-        <p className="text-center text-lg text-gray-900">
+        <p className="text-center text-base text-gray-900">
           No account yet?{" "}
           <Link to="/register" className="underline underline-offset-2 font-medium hover:text-indigo-700">
             Register

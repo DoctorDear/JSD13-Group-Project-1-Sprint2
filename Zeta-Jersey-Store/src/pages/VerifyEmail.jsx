@@ -35,15 +35,15 @@ export default function VerifyEmail() {
       onBack={() => navigate("/")}
     >
       <AuthTitle>Verify email</AuthTitle>
-      <p className="mt-3 text-lg text-gray-900">Please enter your email</p>
+      <p className="mt-3 text-base text-gray-900">Please enter your email</p>
 
       {state?.sent && (
-        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800">
+        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-xs font-medium text-lime-800">
           We've emailed you a reset link.
         </p>
       )}
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-8 space-y-7">
+      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-4">
         <FormError message={f.formError} />
 
         <Field label="Your email" name="email" type="email" placeholder="Your email"
@@ -53,11 +53,11 @@ export default function VerifyEmail() {
           value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
           error={f.errorFor("password")} autoComplete="new-password" />
 
-        <AuthButton type="submit" disabled={f.submitting} className="mt-10 disabled:opacity-60">
+        <AuthButton type="submit" disabled={f.submitting} className="mt-6 disabled:opacity-60">
           {f.submitting ? "Resetting…" : "Reset password"}
         </AuthButton>
 
-        <p className="text-center text-lg text-gray-900">
+        <p className="text-center text-base text-gray-900">
           <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
             Back to log in
           </Link>

@@ -28,20 +28,20 @@ export default function ResetPassword() {
       onBack={() => navigate("/")}
     >
       <AuthTitle>Reset password</AuthTitle>
-      <p className="mt-6 text-lg text-gray-900">Password problem ? We got you!</p>
+      <p className="mt-4 text-base text-gray-900">Password problem ? We got you!</p>
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-8">
+      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-4">
         <FormError message={f.formError} />
 
         <Field label="Email" name="email" type="email" placeholder="Your email"
           value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" className="mt-4" />
+          error={f.errorFor("email")} autoComplete="email" />
 
-        <AuthButton type="submit" disabled={f.submitting} className="mt-10 disabled:opacity-60">
+        <AuthButton type="submit" disabled={f.submitting} className="mt-6 disabled:opacity-60">
           {f.submitting ? "Sending…" : "Summit email address"}
         </AuthButton>
 
-        <p className="mt-6 text-center text-lg text-gray-900">
+        <p className="mt-4 text-center text-base text-gray-900">
           Remembered it?{" "}
           <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
             Log in

@@ -87,19 +87,19 @@ export default function EmailConfirmation() {
       <AuthTitle>Email<br />Confirmation</AuthTitle>
 
       {email && status !== "success" && (
-        <p className="mt-4 text-lg text-gray-900">
+        <p className="mt-4 text-base text-gray-900">
           We sent a link to <span className="font-semibold">{email}</span>
         </p>
       )}
 
-      <div className="mt-10 space-y-6">
+      <div className="mt-6 space-y-4">
         {status === "success" ? (
           <div role="status" aria-live="polite"
             className="flex items-center gap-3 rounded-lg border border-lime-300 bg-lime-50 px-4 py-4">
             <svg className="h-6 w-6 shrink-0 fill-lime-600" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3l-4 4a1 1 0 01-1.4 0l-2-2 1.4-1.4L9 10.6l3.3-3.3 1.4 1.4z" />
             </svg>
-            <p className="text-lg font-medium text-lime-800">Email confirmed! Redirecting to log in…</p>
+            <p className="text-base font-medium text-lime-800">Email confirmed! Redirecting to log in…</p>
           </div>
         ) : (
           <>
@@ -107,7 +107,7 @@ export default function EmailConfirmation() {
 
             {notice && (
               <div role="status" aria-live="polite"
-                className="rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800">
+                className="rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-xs font-medium text-lime-800">
                 {notice}
               </div>
             )}
