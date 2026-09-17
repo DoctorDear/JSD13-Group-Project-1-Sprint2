@@ -1,24 +1,47 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
-import { useState } from "react";
-import { useCart } from "../context/CartContext";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const ProductDetail = () => {
-  const { products } = useCart();
-  const product = products[0];
+  const [product, setProduct] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { id } = useParams();
 
-  const [selectedImg, setSelectedImg] = useState(
-    product?.images?.[0] || product?.imageUrl,
-  );
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/v1/products/${id}`);
+        const data = await response.json();
+        setProduct(data.product);
+        setVariants(data.variants || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchProduct();
+  }, [id]);
 
-  const [selectedEdition, setSelectedEdition] = useState(
-    product?.editions?.[0]?.id || "stadium",
-  );
+  const [selectedImg, setSelectedImg] = useState(null);
 
-  const currentEdition = product?.editions?.find(
-    (e) => e.id === selectedEdition,
-  );
+  const [selectedSize, setSelectedSize] = useState("M");
 
-  const [selectedSize, setSelectedSize] = useState(product?.size?.[0] || "M");
+  if (loading)
+    return <div className="p-8 text-center">loading product data...</div>;
+  if (error || !product)
+    return (
+      <div className="p-8 text-center text-red-500">
+        {error || "Not found product"}
+      </div>
+    );
+
+  const currentImg = selectedImg || product?.images?.[0];
 
   return (
     <div className="flex p-6">
@@ -29,7 +52,7 @@ const ProductDetail = () => {
               key={index}
               onClick={() => setSelectedImg(imgUrl)}
               className={`w-20 h-20 rounded-xl overflow-hidden ${
-                selectedImg === imgUrl // condition
+                currentImg === imgUrl // condition
                   ? "ring-2 ring-zeta-sub" // if truly
                   : "opacity-70 hover:opacity-100" // if falsy
               }`}
@@ -44,7 +67,7 @@ const ProductDetail = () => {
         </div>
         <div className="w-[450px] h-[600px] rounded-3xl overflow-hidden">
           <img
-            src={selectedImg}
+            src={currentImg}
             alt={product?.name}
             className="w-full h-full object-cover"
           />
@@ -76,21 +99,29 @@ const ProductDetail = () => {
         </div>
         <div className="w-[280px]">{product.description}</div>
         <div className="border border-zeta-muted w-full my-1"></div>
-        <div>
-          <span className="font-semibold text-base">Select Edition</span>
-          <div className="flex gap-3 pt-2">
-            {product?.editions?.map((edition) => (
-              <button
-                key={edition.id}
-                onClick={() => setSelectedEdition(edition.id)}
-                className={`w-full p-3 rounded-xl border text-left transition-all font-bold ${selectedEdition === edition.id ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10 " : "border-gray-200"}`}
-              >
-                <div className="text-sm">{edition.name}</div>
-                <div className="text-xs font-light">{edition.detail}</div>
-              </button>
-            ))}
+        {variants.length > 0 && (
+          <div>
+            <span className="font-semibold text-base">Select Edition</span>
+            <div className="flex gap-3 pt-2">
+              {variants.map((item) => (
+                <button
+                  key={item._id}
+                  onClick={() => setProduct(item)}
+                  className={`w-full p-3 rounded-xl border text-left transition-all font-bold ${
+                    product._id === item._id
+                      ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <div className="text-sm">{item.edition}</div>
+                  <div className="text-xs font-light text-zeta-muted">
+                    ฿{item.price?.toLocaleString()}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center ">
             <span className="font-semibold ">
@@ -116,7 +147,7 @@ const ProductDetail = () => {
         <div>
           <button className="btn btn-wide bg-zeta-main text-white rounded-xl">
             <ShoppingBag />
-            <span>Add toc Cart</span>
+            <span>Add to Cart</span>
           </button>
           <button className="btn">
             <Heart />

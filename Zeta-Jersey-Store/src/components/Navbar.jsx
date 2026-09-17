@@ -1,39 +1,43 @@
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = ({ page = "home" }) => {
   const isHome = page === "home";
+
+  const navigate = useNavigate();
 
   return (
     <>
       <nav
         className={`h-16 sticky z-50 flex items-center justify-between px-6 md:px-8 transition-all duration-300 ${
           isHome
-            ? "top-4 mt-4 max-w-full bg-[#2F2F2F]/80 backdrop-blur-lg rounded-full"
-            : "top-0 w-full bg-[#1E0E8A]"
+            ? "top-4 mt-4 mx-4 max-w-full bg-[#2F2F2F]/80 backdrop-blur-lg rounded-full"
+            : "top-0 w-full bg-zeta-main"
         }`}
       >
         {/* left: Logo */}
-        <div className="flex items-center">
-          <a href="#">
-            <img
-              className="h-20 w-auto -my-5 object-contain scale-250"
-              src={logo}
-              alt="green-jersey-logo"
-            />
-          </a>
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center cursor-pointer"
+        >
+          <img
+            className="h-20 w-auto -my-5 object-contain scale-250 "
+            src={logo}
+            alt="green-jersey-logo"
+          />
         </div>
 
         {/* center */}
         <div
-          className={`flex items-center h-10 rounded-full text-base text-white ${isHome ? "bg-[#D3D648]/30 border border-white/10" : "bg-[#FFFFFF]/10 border border-white/10"}`}
+          className={`flex items-center h-10 rounded-full text-base text-white ${isHome ? "bg-zeta-sub/30 border border-white/10" : "bg-[#FFFFFF]/10 border border-white/10"}`}
         >
           <a
             href="#"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
-                ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
-                : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+                ? "hover:text-zeta-main hover:bg-zeta-sub/20"
+                : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
           >
             New Arrivals
@@ -42,8 +46,8 @@ const Navbar = ({ page = "home" }) => {
             href="#"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
-                ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
-                : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+                ? "hover:text-zeta-main hover:bg-zeta-sub/20"
+                : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
           >
             Best Seller
@@ -52,8 +56,8 @@ const Navbar = ({ page = "home" }) => {
             href="#"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
-                ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
-                : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+                ? "hover:text-zeta-main hover:bg-zeta-sub/20"
+                : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
           >
             League
@@ -62,8 +66,8 @@ const Navbar = ({ page = "home" }) => {
             href="#"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
-                ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
-                : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+                ? "hover:text-zeta-main hover:bg-zeta-sub/20"
+                : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
           >
             Collections
@@ -72,8 +76,8 @@ const Navbar = ({ page = "home" }) => {
             href="#"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
-                ? "hover:text-[#1E0E8A] hover:bg-[#D3D648]/20"
-                : "hover:text-[#D3D648] hover:bg-[#FFFFFF]/10"
+                ? "hover:text-zeta-main hover:bg-zeta-sub/20"
+                : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
           >
             On Sale
@@ -86,7 +90,7 @@ const Navbar = ({ page = "home" }) => {
           <label
             className={`input rounded-full h-10 w-40 text-white flex items-center focus-within:outline-none focus-within:ring-1 focus-within:ring-white/30 ${
               isHome
-                ? " bg-[#D3D648]/30 border border-white/20"
+                ? " bg-zeta-sub/30 border border-white/20"
                 : " bg-[#FFFFFF]/30 border border-white/20"
             }`}
           >
@@ -119,7 +123,11 @@ const Navbar = ({ page = "home" }) => {
             <button
               type="button"
               aria-lable="whishlist"
-              className="p-2 rounded-xl hover:bg-[#D3D648]/30 transition cursor-pointer"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-zeta-main hover:bg-zeta-sub/25"
+                  : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <Heart className="w-6 h-6" />
             </button>
@@ -127,7 +135,11 @@ const Navbar = ({ page = "home" }) => {
             <button
               type="button"
               aria-lable="whishlist"
-              className="p-2 rounded-xl hover:bg-[#D3D648]/30 transition cursor-pointer"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-zeta-main hover:bg-zeta-sub/35"
+                  : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <ShoppingCart className="w-6 h-6" />
             </button>
@@ -135,7 +147,11 @@ const Navbar = ({ page = "home" }) => {
             <button
               type="button"
               aria-lable="whishlist"
-              className="p-2 rounded-xl hover:bg-[#D3D648]/30 transition cursor-pointer"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-zeta-main hover:bg-zeta-sub/35"
+                  : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <CircleUser className="w-6 h-6" />
             </button>
