@@ -50,3 +50,42 @@ export const getProductById = async (req, res, next) => {
     next(err);
   }
 };
+
+// create new product
+export const createProduct = async (req, res, next) => {
+  try {
+    const product = req.body;
+    if (!product) res.status(400).json({ error: "Can't create product" });
+    const newProduct = await Product.create(product);
+    return res.status(201).json(newProduct);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// update product
+export const updateProduct = async (req, res, next) => {
+  try {
+    const product = req.body;
+
+    if (!product) res.status(400).json({ error: "Can't update product" });
+    const updateProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      product,
+      { new: true, runValidators: true },
+    );
+    if (!updateProduct) res.status(400).json({ error: "Product not found" });
+
+    return res.status(200).json(updateProduct);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// export const deleteProduct = async (req, res, next) => {
+//   try {
+//     const
+//   } catch (err) {
+//     next(err)
+//   }
+// }
