@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
     return (
         <div className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">

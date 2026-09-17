@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import CheckOutItemCard from '../components/CheckOutItemCard';
 
 const CheckoutPage = () => {
     const [paymentMethod, setPaymentMethod] = useState('card');
@@ -45,35 +46,22 @@ const CheckoutPage = () => {
                                 </svg>
                             </div>
 
-                            {/* รายการสินค้า */}
+                            {/* รายการสินค้า (Mobile) */}
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10" alt="product" className="w-[57.5px] h-[57.5px] object-cover rounded-xl border" />
-                                            <span className="absolute -top-2 -right-2 bg-gray-800 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-bold text-gray-900">Manchster United FC 26/27 Away Jersey Authentic</h4>
-                                            <p className="text-xs text-gray-500">Size : Middle</p>
-                                        </div>
-                                    </div>
-                                    <span className="text-sm font-bold text-gray-900">$140</span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <img src="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc" alt="product" className="w-[57.5px] h-[57.5px] object-cover rounded-xl border" />
-                                            <span className="absolute -top-2 -right-2 bg-gray-800 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-bold text-gray-900">Arsenal FC 26/27 Away Jersey Authentic</h4>
-                                            <p className="text-xs text-gray-500">Size : Large</p>
-                                        </div>
-                                    </div>
-                                    <span className="text-sm font-bold text-gray-900">฿140</span>
-                                </div>
+                                <CheckOutItemCard
+                                    image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"
+                                    title="Manchester United FC 26/27 Away Jersey Authentic"
+                                    size="Middle"
+                                    price="฿140"
+                                    quantity="1"
+                                />
+                                <CheckOutItemCard
+                                    image="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc"
+                                    title="Arsenal FC 26/27 Away Jersey Authentic"
+                                    size="Large"
+                                    price="฿140"
+                                    quantity="1"
+                                />
                             </div>
 
                             {/* Promo Code */}
@@ -114,8 +102,8 @@ const CheckoutPage = () => {
                                     <input type="text" placeholder="Last name" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
                                 </div>
 
-                                <input type="text" placeholder="Address" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
                                 <input type="text" placeholder="Apartment, suite, etc (optional)" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
+                                <input type="text" placeholder="Address" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
 
                                 {/* Responsive Grid สำหรับ City, Province, Postcode */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -273,7 +261,7 @@ const CheckoutPage = () => {
                                     <span className="font-bold text-gray-900">฿565</span>
                                 </div>
                                 <div className="flex justify-between text-gray-500">
-                                    <span>Discpunt (-20%)</span>
+                                    <span>Discount (-20%)</span>
                                     <span className="font-bold text-red-500">-฿113</span>
                                 </div>
                                 <div className="flex justify-between text-gray-500">
@@ -282,7 +270,7 @@ const CheckoutPage = () => {
                                 </div>
                                 <div className="flex justify-between text-base font-bold text-gray-900 pt-2">
                                     <span>Total</span>
-                                    <span>$467</span>
+                                    <span>฿467</span>
                                 </div>
                             </div>
 
@@ -302,35 +290,22 @@ const CheckoutPage = () => {
 
                         <h3 className="text-xl font-bold text-gray-900">Order Summary</h3>
 
-                        {/* รายการสินค้า */}
+                        {/* รายการสินค้า (Desktop) */}
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10" alt="product" className="w-[57.5px] h-[57.5px] object-cover rounded-xl border" />
-                                        <span className="absolute -top-2 -right-2 bg-gray-800 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-gray-900">Manchster United FC 26/27 Away Jersey Authentic</h4>
-                                        <p className="text-xs text-gray-500">Size : Middle</p>
-                                    </div>
-                                </div>
-                                <span className="text-sm font-bold text-gray-900">฿140</span>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <img src="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc" alt="product" className="w-[57.5px] h-[57.5px] object-cover rounded-xl border" />
-                                        <span className="absolute -top-2 -right-2 bg-gray-800 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-gray-900">Arsenal FC 26/27 Away Jersey Authentic</h4>
-                                        <p className="text-xs text-gray-500">Size : Large</p>
-                                    </div>
-                                </div>
-                                <span className="text-sm font-bold text-gray-900">฿140</span>
-                            </div>
+                            <CheckOutItemCard
+                                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"
+                                title="Manchester United FC 26/27 Away Jersey Authentic"
+                                size="Middle"
+                                price="฿140"
+                                quantity="1"
+                            />
+                            <CheckOutItemCard
+                                image="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc"
+                                title="Arsenal FC 26/27 Away Jersey Authentic"
+                                size="Large"
+                                price="฿140"
+                                quantity="1"
+                            />
                         </div>
 
                         {/* Promo Code */}
@@ -352,7 +327,7 @@ const CheckoutPage = () => {
                                 <span className="font-bold text-gray-900">฿565</span>
                             </div>
                             <div className="flex justify-between text-gray-500">
-                                <span>Discpunt (-20%)</span>
+                                <span>Discount (-20%)</span>
                                 <span className="font-bold text-red-500">-฿113</span>
                             </div>
                             <div className="flex justify-between text-gray-500">
