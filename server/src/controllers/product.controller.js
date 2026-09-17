@@ -39,7 +39,11 @@ export const getProductById = async (req, res, next) => {
     if (!productById) {
       return res.status(404).json({ error: "Product not found" });
     }
-    res.status(200).json(productById);
+    let variants = [];
+    if (productById.groupId) {
+      variants = await Product.find({ groupId: productById.groupId });
+    }
+    res.status(200).json({ product: productById, variants });
   } catch (err) {
     next(err);
   }

@@ -1,10 +1,14 @@
-import LandingPage from "./components/LandingPage";
+import { Routes, Route } from "react-router-dom";
+import ProductDetailPage from "./pages/ProductDetailPage";
 
 const App = () => {
   return (
-    <>
-      <LandingPage />
-    </>
+    <div>
+      <Routes>
+        {/* หน้ารายละเอียดสินค้า: :id คือตัวแปร Dynamic */}
+        <Route path="/products/:id" element={<ProductDetailPage />} />
+      </Routes>
+    </div>
   );
 };
 
