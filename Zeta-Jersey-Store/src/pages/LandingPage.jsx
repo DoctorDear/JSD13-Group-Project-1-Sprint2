@@ -19,6 +19,7 @@ const LandingPage = () => {
         setProducts(data);
       } catch (err) {
         setError(err.message);
+        console.log(error);
       }
     };
     fetchProduct();
