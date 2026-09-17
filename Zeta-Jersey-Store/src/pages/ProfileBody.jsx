@@ -5,12 +5,14 @@ import ProfileHero from "../components/ProfileHero.jsx";
 import ReviewsAndStats from "../components/ReviewsAndStats.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import EditProfilePage from "../components/EditProfilePage.jsx";
+import ProfileDetailsPage from "../components/ProfileDetailsPage.jsx";
 
 function ProfileBody() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [likedProducts, setLikedProducts] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [isViewingDetails, setIsViewingDetails] = useState(false);
   const [user, setUser] = useState({
     name: "Somchai K.",
     email: "somchai@example.com",
@@ -29,10 +31,12 @@ function ProfileBody() {
   const handleMenuChange = (menu) => {
     setActiveMenu(menu);
     setIsEditing(false);
+    setIsViewingDetails(false);
   };
 
   const handleEditClick = () => {
     setIsEditing(true);
+    setIsViewingDetails(false);
     setActiveMenu("My Account");
   };
 
@@ -43,6 +47,15 @@ function ProfileBody() {
   const handleEditSave = (formData) => {
     setUser(formData);
     setIsEditing(false);
+  };
+
+  const handleViewAllClick = () => {
+    setIsViewingDetails(true);
+    setIsEditing(false);
+  };
+
+  const handleBackFromDetails = () => {
+    setIsViewingDetails(false);
   };
 
   const renderContent = () => {
@@ -56,12 +69,22 @@ function ProfileBody() {
       );
     }
 
+    if (isViewingDetails) {
+      return (
+        <ProfileDetailsPage
+          user={user}
+          onBack={handleBackFromDetails}
+          onEditClick={handleEditClick}
+        />
+      );
+    }
+
     switch (activeMenu) {
       case "Home":
         return (
           <>
             <ProfileHero user={user} onEditClick={handleEditClick} />
-            <ProfileCategories user={user} />
+            <ProfileCategories user={user} onViewAll={handleViewAllClick} />
             <ProfileProductSection
               activeProductTab={activeProductTab}
               onProductTabChange={setActiveProductTab}
@@ -75,7 +98,7 @@ function ProfileBody() {
         return (
           <>
             <ProfileHero user={user} onEditClick={handleEditClick} />
-            <ProfileCategories user={user} />
+            <ProfileCategories user={user} onViewAll={handleViewAllClick} />
           </>
         );
 

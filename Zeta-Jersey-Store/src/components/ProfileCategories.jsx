@@ -1,6 +1,6 @@
-import { House, LockKeyhole, Settings, UserRound } from "lucide-react";
+import { ChevronRight, House, LockKeyhole, Settings, UserRound } from "lucide-react";
 
-function ProfileCategories({ user }) {
+function ProfileCategories({ user, onViewAll }) {
   const categories = [
     {
       icon: UserRound,
@@ -31,11 +31,21 @@ function ProfileCategories({ user }) {
           <p className="text-xs font-bold tracking-widest text-[#8a948c]">EXPLORE</p>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">Profile Information</h1>
         </div>
-        <button className="btn btn-ghost btn-sm text-[#777f79]">View all →</button>
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="btn btn-ghost btn-sm text-[#777f79] hover:text-zeta-main hover:bg-zeta-main-lighter/40 transition cursor-pointer"
+        >
+          View all
+        </button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {categories.map((category) => (
-          <div key={category.title} className="flex items-center gap-4 rounded-xl border border-zeta-main-lighter bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer">
+          <div
+            key={category.title}
+            onClick={onViewAll}
+            className="flex items-center gap-4 rounded-xl border border-zeta-main-lighter bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+          >
             <div className="grid size-11 place-items-center rounded-sm bg-zeta-sub-lighter text-zeta-sub-dark">
               <category.icon size={20} strokeWidth={2.5} />
             </div>
@@ -43,7 +53,7 @@ function ProfileCategories({ user }) {
               <h2 className="text-sm font-black">{category.title}</h2>
               <p className="mt-1 truncate text-xs text-zeta-muted">{category.detail}</p>
             </div>
-            <span className="ml-auto text-zeta-muted">→</span>
+            <ChevronRight size={18} className="ml-auto text-zeta-muted" />
           </div>
         ))}
       </div>
