@@ -2,6 +2,8 @@ import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
@@ -13,9 +15,7 @@ const ProductDetail = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `http://localhost:3001/api/v1/products/${id}`,
-        );
+        const response = await fetch(`${API_URL}/api/v1/products/${id}`);
         const data = await response.json();
         setProduct(data.product);
         setVariants(data.variants || []);
@@ -147,7 +147,7 @@ const ProductDetail = () => {
         <div>
           <button className="btn btn-wide bg-zeta-main text-white rounded-xl">
             <ShoppingBag />
-            <span>Add toc Cart</span>
+            <span>Add to Cart</span>
           </button>
           <button className="btn">
             <Heart />

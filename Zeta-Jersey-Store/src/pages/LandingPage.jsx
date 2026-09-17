@@ -1,14 +1,34 @@
-import Navbar from "./Navbar";
-import PromoBar from "./PromoBar";
-import ProductCard from "./ProductCard";
-import { useCart } from "../context/CartContext";
-import LeagueCard from "./LeagueCard";
-import Collections from "./Collections";
-import Footer from "./Footer";
-import HeroSection from "./HeroSection";
+import Navbar from "../components/Navbar";
+import PromoBar from "../components/PromoBar";
+import ProductCard from "../components/ProductCard";
+import LeagueCard from "../components/LeagueCard";
+import Collections from "../components/Collections";
+import Footer from "../components/Footer";
+import HeroSection from "../components/HeroSection";
+import { useState, useEffect } from "react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const LandingPage = () => {
-  const { products } = useCart();
+  const [products, setProducts] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/v1/products`);
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+        console.log(error);
+      }
+    };
+    fetchProduct();
+  }, []);
+
+  console.log(products);
+
   return (
     <div>
       <Navbar page="home" />
