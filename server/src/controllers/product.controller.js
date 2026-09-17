@@ -59,7 +59,7 @@ export const createProduct = async (req, res, next) => {
     const newProduct = await Product.create(product);
     return res
       .status(201)
-      .json({ message: "add new user completed ", data: product });
+      .json({ message: "create new product completed ", data: product });
   } catch (err) {
     next(err);
   }
@@ -84,10 +84,17 @@ export const updateProduct = async (req, res, next) => {
   }
 };
 
-// export const deleteProduct = async (req, res, next) => {
-//   try {
-//     const
-//   } catch (err) {
-//     next(err)
-//   }
-// }
+// deleted product
+export const deleteProduct = async (req, res, next) => {
+  try {
+    const deleteProduct = await Product.findByIdAndDelete(req.params.id);
+
+    if (!deleteProduct) res.status(404).json({ error: "Product not found!" });
+
+    res.status(200).json({
+      message: "Product successfully deleted",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
