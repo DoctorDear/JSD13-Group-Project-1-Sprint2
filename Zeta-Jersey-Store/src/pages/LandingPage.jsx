@@ -1,11 +1,11 @@
-import Navbar from "./Navbar";
-import PromoBar from "./PromoBar";
-import ProductCard from "./ProductCard";
+import Navbar from "../components/Navbar";
+import PromoBar from "../components/PromoBar";
+import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
-import LeagueCard from "./LeagueCard";
-import Collections from "./Collections";
-import Footer from "./Footer";
-import HeroSection from "./HeroSection";
+import LeagueCard from "../components/LeagueCard";
+import Collections from "../components/Collections";
+import Footer from "../components/Footer";
+import HeroSection from "../components/HeroSection";
 
 const LandingPage = () => {
   const { products } = useCart();

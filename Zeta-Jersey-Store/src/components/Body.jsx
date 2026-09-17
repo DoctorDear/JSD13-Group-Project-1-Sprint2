@@ -2,7 +2,6 @@ import { useState } from "react";
 import ProductSection from "./ProductSection.jsx";
 import ProfileCategories from "./ProfileCategories.jsx";
 import ProfileHero from "./ProfileHero.jsx";
-import ReviewsAndStats from "./ReviewsAndStats.jsx";
 import Sidebar from "./Sidebar.jsx";
 
 function Body() {
