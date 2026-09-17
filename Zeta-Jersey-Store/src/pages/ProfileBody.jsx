@@ -153,7 +153,7 @@ function ProfileBody() {
 
   return (
     <main className="min-h-screen bg-[#f5f7f2] text-[#18251e]">
-      <div className="mx-auto flex max-w-7xl">
+      <div className="mx-auto flex flex-col lg:flex-row max-w-7xl">
         <Sidebar activeMenu={activeMenu} onMenuChange={handleMenuChange} />
         <section className="min-w-0 flex-1">
           <div className="px-5 py-6 sm:px-10 sm:py-9">
