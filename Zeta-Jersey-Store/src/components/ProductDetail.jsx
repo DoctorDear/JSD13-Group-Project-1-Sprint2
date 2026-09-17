@@ -1,7 +1,6 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-// import { useCart } from "../context/CartContext";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -30,13 +29,8 @@ const ProductDetail = () => {
   }, [id]);
 
   const [selectedImg, setSelectedImg] = useState(null);
-  const [selectedEdition, setSelectedEdition] = useState(
-    product?.editions?.[0]?.id || "stadium",
-  );
-  const currentEdition = product?.editions?.find(
-    (e) => e.id === selectedEdition,
-  );
-  const [selectedSize, setSelectedSize] = useState(product?.size?.[0] || "M");
+
+  const [selectedSize, setSelectedSize] = useState("M");
 
   if (loading)
     return <div className="p-8 text-center">loading product data...</div>;
@@ -58,7 +52,7 @@ const ProductDetail = () => {
               key={index}
               onClick={() => setSelectedImg(imgUrl)}
               className={`w-20 h-20 rounded-xl overflow-hidden ${
-                selectedImg === imgUrl // condition
+                currentImg === imgUrl // condition
                   ? "ring-2 ring-zeta-sub" // if truly
                   : "opacity-70 hover:opacity-100" // if falsy
               }`}
