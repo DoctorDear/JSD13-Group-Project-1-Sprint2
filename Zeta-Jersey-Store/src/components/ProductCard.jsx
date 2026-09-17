@@ -1,8 +1,12 @@
 import { Heart, ShoppingCart } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   return (
-    <div className="card w-96 rounded-xl bg-white-100">
+    <div
+      onClick={() => navigate(`/products/${product._id || product.id}`)}
+      className="card w-96 rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
+    >
       <figure className="px-5 pt-5 ">
         <img
           className="rounded-xl aspect-square object-cover"
