@@ -44,7 +44,7 @@ const LeagueCard = () => {
             />
             <div class="absolute inset-0 from-black/50 via-black/15 to-transparent z-10 transition-opacity duration-300 group-hover:from-black/65"></div>
             <div class="relative z-20 transition-transform duration-300 group-hover:translate-x-1">
-              <span class="text-xs font-semibold text-[#D3D648] uppercase tracking-wider block mb-1">
+              <span class="text-xs font-semibold text-zeta-sub uppercase tracking-wider block mb-1">
                 League
               </span>
               <h3 class="text-xl font-bold text-white tracking-tight drop-shadow-md">
@@ -65,7 +65,7 @@ const LeagueCard = () => {
             />
             <div class="absolute inset-0 from-black/50 via-black/15 to-transparent z-10 transition-opacity duration-300 group-hover:from-black/65"></div>
             <div class="relative z-20 transition-transform duration-300 group-hover:translate-x-1">
-              <span class="text-xs font-semibold text-[#D3D648] uppercase tracking-wider block mb-1">
+              <span class="text-xs font-semibold text-zeta-sub uppercase tracking-wider block mb-1">
                 League
               </span>
               <h3 class="text-xl font-bold text-white tracking-tight drop-shadow-md">
