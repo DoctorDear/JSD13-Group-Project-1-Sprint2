@@ -1,16 +1,22 @@
 import { useState } from "react";
-import ProfileProductSection from "./ProfileProductSection.jsx";
-import ProfileCategories from "./ProfileCategories.jsx";
-import ProfileHero from "./ProfileHero.jsx";
-import ReviewsAndStats from "./ReviewsAndStats.jsx";
-import Sidebar from "./Sidebar.jsx";
-import EditProfilePage from "./EditProfilePage.jsx";
+import ProfileProductSection from "../components/ProfileProductSection.jsx";
+import ProfileCategories from "../components/ProfileCategories.jsx";
+import ProfileHero from "../components/ProfileHero.jsx";
+import ReviewsAndStats from "../components/ReviewsAndStats.jsx";
+import Sidebar from "../components/Sidebar.jsx";
+import EditProfilePage from "../components/EditProfilePage.jsx";
 
 function ProfileBody() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [likedProducts, setLikedProducts] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [user, setUser] = useState({
+    name: "Somchai K.",
+    email: "somchai@example.com",
+    phone: "0812345678",
+    address: "Bangkok, Thailand",
+  });
 
   const toggleLike = (index) => {
     setLikedProducts((current) =>
@@ -35,16 +41,18 @@ function ProfileBody() {
   };
 
   const handleEditSave = (formData) => {
-    // TODO: เชื่อมกับ API หรือ state management ในอนาคต
-    console.log("Saved profile:", formData);
+    setUser(formData);
     setIsEditing(false);
   };
 
   const renderContent = () => {
-    // ถ้ากำลัง edit profile ให้แสดงฟอร์มแทน
     if (isEditing) {
       return (
-        <EditProfilePage onCancel={handleEditCancel} onSave={handleEditSave} />
+        <EditProfilePage
+          initialData={user}
+          onCancel={handleEditCancel}
+          onSave={handleEditSave}
+        />
       );
     }
 
@@ -52,8 +60,8 @@ function ProfileBody() {
       case "Home":
         return (
           <>
-            <ProfileHero onEditClick={handleEditClick} />
-            <ProfileCategories />
+            <ProfileHero user={user} onEditClick={handleEditClick} />
+            <ProfileCategories user={user} />
             <ProfileProductSection
               activeProductTab={activeProductTab}
               onProductTabChange={setActiveProductTab}
@@ -66,8 +74,8 @@ function ProfileBody() {
       case "My Account":
         return (
           <>
-            <ProfileHero onEditClick={handleEditClick} />
-            <ProfileCategories />
+            <ProfileHero user={user} onEditClick={handleEditClick} />
+            <ProfileCategories user={user} />
           </>
         );
 

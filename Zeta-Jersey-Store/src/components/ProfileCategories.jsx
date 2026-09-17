@@ -1,13 +1,29 @@
 import { House, LockKeyhole, Settings, UserRound } from "lucide-react";
 
-const categories = [
-  { icon: UserRound, title: "Personal Information", detail: "Name: Somchai K." },
-  { icon: House, title: "Shipping Address", detail: "Bangkok, Thailand" },
-  { icon: LockKeyhole, title: "Security", detail: "Password" },
-  { icon: Settings, title: "Settings", detail: "Email" },
-];
+function ProfileCategories({ user }) {
+  const categories = [
+    {
+      icon: UserRound,
+      title: "Personal Information",
+      detail: `Name: ${user?.name || "Somchai K."}`,
+    },
+    {
+      icon: House,
+      title: "Shipping Address",
+      detail: user?.address || "Bangkok, Thailand",
+    },
+    {
+      icon: LockKeyhole,
+      title: "Security",
+      detail: "Password & 2FA Protected",
+    },
+    {
+      icon: Settings,
+      title: "Settings & Contact",
+      detail: `${user?.email || "somchai@example.com"} • ${user?.phone || "0812345678"}`,
+    },
+  ];
 
-function ProfileCategories() {
   return (
     <section className="mt-10">
       <div className="mb-5 flex items-end justify-between">
@@ -23,7 +39,10 @@ function ProfileCategories() {
             <div className="grid size-11 place-items-center rounded-sm bg-zeta-sub-lighter text-zeta-sub-dark">
               <category.icon size={20} strokeWidth={2.5} />
             </div>
-            <div><h2 className="text-sm font-black">{category.title}</h2><p className="mt-1 text-xs text-zeta-muted">{category.detail}</p></div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-black">{category.title}</h2>
+              <p className="mt-1 truncate text-xs text-zeta-muted">{category.detail}</p>
+            </div>
             <span className="ml-auto text-zeta-muted">→</span>
           </div>
         ))}

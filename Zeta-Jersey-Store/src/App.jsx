@@ -10,7 +10,7 @@ import Subscribe from "./components/Subscribe";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
-import ProfileBody from "./components/ProfileBody";
+import ProfileBody from "./pages/ProfileBody";
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState("home");

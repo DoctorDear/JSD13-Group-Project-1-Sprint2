@@ -1,6 +1,7 @@
 import { Star, UserRound } from "lucide-react";
 
-function ProfileHero({ onEditClick }) {
+function ProfileHero({ onEditClick, user }) {
+  const name = user?.name || "Somchai K.";
   return (
     <div className="relative overflow-hidden rounded-xl bg-zeta-sub px-6 py-7 sm:px-10">
       <div className="absolute -right-10 -top-16 size-48 rounded-full border-24 border-zeta-sub-lighter opacity-70" />
@@ -10,7 +11,7 @@ function ProfileHero({ onEditClick }) {
             <UserRound size={30} strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-xl font-black">Somchai K.</p>
+            <p className="text-xl font-black">{name}</p>
             <p className="mt-1 text-sm text-zeta-sub-dark">Online store · Member since 2024</p>
             <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-zeta-sub-dark">
               <Star size={13} fill="currentColor" />
@@ -22,7 +23,7 @@ function ProfileHero({ onEditClick }) {
         </div>
         <button
           onClick={onEditClick}
-          className="btn rounded-md border-0 bg-zeta-main px-7 text-white shadow-none hover:opacity-90"
+          className="btn rounded-md border-0 bg-zeta-main px-7 text-white shadow-none hover:opacity-90 transition cursor-pointer"
         >
           Edit profile
         </button>
