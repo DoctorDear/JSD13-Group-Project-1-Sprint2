@@ -72,7 +72,10 @@ export const updateProduct = async (req, res, next) => {
   try {
     const product = req.body;
 
-    if (!product) res.status(400).json({ error: "Can't update product" });
+    if (!product) {
+      return res.status(400).json({ error: "Can't update product" });
+    }
+
     const updateProduct = await Product.findByIdAndUpdate(
       req.params.id,
       product,
