@@ -1,24 +1,51 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
-import { useState } from "react";
-import { useCart } from "../context/CartContext";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+// import { useCart } from "../context/CartContext";
 
 const ProductDetail = () => {
-  const { products } = useCart();
-  const product = products[0];
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { id } = useParams();
 
-  const [selectedImg, setSelectedImg] = useState(
-    product?.images?.[0] || product?.imageUrl,
-  );
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `http://localhost:3001/api/v1/products/${id}`,
+        );
+        const data = await response.json();
+        setProduct(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchProduct();
+  }, [id]);
 
+  const [selectedImg, setSelectedImg] = useState(null);
   const [selectedEdition, setSelectedEdition] = useState(
     product?.editions?.[0]?.id || "stadium",
   );
-
   const currentEdition = product?.editions?.find(
     (e) => e.id === selectedEdition,
   );
-
   const [selectedSize, setSelectedSize] = useState(product?.size?.[0] || "M");
+
+  if (loading)
+    return <div className="p-8 text-center">loading product data...</div>;
+  if (error || !product)
+    return (
+      <div className="p-8 text-center text-red-500">
+        {error || "Not found product"}
+      </div>
+    );
+
+  const currentImg = selectedImg || product?.images?.[0];
 
   return (
     <div className="flex p-6">
@@ -44,7 +71,7 @@ const ProductDetail = () => {
         </div>
         <div className="w-[450px] h-[600px] rounded-3xl overflow-hidden">
           <img
-            src={selectedImg}
+            src={currentImg}
             alt={product?.name}
             className="w-full h-full object-cover"
           />
