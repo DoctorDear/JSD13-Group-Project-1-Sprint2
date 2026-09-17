@@ -55,7 +55,9 @@ export const getProductById = async (req, res, next) => {
 export const createProduct = async (req, res, next) => {
   try {
     const product = req.body;
-    if (!product) res.status(400).json({ error: "Can't create product" });
+    if (!product) {
+      res.status(400).json({ error: "Can't create product" });
+    }
     const newProduct = await Product.create(product);
     return res
       .status(201)
@@ -76,7 +78,10 @@ export const updateProduct = async (req, res, next) => {
       product,
       { new: true, runValidators: true },
     );
-    if (!updateProduct) res.status(400).json({ error: "Product not found" });
+
+    if (!updateProduct) {
+      return res.status(400).json({ error: "Product not found" });
+    }
 
     return res.status(200).json({ message: "update product completed " });
   } catch (err) {
@@ -89,7 +94,9 @@ export const deleteProduct = async (req, res, next) => {
   try {
     const deleteProduct = await Product.findByIdAndDelete(req.params.id);
 
-    if (!deleteProduct) res.status(404).json({ error: "Product not found!" });
+    if (!deleteProduct) {
+      return res.status(404).json({ error: "Product not found!" });
+    }
 
     res.status(200).json({
       message: "Product successfully deleted",
