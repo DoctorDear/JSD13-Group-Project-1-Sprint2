@@ -147,7 +147,7 @@ const ProductDetail = () => {
         <div>
           <button className="btn btn-wide bg-zeta-main text-white rounded-xl">
             <ShoppingBag />
-            <span>Add toc Cart</span>
+            <span>Add to Cart</span>
           </button>
           <button className="btn">
             <Heart />
