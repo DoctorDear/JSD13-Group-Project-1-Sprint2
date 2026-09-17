@@ -1,12 +1,16 @@
 import { Heart, ShoppingCart } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   return (
-    <div className="card w-96 rounded-xl bg-white-100">
+    <div
+      onClick={() => navigate(`/products/${product._id || product.id}`)}
+      className="card w-96 rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
+    >
       <figure className="px-5 pt-5 ">
         <img
           className="rounded-xl aspect-square object-cover"
-          src={product.imageUrl}
+          src={product.imageUrl || product?.images?.[0]}
           alt={product.name}
         />
         <span className="badge badge-outline absolute top-8 left-7 rounded-xl border-0 font-medium bg-zeta-sub-lighter text-zeta-sub-dark">
@@ -19,7 +23,7 @@ const ProductCard = ({ product }) => {
       <div className="card-body">
         <h2 className="card-title text-2xl font-bold ">{product.name}</h2>
         <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
-          {product.team}
+          {product.team || product.catagory}
         </div>
         <p>{product.description}</p>
         <div className="flex flex-col gap-5">
