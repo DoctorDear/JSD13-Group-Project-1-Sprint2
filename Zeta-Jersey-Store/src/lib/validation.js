@@ -18,6 +18,11 @@ export const rules = {
   loginPassword: () => (v) => (!v ? "Password is required" : ""),
 
   checked: (msg) => (v) => (v ? "" : msg),
+
+  /** Ensures the new password differs from the old one. */
+notSameAs: (otherField, msg) => (v, values) =>
+  v && values?.[otherField] && v === values[otherField] ? msg : "",
+
 };
 
 /** Runs a schema ({ field: [validators] }) against values. Returns { field: message }. */

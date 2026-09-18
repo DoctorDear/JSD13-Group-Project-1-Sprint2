@@ -1,4 +1,4 @@
-import logoImg from "../assets/logo/Zeta_Default_Logo.png";
+import logoImg from "../assets/logo/Zeta_all_Green_Logo.png";
 
 export default function AuthLayout({
   image,
@@ -25,7 +25,7 @@ export default function AuthLayout({
                 <button
                   type="button"
                   onClick={onBack}
-                  className="rounded-full bg-lime-600/90 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur hover:bg-lime-600 transition"
+                  className="rounded-full bg-lime-600/90 px-5 py-2.5 text-[11px] font-semibold text-white backdrop-blur hover:bg-lime-600 transition"
                 >
                   Back to website
                 </button>
@@ -52,9 +52,9 @@ function Logo() {
   );
 }
 
-export function AuthTitle({ children }) {
+export function AuthTitle({ children, className = "" }) {
   return (
-    <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-black">
+    <h1 className={`text-[29px] sm:text-[38px] font-extrabold tracking-tight text-black ${className}`}>
       {children}
     </h1>
   );
@@ -63,7 +63,7 @@ export function AuthTitle({ children }) {
 export function AuthButton({ children, className = "", ...rest }) {
   return (
     <button
-      className={`w-full rounded-lg bg-indigo-900 py-3.5 text-base font-semibold text-white
+      className={`w-full rounded-lg bg-indigo-900 py-3.5 text-[13px] font-semibold text-white
         hover:bg-indigo-800 active:scale-[.99] transition ${className}`}
       {...rest}
     >

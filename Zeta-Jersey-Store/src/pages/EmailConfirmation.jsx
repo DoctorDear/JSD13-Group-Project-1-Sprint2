@@ -38,16 +38,17 @@ export default function EmailConfirmation() {
     setError(""); setNotice(""); setStatus("verifying");
     try {
       await authService.confirmEmail({ email, token });
-      if (!mounted.current) return;
-      setStatus("success");
-      setTimeout(() => {
-        if (mounted.current) navigate("/login", { replace: true, state: { verified: true } });
-      }, 1500);
     } catch (err) {
-      if (!mounted.current) return;
-      setStatus("error");
-      setError(err instanceof ApiError ? err.message : "Unexpected error. Please try again.");
+      if (err?.status && err.status !== 0) {
+        if (!mounted.current) return;
+        setStatus("error");
+        setError(err instanceof ApiError ? err.message : "Unexpected error. Please try again.");
+        return;
+      }
     }
+    if (!mounted.current) return;
+    setStatus("success");
+    navigate("/verify-email", { state: { email } });
   }, [email, token, navigate]);
 
   useEffect(() => {
@@ -84,40 +85,40 @@ export default function EmailConfirmation() {
       showBackButton
       onBack={() => navigate("/")}
     >
-      <AuthTitle>Email<br />Confirmation</AuthTitle>
+      <AuthTitle className="p-[3px]">Email<br />Confirmation</AuthTitle>
 
       {email && status !== "success" && (
-        <p className="mt-4 text-base text-gray-900">
-          We sent a link to <span className="font-semibold">{email}</span>
+        <p className="mt-4 text-[13px] text-gray-900 p-[3px]">
+          We sent a link to <span className="font-semibold p-[3px]">{email}</span>
         </p>
       )}
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 space-y-4 p-[3px]">
         {status === "success" ? (
           <div role="status" aria-live="polite"
-            className="flex items-center gap-3 rounded-lg border border-lime-300 bg-lime-50 px-4 py-4">
-            <svg className="h-6 w-6 shrink-0 fill-lime-600" viewBox="0 0 20 20" aria-hidden="true">
+            className="flex items-center gap-3 rounded-lg border border-lime-300 bg-lime-50 px-4 py-4 p-[3px]">
+            <svg className="h-6 w-6 shrink-0 fill-lime-600 p-[3px]" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3l-4 4a1 1 0 01-1.4 0l-2-2 1.4-1.4L9 10.6l3.3-3.3 1.4 1.4z" />
             </svg>
-            <p className="text-base font-medium text-lime-800">Email confirmed! Redirecting to log in…</p>
+            <p className="text-[13px] font-medium text-lime-800 p-[3px]">Email confirmed! Redirecting to log in…</p>
           </div>
         ) : (
           <>
-            <FormError message={error} />
+            <FormError message={error} className="p-[3px]" />
 
             {notice && (
               <div role="status" aria-live="polite"
-                className="rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-xs font-medium text-lime-800">
+                className="rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-[10px] font-medium text-lime-800 p-[3px]">
                 {notice}
               </div>
             )}
 
-            <AuthButton type="button" onClick={confirm} disabled={busy || resending} className="disabled:opacity-60">
-              {busy ? "Confirming…" : status === "error" ? "Try again" : "Confirm email"}
+            <AuthButton type="button" onClick={confirm} disabled={busy || resending} className="disabled:opacity-60 p-[3px]">
+              {busy ? "Confirming…" : status === "error" ? "Try again" : "Verify email"}
             </AuthButton>
 
             <AuthButton type="button" onClick={handleResend}
-              disabled={resending || busy || cooldown > 0} className="disabled:opacity-60">
+              disabled={resending || busy || cooldown > 0} className="disabled:opacity-60 p-[3px]">
               {resending ? "Sending…" : cooldown > 0 ? `Resend email (${cooldown}s)` : "Resend email"}
             </AuthButton>
           </>

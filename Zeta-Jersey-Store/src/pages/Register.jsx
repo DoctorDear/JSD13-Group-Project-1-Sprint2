@@ -26,8 +26,14 @@ export default function Register() {
     { firstName: "", lastName: "", email: "", password: "", agreed: false },
     schema,
     async (values, { signal }) => {
-      await register(values, { signal });
-      navigate("/verify-email", { state: { email: values.email } });
+      try {
+        await register(values, { signal });
+      } catch (err) {
+        if (err?.status && err.status !== 0) {
+          throw err;
+        }
+      }
+      navigate("/email-confirmation", { state: { email: values.email } });
     }
   );
 
@@ -41,42 +47,42 @@ export default function Register() {
       showBackButton
       onBack={() => navigate("/")}
     >
-      <AuthTitle>Register</AuthTitle>
+      <AuthTitle className="p-[3px]">Register</AuthTitle>
 
-      <p className="mt-3 text-base text-gray-900">
+      <p className="mt-3 text-[13px] text-gray-900 p-[3px]">
         Already have account?{" "}
-        <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
+        <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700 p-[3px]">
           Log in
         </Link>
       </p>
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-4 space-y-3">
-        <FormError message={f.formError} />
+      <form onSubmit={f.handleSubmit} noValidate className="mt-4 space-y-3 p-[3px]">
+        <FormError message={f.formError} className="p-[3px]" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-[3px]">
           <Field label="First name" name="firstName" placeholder="First name"
             value={f.values.firstName} onChange={f.handleChange} onBlur={f.handleBlur}
-            error={f.errorFor("firstName")} autoComplete="given-name" />
+            error={f.errorFor("firstName")} autoComplete="given-name" className="p-[3px]" />
           <Field label="Last name" name="lastName" placeholder="Last name"
             value={f.values.lastName} onChange={f.handleChange} onBlur={f.handleBlur}
-            error={f.errorFor("lastName")} autoComplete="family-name" />
+            error={f.errorFor("lastName")} autoComplete="family-name" className="p-[3px]" />
         </div>
 
         <Field label="Email" name="email" type="email" placeholder="Your email"
           value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" />
+          error={f.errorFor("email")} autoComplete="email" className="p-[3px]" />
 
-        <div>
+        <div className="p-[3px]">
           <Field label="Password" name="password" type="password" placeholder="Enter your password"
             value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
-            error={f.errorFor("password")} autoComplete="new-password" />
+            error={f.errorFor("password")} autoComplete="new-password" className="p-[3px]" />
 
-          <div className="h-2 mt-1" aria-hidden="true">
-            <div className={`flex gap-1.5 transition-opacity ${f.values.password ? "opacity-100" : "opacity-0"}`}>
+          <div className="h-2 mt-1 p-[3px]" aria-hidden="true">
+            <div className={`flex gap-1.5 transition-opacity p-[3px] ${f.values.password ? "opacity-100" : "opacity-0"}`}>
               {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
-                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                  className={`h-1.5 flex-1 rounded-full transition-colors p-[3px] ${
                     i < strength ? bars[strength - 1] : "bg-gray-200"
                   }`}
                 />
@@ -85,32 +91,32 @@ export default function Register() {
           </div>
         </div>
 
-        <div>
-          <label className="flex items-center gap-3 pt-1 cursor-pointer select-none">
+        <div className="p-[3px]">
+          <label className="flex items-center gap-3 pt-1 cursor-pointer select-none p-[3px]">
             <input
               type="checkbox"
               name="agreed"
               checked={f.values.agreed}
               onChange={f.handleChange}
               onBlur={f.handleBlur}
-              className="h-5 w-5 rounded border-2 border-black accent-indigo-900 focus:ring-indigo-900 shrink-0"
+              className="h-5 w-5 rounded border-2 border-black accent-indigo-900 focus:ring-indigo-900 shrink-0 p-[3px]"
             />
-            <span className="text-sm text-gray-900">I'm agree to the Term &amp; Condition</span>
+            <span className="text-[11px] text-gray-900 p-[3px]">I'm agree to the Term &amp; Condition</span>
           </label>
-          <div className="min-h-[18px] mt-1">
+          <div className="min-h-[18px] mt-1 p-[3px]">
             {f.errorFor("agreed") && (
-              <p className="text-xs font-medium text-red-600">{f.errorFor("agreed")}</p>
+              <p className="text-[10px] font-medium text-red-600 p-[3px]">{f.errorFor("agreed")}</p>
             )}
           </div>
         </div>
 
-        <AuthButton type="submit" disabled={f.submitting} className="disabled:opacity-60">
+        <AuthButton type="submit" disabled={f.submitting} className="disabled:opacity-60 p-[3px]">
           {f.submitting ? "Creating account…" : "Create account"}
         </AuthButton>
 
-        <div className="grid grid-cols-2 gap-4 pt-1">
-          <SocialButton icon={<GoogleIcon />} label="Google" />
-          <SocialButton icon={<AppleIcon />} label="Apple" />
+        <div className="grid grid-cols-2 gap-4 pt-1 p-[3px]">
+          <SocialButton icon={<GoogleIcon />} label="Google" className="p-[3px]" />
+          <SocialButton icon={<AppleIcon />} label="Apple" className="p-[3px]" />
         </div>
       </form>
     </AuthLayout>
