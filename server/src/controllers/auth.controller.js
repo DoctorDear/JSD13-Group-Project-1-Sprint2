@@ -4,7 +4,7 @@ import User from "../models/User.model.js";
 
 export const register = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
     // 1. ตรวจสอบว่ากรอกข้อมูลจำเป็นครบไหม
     if (!firstName || !lastName || !email || !password) {
@@ -36,7 +36,6 @@ export const register = async (req, res, next) => {
       lastName: lastName.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      phone: phone || "",
     });
 
     // 5. ส่ง Response สำเร็จกลับไป (ไม่ต้องส่งรหัสผ่านกลับไปนะ)
