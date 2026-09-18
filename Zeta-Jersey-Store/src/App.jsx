@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { Routes, Route } from "react-router-dom";
-import CheckoutPage from "./pages/CheckoutPage";
-import CartPage from "./pages/CartPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-=======
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute, GuestRoute } from "./components/RouteGuards";
 import MainLayout from "./components/MainLayout";
@@ -12,7 +6,6 @@ import LandingPage from "./pages/LandingPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
->>>>>>> d278166d94602b5894a1927be9ff60b22beea654
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 
 import Register from "./pages/Register";
@@ -26,24 +19,6 @@ import Settings from "./pages/Settings";
 
 export default function App() {
   return (
-<<<<<<< HEAD
-    <div>
-      <Routes>
-        {/* 1. กำหนดให้หน้าแรกสุด (http://localhost:5173/) วิ่งไปที่หน้า Checkout หรือ Cart ของคุณ */}
-        <Route path="/" element={<CheckoutPage />} />
-
-        {/* 2. เส้นทางสำหรับหน้าอื่นๆ */}
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-        <Route path="/products/:id" element={<ProductDetailPage />} />
-      </Routes>
-    </div>
-  );
-};
-
-export default App;
-=======
     <Routes>
       {/* Store routes — public */}
       <Route path="/" element={<LandingPage />} />
@@ -77,4 +52,3 @@ export default App;
     </Routes>
   );
 }
->>>>>>> d278166d94602b5894a1927be9ff60b22beea654
