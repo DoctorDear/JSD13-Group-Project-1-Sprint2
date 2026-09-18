@@ -26,8 +26,8 @@ export const register = async (req, res, next) => {
       });
     }
 
-    // 3. แฮชรหัสผ่านด้วย bcrypt (รอบหมุน 10 รอบ)
-    const saltRounds = 10;
+    // 3. แฮชรหัสผ่านด้วย bcrypt (รอบหมุน 12 รอบ)
+    const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // 4. บันทึก User คนใหม่ลง MongoDB
@@ -138,7 +138,7 @@ export const changePassword = async (req, res, next) => {
     }
 
     // 3. แฮชรหัสผ่านใหม่ด้วย bcrypt
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // 4. อัปเดตลง MongoDB โดยใช้ userId ที่แกะได้จาก Token (req.user)
     await User.findByIdAndUpdate(req.user.userId, {
