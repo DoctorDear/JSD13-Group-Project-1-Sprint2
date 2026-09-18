@@ -153,3 +153,26 @@ export const changePassword = async (req, res, next) => {
     next(err);
   }
 };
+
+// ดึงข้อมูล User ตัวเอง (สำหรับหน้าบ้านดึงข้อมูลตอนรีเฟรช)
+export const getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.userId).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ออกจากระบบ (ล้าง Cookie)
+export const logout = (req, res) => {
+  res.clearCookie("accessToken");
+  return res
+    .status(200)
+    .json({ success: true, message: "Logged out successfully!" });
+};
