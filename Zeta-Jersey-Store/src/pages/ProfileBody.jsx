@@ -1,11 +1,11 @@
 import { useState } from "react";
-import ProfileProductSection from "../components/ProfileProductSection.jsx";
-import ProfileCategories from "../components/ProfileCategories.jsx";
-import ProfileHero from "../components/ProfileHero.jsx";
-import ReviewsAndStats from "../components/ReviewsAndStats.jsx";
-import Sidebar from "../components/Sidebar.jsx";
-import EditProfilePage from "../components/EditProfilePage.jsx";
-import ProfileDetailsPage from "../components/ProfileDetailsPage.jsx";
+import ProfileProductSection from "../components/ProfilePages/";
+import ProfileCategories from "../components/ProfilePages/ProfileCategories.jsx";
+import ProfileHero from "../components/ProfilePages/ProfileHero.jsx";
+import ReviewsAndStats from "../components/ProfilePages/ReviewsAndStats.jsx";
+import Sidebar from "../components/ProfilePages/Sidebar.jsx";
+import EditProfilePage from "../components/ProfilePages/EditProfilePage.jsx";
+import ProfileDetailsPage from "../components/ProfilePages/ProfileDetailsPage.jsx";
 
 function ProfileBody() {
   const [activeMenu, setActiveMenu] = useState("Home");
