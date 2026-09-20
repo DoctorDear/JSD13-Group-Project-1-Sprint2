@@ -1,5 +1,7 @@
 # Sprint 2: E-Commerce Application (MERN Stack)
 
+> เอกสารอธิบายการ implement ฝั่ง Frontend อยู่ที่ [`doc/FRONTEND_IMPLEMENTATION.md`](doc/FRONTEND_IMPLEMENTATION.md)
+
 ## 🎯 Sprint Goal
 
 พัฒนาระบบ E-Commerce ขั้นพื้นฐาน โดยใน Sprint นี้จะเน้นการพัฒนาฝั่ง Frontend ให้สมบูรณ์ก่อน (UI, React Components, และ Form Validation) เพื่อให้ผู้ใช้สามารถตอบโต้กับระบบผ่าน Mock Data ได้ จากนั้นจะดำเนินการเชื่อมต่อกับฝั่ง Backend (Node.js/Express) และฐานข้อมูล (MongoDB) ในระยะถัดไปเมื่อทีมพร้อม
