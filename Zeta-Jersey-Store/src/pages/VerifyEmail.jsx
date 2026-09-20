@@ -34,31 +34,31 @@ export default function VerifyEmail() {
       showBackButton
       onBack={() => navigate("/")}
     >
-      <AuthTitle>Verify email</AuthTitle>
-      <p className="mt-3 text-lg text-gray-900">Please enter your email</p>
+      <AuthTitle className="p-[3px]">Verify email</AuthTitle>
+      <p className="mt-3 text-[13px] text-gray-900 p-[3px]">Please enter your email</p>
 
       {state?.sent && (
-        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800">
+        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-[10px] font-medium text-lime-800 p-[3px]">
           We've emailed you a reset link.
         </p>
       )}
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-8 space-y-7">
-        <FormError message={f.formError} />
+      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-4 p-[3px]">
+        <FormError message={f.formError} className="p-[3px]" />
 
         <Field label="Your email" name="email" type="email" placeholder="Your email"
           value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" />
+          error={f.errorFor("email")} autoComplete="email" className="p-[3px]" />
         <Field label="Your password" name="password" type="password" placeholder="Enter your password"
           value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("password")} autoComplete="new-password" />
+          error={f.errorFor("password")} autoComplete="new-password" className="p-[3px]" />
 
-        <AuthButton type="submit" disabled={f.submitting} className="mt-10 disabled:opacity-60">
-          {f.submitting ? "Resetting…" : "Reset password"}
+        <AuthButton type="submit" disabled={f.submitting} className="mt-6 disabled:opacity-60 p-[3px]">
+          {f.submitting ? "Resetting…" : "Confirm password"}
         </AuthButton>
 
-        <p className="text-center text-lg text-gray-900">
-          <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
+        <p className="text-center text-[13px] text-gray-900 p-[3px]">
+          <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700 p-[3px]">
             Back to log in
           </Link>
         </p>

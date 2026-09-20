@@ -1,9 +1,9 @@
-export function SocialButton({ icon, label, onClick }) {
+export function SocialButton({ icon, label, onClick, className = "" }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-center gap-3 rounded-lg bg-indigo-900 py-3.5 text-lg font-medium text-white hover:bg-indigo-800 active:scale-[.99] transition"
+      className={`flex items-center justify-center gap-3 rounded-lg bg-indigo-900 py-3.5 text-[14px] font-medium text-white hover:bg-indigo-800 active:scale-[.99] transition ${className}`}
     >
       {icon}
       {label}

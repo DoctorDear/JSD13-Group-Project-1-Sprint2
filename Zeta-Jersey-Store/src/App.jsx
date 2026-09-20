@@ -16,6 +16,9 @@ import EmailConfirmation from "./pages/EmailConfirmation";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import ChangePassword from "./pages/ChangePassword";
+
+
 
 export default function App() {
   return (
@@ -38,6 +41,7 @@ export default function App() {
 
       {/* Open to everyone — magic link may open in any session state */}
       <Route path="/email-confirmation" element={<EmailConfirmation />} />
+      <Route path="/change-password" element={<ChangePassword />} />
 
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
