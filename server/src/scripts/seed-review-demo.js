@@ -93,6 +93,7 @@ async function seed() {
         { _id: product._id },
         {
           $set: {
+            brand: product.brand || "Adidas",
             fit: product.edition === "Player Edition" ? "slim" : "regular",
             kitType: inferKitType(product.name),
             activity: "football",

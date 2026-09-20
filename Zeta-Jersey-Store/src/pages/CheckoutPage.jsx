@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CheckoutItemCard from "../components/CheckoutItemCard/CheckOutItemCard";
 const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -6,6 +7,7 @@ const CheckoutPage = () => {
   const [checkoutItems] = useState([
     {
       id: 1,
+      brand: "Adidas",
       name: "Manchester United FC 26/27 Away Jersey Authentic",
       size: "Middle",
       price: 140,
@@ -14,6 +16,7 @@ const CheckoutPage = () => {
     },
     {
       id: 2,
+      brand: "Adidas",
       name: "Arsenal FC 26/27 Away Jersey Authentic",
       size: "Large",
       price: 140,

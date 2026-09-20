@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
     return (
         <div className="py-4 flex items-center justify-between gap-4">
@@ -8,6 +6,9 @@ const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
 
             {/* รายละเอียดสินค้า */}
             <div className="flex-1">
+                {item.brand && (
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500">{item.brand}</p>
+                )}
                 <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{item.name}</h4>
                 <p className="text-xs text-gray-900 mt-1">Size : {item.size}</p>
                 <p className="text-sm font-bold text-gray-900 mt-1">฿{item.price}</p>

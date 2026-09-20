@@ -113,6 +113,11 @@ const ProductDetail = () => {
               <div className="w-fit max-w-full rounded-xl border-0 bg-zeta-sub px-3 py-1 text-xs font-medium text-zeta-main sm:text-sm">
                 {productLeague}
               </div>
+              {product.brand && (
+                <p className="text-sm font-medium text-zeta-main">
+                  {product.brand}
+                </p>
+              )}
               <div>
                 <h1 className="text-3xl font-bold leading-tight text-zeta-main sm:text-xl lg:text-3xl">
                   {product?.name}

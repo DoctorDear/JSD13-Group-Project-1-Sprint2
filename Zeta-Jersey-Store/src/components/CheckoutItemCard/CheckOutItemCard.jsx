@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CheckoutItemCard = ({ item }) => {
     return (
         <div className="flex items-center justify-between py-3 border-b border-gray-100 bg-white gap-3">
@@ -15,6 +13,9 @@ const CheckoutItemCard = ({ item }) => {
             </div>
 
             <div className="flex-1 min-w-0 px-1">
+                {item.brand && (
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-gray-500">{item.brand}</p>
+                )}
                 <h4 className="text-xs font-bold text-gray-900 truncate mb-0.5">{item.name}</h4>
                 <p className="text-[11px] text-gray-500">Size : {item.size}</p>
             </div>

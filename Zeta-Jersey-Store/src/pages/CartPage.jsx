@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import CartItemCard from '../components/CartItemCard';
 import PromoBar from '../components/PromoBar';
 
@@ -6,6 +6,7 @@ const CartPage = () => {
     const [cartItems, setCartItems] = useState([
         {
             id: 1,
+            brand: 'Adidas',
             name: 'Liverpool FC 26/27 Away Jersey Authentic',
             size: 'Large',
             price: 140,
@@ -14,6 +15,7 @@ const CartPage = () => {
         },
         {
             id: 2,
+            brand: 'Adidas',
             name: 'Manchester United FC 26/27 Away Jersey Authentic',
             size: 'Middle',
             price: 140,
@@ -22,6 +24,7 @@ const CartPage = () => {
         },
         {
             id: 3,
+            brand: 'Adidas',
             name: 'Arsenal FC 26/27 Away Jersey Authentic',
             size: 'Large',
             price: 140,

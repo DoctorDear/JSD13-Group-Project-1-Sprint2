@@ -19,12 +19,3 @@
 body {
   font-family: 'Poppins', 'Google Sans', sans-serif;
 }
-
-.product-card-description {
-  display: -webkit-box !important;
-  max-height: 4.5em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-box-orient: vertical !important;
-  -webkit-line-clamp: 3 !important;
-}

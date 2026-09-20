@@ -1,6 +1,7 @@
 [
   {
     "id": "prod-001",
+    "brand": "Adidas",
     "name": "Liverpool FC 2026/27 Home Jersey",
     "team": "Liverpool",
     "tag": "2026/27 OFFICIAL LIVERPOOL FC MATCH KIT",
@@ -38,6 +39,7 @@
   },
   {
     "id": "prod-002",
+    "brand": "Adidas",
     "name": "Real Madrid 25/26 Home Jersey",
     "team": "Real Madrid",
     "tag": "2025/26 OFFICIAL REAL MADRID MATCH KIT",
@@ -75,6 +77,7 @@
   },
   {
     "id": "prod-003",
+    "brand": "Adidas",
     "name": "Arsenal 25/26 Away Jersey",
     "team": "Arsenal",
     "tag": "2025/26 OFFICIAL ARSENAL MATCH KIT",
@@ -112,6 +115,7 @@
   },
   {
     "id": "prod-004",
+    "brand": "Adidas",
     "name": "FC Bayern 26/27 Away Authentic Jersey",
     "team": "Bayern",
     "tag": "2025/26 OFFICIAL BAYERN MATCH KIT",

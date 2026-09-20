@@ -128,6 +128,7 @@ classDiagram
 | `sku` | String | UK, Required | รหัสสต็อกสินค้า (e.g. `"LFC-2627-HM-PL"`) |
 | `groupId` | String | Optional | รหัสกลุ่ม Variant เช่น `"LFC-2627-HOME"` (หมวกให้เป็น `null`) |
 | `edition` | String | Optional | รุ่นของเสื้อ เช่น `"Player Edition"` (หมวกให้เป็น `null`) |
+| `brand` | String | Default: `"Adidas"` | แบรนด์ผู้ผลิตสินค้า เช่น `"Adidas"`, `"Nike"` |
 | `name` | String | Required | **[Rubric]** ชื่อสินค้า เช่น `"Liverpool FC 26/27 Home Jersey"` |
 | `description` | String | Required | **[Rubric]** รายละเอียดเนื้อผ้าและสินค้า |
 | `price` | Number | Required, Min 0 | **[Rubric]** ราคาขายจริงของรุ่นนี้ |

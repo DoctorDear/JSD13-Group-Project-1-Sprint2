@@ -5,6 +5,7 @@ const productSchema = new mongoose.Schema(
     sku: { type: String, required: true, unique: true, trim: true },
     groupId: { type: String, default: null, trim: true }, // e.g. "LFC-2627-HOME"
     edition: { type: String, default: null }, // e.g. "Player Edition", "Stadium Edition"
+    brand: { type: String, default: "Adidas", trim: true },
     name: { type: String, required: true, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
