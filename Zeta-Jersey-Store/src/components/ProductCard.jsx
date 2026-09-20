@@ -5,7 +5,7 @@ const ProductCard = ({ product }) => {
   return (
     <div
       onClick={() => navigate(`/products/${product._id || product.id}`)}
-      className="card w-96 rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
+      className="card w-full rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
     >
       <figure className="px-5 pt-5 ">
         <img
@@ -21,9 +21,9 @@ const ProductCard = ({ product }) => {
         </button>
       </figure>
       <div className="card-body">
-        <h2 className="card-title text-2xl font-bold ">{product.name}</h2>
+        <h2 className="card-title text-xl font-bold ">{product.name}</h2>
         <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
-          {product.team || product.catagory}
+          {product.team || product.category || product.catagory}
         </div>
         <p>{product.description}</p>
         <div className="flex flex-col gap-5">
