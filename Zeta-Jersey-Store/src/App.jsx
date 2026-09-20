@@ -17,6 +17,14 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
+import RegisterSuccess from "./pages/RegisterSuccess";
+import LoginSuccess from "./pages/LoginSuccess";
+import ResetPasswordSuccess from "./pages/ResetPasswordSuccess";
+import ChangePasswordSuccess from "./pages/ChangePasswordSuccess";
+import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
+
+
+
 
 
 
@@ -42,6 +50,15 @@ export default function App() {
       {/* Open to everyone — magic link may open in any session state */}
       <Route path="/email-confirmation" element={<EmailConfirmation />} />
       <Route path="/change-password" element={<ChangePassword />} />
+
+      <Route path="/register-success" element={<RegisterSuccess />} />
+      <Route path="/login-success" element={<LoginSuccess />} />
+      
+      <Route path="/reset-password-success" element={<ResetPasswordSuccess />} />
+
+      <Route path="/change-password-success" element={<ChangePasswordSuccess />} />
+
+      <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
 
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>

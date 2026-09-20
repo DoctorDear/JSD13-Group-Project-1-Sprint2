@@ -2,7 +2,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const REFRESH_PATH = import.meta.env.VITE_REFRESH_ENDPOINT ?? "/auth/refresh";
 const TIMEOUT_MS = 15000;
 
-/* ---------- error type ---------- */
 export class ApiError extends Error {
   constructor(message, { status = 0, fieldErrors = {}, code } = {}) {
     super(message);
@@ -13,7 +12,6 @@ export class ApiError extends Error {
   }
 }
 
-/* ---------- token store ---------- */
 const TOKEN_KEY = "zeta.token";
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),
@@ -21,7 +19,6 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
-/* ---------- session-expired subscribers ---------- */
 const unauthorizedHandlers = new Set();
 export function onUnauthorized(fn) {
   unauthorizedHandlers.add(fn);
@@ -32,7 +29,6 @@ function emitUnauthorized() {
   unauthorizedHandlers.forEach((fn) => fn());
 }
 
-/* ---------- helpers ---------- */
 function normaliseFieldErrors(payload) {
   const raw = payload?.errors ?? payload?.fieldErrors;
   if (!raw) return {};
@@ -69,7 +65,6 @@ function defaultMessage(status) {
   return "Request failed. Please try again.";
 }
 
-/* ---------- silent refresh: single-flight ---------- */
 let refreshPromise = null;
 
 async function refreshToken() {
@@ -88,14 +83,11 @@ async function refreshToken() {
     const token = data?.token ?? data?.accessToken;
     tokenStore.set(token);
     return token ?? null;
-  })().finally(() => {
-    refreshPromise = null;
-  });
+  })().finally(() => { refreshPromise = null; });
 
   return refreshPromise;
 }
 
-/* ---------- main request ---------- */
 export async function request(
   path,
   { method = "GET", body, signal, auth = false, headers = {}, _retried = false } = {}
@@ -118,7 +110,6 @@ export async function request(
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
 
-    // silent refresh on a single 401 for authed calls
     if (res.status === 401 && auth && !_retried && path !== REFRESH_PATH) {
       clearTimeout(timer);
       try {
