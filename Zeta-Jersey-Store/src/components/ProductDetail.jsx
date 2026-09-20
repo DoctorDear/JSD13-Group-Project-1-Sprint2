@@ -1,6 +1,8 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { getProductLeague } from "../lib/productCatalog";
+import ProductReviewSection from "./ProductReviewSection";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -33,128 +35,198 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("M");
 
   if (loading)
-    return <div className="p-8 text-center">loading product data...</div>;
+    return (
+      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-12">
+        <div className="aspect-[4/5] animate-pulse rounded-3xl bg-slate-100" />
+        <div className="space-y-5 py-2">
+          <div className="h-6 w-40 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-12 w-4/5 animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-8 w-32 animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-24 w-full animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-28 w-full animate-pulse rounded-2xl bg-slate-100" />
+        </div>
+      </div>
+    );
   if (error || !product)
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 text-center text-red-500">
         {error || "Not found product"}
       </div>
     );
 
   const currentImg = selectedImg || product?.images?.[0];
+  const productLeague = getProductLeague(product);
+  const productAttributes = [
+    ["Fit", product.fit],
+    ["Kit Type", product.kitType],
+    ["Activity", product.activity],
+  ].filter(([, value]) => value);
+  const formatAttribute = (value) =>
+    String(value)
+      .replace(/([A-Z])/g, " $1")
+      .replace(/[-_]/g, " ")
+      .replace(/\b\w/g, (character) => character.toUpperCase());
 
   return (
-    <div className="flex p-6">
-      <div className="flex gap-2">
-        <div className="flex flex-col gap-3">
-          {product?.images?.map((imgUrl, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedImg(imgUrl)}
-              className={`w-20 h-20 rounded-xl overflow-hidden ${
-                currentImg === imgUrl // condition
-                  ? "ring-2 ring-zeta-sub" // if truly
-                  : "opacity-70 hover:opacity-100" // if falsy
-              }`}
-            >
-              <img
-                src={imgUrl}
-                alt={product?.name}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
+    <main className="min-h-[calc(100vh-4rem)] bg-white py-6 sm:py-10 lg:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 text-sm text-zeta-muted sm:mb-8">
+          <Link to="/" className="transition-colors hover:text-zeta-main">
+            Home
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="break-words text-zeta-main">{product.name}</span>
         </div>
-        <div className="w-[450px] h-[600px] rounded-3xl overflow-hidden">
-          <img
-            src={currentImg}
-            alt={product?.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-4 pt-3 pl-6">
-        <div className="badge rounded-xl border-0 bg-zeta-sub font-medium text-zeta-main ">
-          {product?.tag}
-        </div>
-        <div className="pt-2 pb-1">
-          <h1 className="text-4xl font-bold text-zeta-main">{product?.name}</h1>
-        </div>
-        <div className="flex gap-3 items-center">
-          <div className="text-zeta-main font-bold text-2xl">
-            <span className="text-m font-medium mr-0.5">฿</span>
-            {product.price.toLocaleString()}
-          </div>
-          {product.originalPrice && (
-            <div className="line-through text-zeta-muted font-normal text-lg">
-              <span>฿</span>
-              {product.originalPrice.toLocaleString()}
-            </div>
-          )}
-          {product.discount && (
-            <span className="badge bg-zeta-main text-white font-semibold rounded-md ">
-              {product.discount}
-            </span>
-          )}
-        </div>
-        <div className="w-[280px]">{product.description}</div>
-        <div className="border border-zeta-muted w-full my-1"></div>
-        {variants.length > 0 && (
-          <div>
-            <span className="font-semibold text-base">Select Edition</span>
-            <div className="flex gap-3 pt-2">
-              {variants.map((item) => (
+
+        <div className="grid min-w-0 grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:gap-14">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[80px_minmax(0,1fr)] sm:gap-4">
+            <div className="order-2 flex min-w-0 gap-3 overflow-x-auto pb-1 sm:order-1 sm:flex-col sm:overflow-visible">
+              {product?.images?.map((imgUrl, index) => (
                 <button
-                  key={item._id}
-                  onClick={() => setProduct(item)}
-                  className={`w-full p-3 rounded-xl border text-left transition-all font-bold ${
-                    product._id === item._id
-                      ? "border-zeta-main ring-2 ring-zeta-main bg-zeta-main/10"
-                      : "border-gray-200"
+                  key={index}
+                  onClick={() => setSelectedImg(imgUrl)}
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 transition sm:w-full ${
+                    currentImg === imgUrl // condition
+                      ? "ring-2 ring-zeta-sub" // if truly
+                      : "opacity-70 hover:opacity-100" // if falsy
                   }`}
                 >
-                  <div className="text-sm">{item.edition}</div>
-                  <div className="text-xs font-light text-zeta-muted">
-                    ฿{item.price?.toLocaleString()}
-                  </div>
+                  <img
+                    src={imgUrl}
+                    alt={product?.name}
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
-          </div>
-        )}
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center ">
-            <span className="font-semibold ">
-              Select Size: <span>{selectedSize}</span>
-            </span>
-            <div className="flex gap-1 items-center">
-              <Ruler size={15} />
-              <button className="underline">Size Guide</button>
+            <div className="order-1 aspect-[4/5] w-full min-w-0 overflow-hidden rounded-3xl bg-slate-50 sm:order-2 sm:max-h-[720px]">
+              <img
+                src={currentImg}
+                alt={product?.name}
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
-          <div className="flex gap-2">
-            {product?.sizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
-                className={`w-full h-12 border rounded-xl font-bold text-sm transition-all ${selectedSize === size ? "bg-zeta-main text-white " : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"}`}
-              >
-                {size}
-              </button>
-            ))}
+
+          <div className="min-w-0 lg:sticky lg:top-24">
+            <div className="flex flex-col gap-5 sm:gap-6">
+              <div className="w-fit max-w-full rounded-xl border-0 bg-zeta-sub px-3 py-1 text-xs font-medium text-zeta-main sm:text-sm">
+                {productLeague}
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold leading-tight text-zeta-main sm:text-xl lg:text-3xl">
+                  {product?.name}
+                </h1>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <div className="text-2xl font-bold text-zeta-main sm:text-3xl">
+                  <span className="mr-1 align-baseline font-[Arial] text-[0.9em] font-normal leading-none">
+                    ฿
+                  </span>
+                  {product.price.toLocaleString()}
+                </div>
+                {product.originalPrice && (
+                  <div className="text-lg font-normal text-zeta-muted line-through">
+                    <span>฿</span>
+                    {product.originalPrice.toLocaleString()}
+                  </div>
+                )}
+                {product.discount && (
+                  <span className="rounded-md bg-zeta-main px-2 py-1 text-xs font-semibold text-white">
+                    {product.discount}
+                  </span>
+                )}
+              </div>
+              <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+                {product.description}
+              </p>
+              <div className="h-px w-full bg-slate-200" />
+
+              {variants.length > 0 && (
+                <div>
+                  <span className="text-base font-semibold">
+                    Select Edition
+                  </span>
+                  <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-2">
+                    {variants.map((item) => (
+                      <button
+                        key={item._id}
+                        onClick={() => setProduct(item)}
+                        className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${
+                          product._id === item._id
+                            ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
+                            : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
+                        }`}
+                      >
+                        <div className="text-sm">{item.edition}</div>
+                        <div className="pt-1 text-xs font-normal text-zeta-muted">
+                          ฿{item.price?.toLocaleString()}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">
+                    Select Size:{" "}
+                    <span className="text-zeta-main">{selectedSize}</span>
+                  </span>
+                  <button className="flex items-center gap-1 text-sm underline underline-offset-4">
+                    <Ruler size={15} />
+                    Size Guide
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {product?.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`h-12 rounded-xl border text-sm font-bold transition-all ${selectedSize === size ? "bg-zeta-main text-white" : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"}`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex w-full gap-3">
+                <button className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90">
+                  <ShoppingBag size={19} />
+                  <span>Add to Cart</span>
+                </button>
+                <button
+                  className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5"
+                  aria-label="Add to wishlist"
+                >
+                  <Heart size={20} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <div>
-          <button className="btn btn-wide bg-zeta-main text-white rounded-xl">
-            <ShoppingBag />
-            <span>Add to Cart</span>
-          </button>
-          <button className="btn">
-            <Heart />
-          </button>
-        </div>
+
+        {productAttributes.length > 0 && (
+          <section className="mt-10 grid gap-5 border-y border-slate-200 py-7 sm:grid-cols-3 sm:gap-0 sm:py-8">
+            {productAttributes.map(([label, value], index) => (
+              <div
+                key={label}
+                className={`px-1 sm:px-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""}`}
+              >
+                <p className="text-sm text-zeta-muted">{label}</p>
+                <p className="mt-1 text-xl font-bold uppercase tracking-[0.12em] text-zeta-main">
+                  {formatAttribute(value)}
+                </p>
+              </div>
+            ))}
+          </section>
+        )}
+
+        <ProductReviewSection productId={product._id || product.id} />
       </div>
-    </div>
+    </main>
   );
 };
 export default ProductDetail;

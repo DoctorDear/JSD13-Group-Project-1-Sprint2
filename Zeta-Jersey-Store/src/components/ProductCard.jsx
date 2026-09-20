@@ -25,7 +25,7 @@ const ProductCard = ({ product }) => {
         <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
           {product.team || product.category || product.catagory}
         </div>
-        <p>{product.description}</p>
+        <p className="product-card-description">{product.description}</p>
         <div className="flex flex-col gap-5">
           <div>
             <div className="flex justify-between text-zeta-muted">
