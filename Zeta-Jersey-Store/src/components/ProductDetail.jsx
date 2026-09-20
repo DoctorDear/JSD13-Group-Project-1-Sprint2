@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
 import ProductReviewSection from "./ProductReviewSection";
+import SizeGuideModal from "./SizeGuideModal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -33,6 +34,7 @@ const ProductDetail = () => {
   const [selectedImg, setSelectedImg] = useState(null);
 
   const [selectedSize, setSelectedSize] = useState("M");
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   if (loading)
     return (
@@ -113,13 +115,13 @@ const ProductDetail = () => {
               <div className="w-fit max-w-full rounded-xl border-0 bg-zeta-sub px-3 py-1 text-xs font-medium text-zeta-main sm:text-sm">
                 {productLeague}
               </div>
-              {product.brand && (
-                <p className="text-sm font-medium text-zeta-main">
-                  {product.brand}
-                </p>
-              )}
               <div>
-                <h1 className="text-3xl font-bold leading-tight text-zeta-main sm:text-xl lg:text-3xl">
+                {product.brand && (
+                  <p className="text-xl font-medium text-zeta-main">
+                    {product.brand}
+                  </p>
+                )}
+                <h1 className="mt-1 text-3xl font-bold leading-tight text-zeta-main sm:text-xl lg:text-3xl">
                   {product?.name}
                 </h1>
               </div>
@@ -179,7 +181,11 @@ const ProductDetail = () => {
                     Select Size:{" "}
                     <span className="text-zeta-main">{selectedSize}</span>
                   </span>
-                  <button className="flex items-center gap-1 text-sm underline underline-offset-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsSizeGuideOpen(true)}
+                    className="flex items-center gap-1 text-sm underline underline-offset-4"
+                  >
                     <Ruler size={15} />
                     Size Guide
                   </button>
@@ -231,6 +237,11 @@ const ProductDetail = () => {
 
         <ProductReviewSection productId={product._id || product.id} />
       </div>
+      <SizeGuideModal
+        product={product}
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+      />
     </main>
   );
 };
