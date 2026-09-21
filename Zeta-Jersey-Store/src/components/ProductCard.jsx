@@ -5,7 +5,7 @@ const ProductCard = ({ product }) => {
   return (
     <div
       onClick={() => navigate(`/products/${product._id || product.id}`)}
-      className="card h-full w-full rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
+      className="card h-full w-full max-w-[300px] shrink-0 rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
     >
       <figure className="px-5 pt-5 ">
         <img
