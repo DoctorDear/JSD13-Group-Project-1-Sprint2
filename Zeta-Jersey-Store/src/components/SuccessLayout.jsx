@@ -8,7 +8,7 @@ export default function SuccessLayout({
   title,
   subtitle,
   redirectTo = "/login",
-  delay = 5,
+  delay = 0,
 }) {
   const navigate = useNavigate();
   const [count, setCount] = useState(delay);

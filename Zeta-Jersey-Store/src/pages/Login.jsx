@@ -38,7 +38,7 @@ export default function Login() {
   );
 
   return (
-    <AuthLayout image={HERO} imageAlt="Football fan sitting in stadium seats at dusk">
+    <AuthLayout image={HERO} imageAlt="Football fan sitting in stadium seats at dusk" showBackButton >
       <AuthTitle>Log in</AuthTitle>
 
       {noticeKey && (
