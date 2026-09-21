@@ -1,3 +1,4 @@
+import { useNavigate, Link } from "react-router-dom";
 import logoImg from "../assets/logo/Zeta_all_Green_Logo.png";
 
 export default function AuthLayout({
@@ -7,6 +8,16 @@ export default function AuthLayout({
   onBack,
   children,
 }) {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-700 to-violet-500 p-4 sm:p-8">
       <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8 min-h-[680px] lg:h-[700px] flex flex-col justify-center">
@@ -24,9 +35,9 @@ export default function AuthLayout({
               {showBackButton && (
                 <button
                   type="button"
-                  onClick={onBack}
-                  className="rounded-full bg-lime-600/90 px-5 py-2.5 text-[11px] font-semibold text-white backdrop-blur hover:bg-lime-600 transition"
-                >
+                  onClick={handleBack}
+                  className="rounded-full bg-lime-600/90 px-5 py-2.5 text-[11px] font-semibold text-white backdrop-blur hover:bg-lime-600 transition cursor-pointer"
+                Link to="/">
                   Back to website
                 </button>
               )}
@@ -44,11 +55,13 @@ export default function AuthLayout({
 
 function Logo() {
   return (
-    <img
-      src={logoImg}
-      alt="Zeta Logo"
-      className="h-10 sm:h-12 w-auto object-contain drop-shadow scale-[5] origin-top-left -translate-x-[70px] -translate-y-[100px]"
-    />
+    <Link to="/">
+      <img
+        src={logoImg}
+        alt="Zeta Logo"
+        className="h-10 sm:h-12 w-auto object-contain drop-shadow scale-[5] origin-top-left -translate-x-[70px] -translate-y-[100px] cursor-pointer"
+      />
+    </Link>
   );
 }
 

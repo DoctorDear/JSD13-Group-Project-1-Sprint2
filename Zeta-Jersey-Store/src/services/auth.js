@@ -26,8 +26,7 @@ export const authService = {
   resendVerification: ({ email }, o) => api.post("/auth/verify-email/resend", { email }, o),
 
   changePassword: ({ email, oldPassword, newPassword }, o) =>
-  api.post("/auth/password/change", { email, oldPassword, newPassword }, { ...o, auth: true }),
-
+    api.post("/auth/password/change", { email, oldPassword, newPassword }, { ...o, auth: true }),
 
   async logout() {
     try { await api.post("/auth/logout"); } catch { /* ignore */ }
