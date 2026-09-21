@@ -4,7 +4,7 @@ import Field from "../components/Field";
 import FormError from "../components/FormError";
 import { SocialButton, GoogleIcon, AppleIcon } from "../components/SocialButtons";
 import useForm from "../hooks/useForm";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { rules, passwordStrength } from "../lib/validation";
 
 const HERO =

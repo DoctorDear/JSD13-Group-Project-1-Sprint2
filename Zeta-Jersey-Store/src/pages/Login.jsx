@@ -3,7 +3,7 @@ import AuthLayout, { AuthTitle, AuthButton } from "../components/AuthLayout";
 import Field from "../components/Field";
 import FormError from "../components/FormError";
 import useForm from "../hooks/useForm";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { rules } from "../lib/validation";
 
 const HERO =

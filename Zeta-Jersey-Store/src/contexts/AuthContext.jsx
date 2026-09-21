@@ -2,7 +2,11 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { authService } from "../services/auth";
 import { tokenStore, onUnauthorized } from "../lib/api";
 
-const AuthContext = createContext(null);
+
+
+export const AuthContext = createContext(null);
+
+
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
