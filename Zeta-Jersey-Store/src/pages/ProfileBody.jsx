@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ProfileProductSection from "../components/ProfilePages/ProfileProductSection.jsx";
+import ProfileProductSection from "../components/ProfilePages/";
 import ProfileCategories from "../components/ProfilePages/ProfileCategories.jsx";
 import ProfileHero from "../components/ProfilePages/ProfileHero.jsx";
 import ReviewsAndStats from "../components/ProfilePages/ReviewsAndStats.jsx";
