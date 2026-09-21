@@ -4,6 +4,7 @@ import MainLayout from "./components/MainLayout";
 
 import LandingPage from "./pages/LandingPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import AllProductsPage from "./pages/AllProductsPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
@@ -34,6 +35,7 @@ export default function App() {
       {/* Store routes — public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/home" element={<LandingPage />} />
+      <Route path="/products" element={<AllProductsPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
