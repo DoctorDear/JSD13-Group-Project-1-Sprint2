@@ -20,8 +20,6 @@ export default function LoginSuccess() {
       subtitle={
         user?.firstName ? <>Welcome back, <span className="font-semibold">{user.firstName}</span>.</> : null
       }
-      delay={4}
-      onRedirect={() => goToSite(target)}
     />
   );
 }

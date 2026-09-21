@@ -9,7 +9,6 @@ export default function VerifyEmailSuccess() {
       image={HERO}
       imageAlt="Athlete in a yellow and white jersey standing on a floodlit pitch"
       title={<>Verify email<br />successfully</>}
-      redirectTo="/login"
     />
   );
 }

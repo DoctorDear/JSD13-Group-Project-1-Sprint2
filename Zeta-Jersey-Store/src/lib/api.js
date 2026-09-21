@@ -1,6 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const REFRESH_PATH = import.meta.env.VITE_REFRESH_ENDPOINT ?? "/auth/refresh";
-const TIMEOUT_MS = 15000;
 
 export class ApiError extends Error {
   constructor(message, { status = 0, fieldErrors = {}, code } = {}) {
@@ -92,14 +91,10 @@ export async function request(
   path,
   { method = "GET", body, signal, auth = false, headers = {}, _retried = false } = {}
 ) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort("timeout"), TIMEOUT_MS);
-  signal?.addEventListener("abort", () => controller.abort(signal.reason), { once: true });
-
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method,
-      signal: controller.signal,
+      signal,
       credentials: "include",
       headers: {
         Accept: "application/json",
@@ -111,7 +106,6 @@ export async function request(
     });
 
     if (res.status === 401 && auth && !_retried && path !== REFRESH_PATH) {
-      clearTimeout(timer);
       try {
         await refreshToken();
       } catch {
@@ -136,15 +130,10 @@ export async function request(
     return payload;
   } catch (err) {
     if (err instanceof ApiError) throw err;
-    if (err?.name === "AbortError") {
-      throw new ApiError("The request timed out. Please try again.", { status: 0, code: "timeout" });
-    }
     throw new ApiError("Network error — check your connection and try again.", {
       status: 0,
       code: "network",
     });
-  } finally {
-    clearTimeout(timer);
   }
 }
 

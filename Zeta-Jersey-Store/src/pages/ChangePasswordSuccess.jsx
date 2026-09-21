@@ -9,7 +9,6 @@ export default function ChangePasswordSuccess() {
       image={HERO}
       imageAlt="Woman in a red and white striped jersey"
       title={<>Change password<br />successfully</>}
-      redirectTo="/login"
     />
   );
 }
