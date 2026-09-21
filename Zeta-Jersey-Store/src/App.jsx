@@ -15,9 +15,10 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
+import Profile from "./pages/ProfileBody";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
+import ProfileBody from "./pages/ProfileBody";
 import RegisterSuccess from "./pages/RegisterSuccess";
 import LoginSuccess from "./pages/LoginSuccess";
 import ResetPasswordSuccess from "./pages/ResetPasswordSuccess";
@@ -66,7 +67,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<ProfileBody />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
