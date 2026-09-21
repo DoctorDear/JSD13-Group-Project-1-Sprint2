@@ -18,7 +18,7 @@ export default function EmailConfirmation() {
   const token = params.get("token");
   const email = params.get("email") || state?.email || "";
 
-  const [status, setStatus] = useState(token ? "verifying" : "idle"); // idle | verifying | success | error
+  const [status, setStatus] = useState(token ? "verifying" : "idle"); // idle | verifying | error
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState("");
@@ -38,17 +38,13 @@ export default function EmailConfirmation() {
     setError(""); setNotice(""); setStatus("verifying");
     try {
       await authService.confirmEmail({ email, token });
+      if (!mounted.current) return;
+      navigate("/verify-email-success", { replace: true });
     } catch (err) {
-      if (err?.status && err.status !== 0) {
-        if (!mounted.current) return;
-        setStatus("error");
-        setError(err instanceof ApiError ? err.message : "Unexpected error. Please try again.");
-        return;
-      }
+      if (!mounted.current) return;
+      setStatus("error");
+      setError(err instanceof ApiError ? err.message : "Unexpected error. Please try again.");
     }
-    if (!mounted.current) return;
-    setStatus("success");
-    navigate("/verify-email", { state: { email } });
   }, [email, token, navigate]);
 
   useEffect(() => {
@@ -79,50 +75,33 @@ export default function EmailConfirmation() {
   const busy = status === "verifying";
 
   return (
-    <AuthLayout
-      image={HERO}
-      imageAlt="Young footballer sitting on a ball holding a water bottle"
-      showBackButton
-      onBack={() => navigate("/")}
-    >
-      <AuthTitle className="p-[3px]">Email<br />Confirmation</AuthTitle>
+    <AuthLayout image={HERO} imageAlt="Young footballer sitting on a ball holding a water bottle" showBackButton>
+      <AuthTitle>Email<br />Confirmation</AuthTitle>
 
-      {email && status !== "success" && (
-        <p className="mt-4 text-[13px] text-gray-900 p-[3px]">
-          We sent a link to <span className="font-semibold p-[3px]">{email}</span>
+      {email && (
+        <p className="mt-4 text-lg text-gray-900">
+          We sent a link to <span className="font-semibold">{email}</span>
         </p>
       )}
 
-      <div className="mt-6 space-y-4 p-[3px]">
-        {status === "success" ? (
+      <div className="mt-10 space-y-6">
+        <FormError message={error} />
+
+        {notice && (
           <div role="status" aria-live="polite"
-            className="flex items-center gap-3 rounded-lg border border-lime-300 bg-lime-50 px-4 py-4 p-[3px]">
-            <svg className="h-6 w-6 shrink-0 fill-lime-600 p-[3px]" viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3l-4 4a1 1 0 01-1.4 0l-2-2 1.4-1.4L9 10.6l3.3-3.3 1.4 1.4z" />
-            </svg>
-            <p className="text-[13px] font-medium text-lime-800 p-[3px]">Email confirmed! Redirecting to log in…</p>
+            className="rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800">
+            {notice}
           </div>
-        ) : (
-          <>
-            <FormError message={error} className="p-[3px]" />
-
-            {notice && (
-              <div role="status" aria-live="polite"
-                className="rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-[10px] font-medium text-lime-800 p-[3px]">
-                {notice}
-              </div>
-            )}
-
-            <AuthButton type="button" onClick={confirm} disabled={busy || resending} className="disabled:opacity-60 p-[3px]">
-              {busy ? "Confirming…" : status === "error" ? "Try again" : "Verify email"}
-            </AuthButton>
-
-            <AuthButton type="button" onClick={handleResend}
-              disabled={resending || busy || cooldown > 0} className="disabled:opacity-60 p-[3px]">
-              {resending ? "Sending…" : cooldown > 0 ? `Resend email (${cooldown}s)` : "Resend email"}
-            </AuthButton>
-          </>
         )}
+
+        <AuthButton type="button" onClick={confirm} disabled={busy || resending} className="disabled:opacity-60">
+          {busy ? "Confirming…" : status === "error" ? "Try again" : "Confirm email"}
+        </AuthButton>
+
+        <AuthButton type="button" onClick={handleResend}
+          disabled={resending || busy || cooldown > 0} className="disabled:opacity-60">
+          {resending ? "Sending…" : cooldown > 0 ? `Resend email (${cooldown}s)` : "Resend email"}
+        </AuthButton>
       </div>
     </AuthLayout>
   );
