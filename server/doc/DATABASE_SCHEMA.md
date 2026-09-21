@@ -8,7 +8,7 @@
 ## 📌 1. ภาพรวมสถาปัตยกรรมฐานข้อมูล (Architecture Overview)
 
 ระบบฐานข้อมูลออกแบบด้วยหลักการ **Hybrid Approach** ของ Document Database (MongoDB) โดยผสมผสานระหว่าง:
-1. **Root Collections (3 ตารางหลัก):** `users`, `products`, `orders` สำหรับข้อมูลที่มีวงจรอิสระและมีโอกาสเติบโตต่อเนื่อง
+1. **Root Collections (4 ตารางหลัก):** `users`, `products`, `orders`, `reviews` สำหรับข้อมูลที่มีวงจรอิสระและมีโอกาสเติบโตต่อเนื่อง
 2. **Embedded Subdocuments (ก้อนข้อมูลย่อย):** `cart_items`, `addresses`, `order_items`, `payment_info` เพื่อเพิ่ม Data Locality ลดการ Query ข้ามตาราง และทำให้การดึงข้อมูลหน้าเว็บรวดเร็ว
 
 ### จุดเด่นเชิงสถาปัตยกรรม (Architectural Highlights)
@@ -128,6 +128,7 @@ classDiagram
 | `sku` | String | UK, Required | รหัสสต็อกสินค้า (e.g. `"LFC-2627-HM-PL"`) |
 | `groupId` | String | Optional | รหัสกลุ่ม Variant เช่น `"LFC-2627-HOME"` (หมวกให้เป็น `null`) |
 | `edition` | String | Optional | รุ่นของเสื้อ เช่น `"Player Edition"` (หมวกให้เป็น `null`) |
+| `brand` | String | Default: `"Adidas"` | แบรนด์ผู้ผลิตสินค้า เช่น `"Adidas"`, `"Nike"` |
 | `name` | String | Required | **[Rubric]** ชื่อสินค้า เช่น `"Liverpool FC 26/27 Home Jersey"` |
 | `description` | String | Required | **[Rubric]** รายละเอียดเนื้อผ้าและสินค้า |
 | `price` | Number | Required, Min 0 | **[Rubric]** ราคาขายจริงของรุ่นนี้ |
@@ -136,6 +137,9 @@ classDiagram
 | `date` | Date | Required | **[Rubric]** วันที่ลงสินค้า / วันเปิดตัว |
 | `tag` | Array&lt;String&gt; | Required | **[Rubric]** แท็กหมวดหมู่ เช่น `["Liverpool", "Home", "26/27"]` |
 | `category` | String | Optional | หมวดหมู่ลีก เช่น `"Premier League"` |
+| `fit` | String | Optional | ทรงเสื้อ: `slim`, `regular`, `relaxed`, `oversized` |
+| `kitType` | String | Optional | ประเภทชุด: `home`, `away`, `third`, `goalkeeper`, `training`, `lifestyle` |
+| `activity` | String | Default: `football` | กิจกรรมที่เหมาะกับสินค้า |
 | `images` | Array&lt;String&gt; | Required | ลิงก์รูปภาพ (Hero & Thumbnails) |
 | `sizes` | Array&lt;String&gt; | Default | ไซส์ที่มีให้เลือก `["S", "M", "L", "XL", "2XL"]` |
 | `isActive` | Boolean | Default: true | สถานะเปิด/ปิดการขาย (Soft Delete) |
@@ -189,6 +193,24 @@ classDiagram
 | `payment` | Subdocument | Embedded | ข้อมูลการชำระเงินจำลอง (Simulated Payment) |
 | `totalAmount` | Number | Required | ยอดเงินสุทธิรวมทั้งหมด |
 | `orderStatus` | String | Default: `'pending'` | สถานะออร์เดอร์ (`'pending'`, `'processing'`, `'completed'`) |
+
+### 3.4 Collection: `reviews`
+| Field Name | Data Type | Constraint | Description |
+| :--- | :--- | :--- | :--- |
+| `_id` | ObjectId | PK, Auto | รหัสรีวิว |
+| `productId` | ObjectId | FK, Required | สินค้าที่ถูกรีวิว |
+| `userId` | ObjectId | FK, Required | ผู้เขียนรีวิว (หนึ่งคนต่อหนึ่งสินค้าได้หนึ่งรีวิว) |
+| `orderId` | ObjectId | FK, Optional | ออร์เดอร์ที่ใช้ยืนยันการซื้อ |
+| `rating` | Number | Required, 1–5 | คะแนนรวม |
+| `detailedRatings` | Subdocument | Optional | คะแนน `comfort`, `quality`, `fit`, `length` (1–5) |
+| `title` | String | Optional | หัวข้อรีวิว |
+| `body` | String | Required | เนื้อหารีวิว |
+| `tags` | Array&lt;String&gt; | Optional | คีย์เวิร์ดสำหรับ filter รีวิว |
+| `isRecommended` | Boolean | Optional | ผู้ซื้อแนะนำสินค้าหรือไม่ |
+| `verifiedPurchase` | Boolean | Default: false | สถานะยืนยันว่าเคยสั่งซื้อจริง |
+| `helpfulCount` | Number | Default: 0 | จำนวนผู้กดว่ารีวิวมีประโยชน์ |
+| `reportCount` | Number | Default: 0 | จำนวนการรายงานรีวิว |
+| `status` | String | Default: `published` | สถานะ moderation: `pending`, `published`, `hidden` |
 
 ---
 

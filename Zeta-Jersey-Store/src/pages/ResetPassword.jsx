@@ -27,23 +27,23 @@ export default function ResetPassword() {
       showBackButton
       onBack={() => navigate("/")}
     >
-      <AuthTitle>Reset password</AuthTitle>
-      <p className="mt-6 text-lg text-gray-900">Password problem ? We got you!</p>
+      <AuthTitle className="p-[3px]">Reset password</AuthTitle>
+      <p className="mt-4 text-[13px] text-gray-900 p-[3px]">Password problem ? We got you!</p>
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-8">
-        <FormError message={f.formError} />
+      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-4 p-[3px]">
+        <FormError message={f.formError} className="p-[3px]" />
 
         <Field label="Email" name="email" type="email" placeholder="Your email"
           value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" className="mt-4" />
+          error={f.errorFor("email")} autoComplete="email" className="p-[3px]" />
 
-        <AuthButton type="submit" disabled={f.submitting} className="mt-10 disabled:opacity-60">
+        <AuthButton type="submit" disabled={f.submitting} className="mt-6 disabled:opacity-60 p-[3px]">
           {f.submitting ? "Sending…" : "Summit email address"}
         </AuthButton>
 
-        <p className="mt-6 text-center text-lg text-gray-900">
+        <p className="mt-4 text-center text-[13px] text-gray-900 p-[3px]">
           Remembered it?{" "}
-          <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
+          <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700 p-[3px]">
             Log in
           </Link>
         </p>

@@ -18,6 +18,10 @@ export const rules = {
   loginPassword: () => (v) => (!v ? "Password is required" : ""),
 
   checked: (msg) => (v) => (v ? "" : msg),
+
+  /** Ensures the new password differs from another field's value. */
+  notSameAs: (otherField, msg) => (v, values) =>
+    v && values?.[otherField] && v === values[otherField] ? msg : "",
 };
 
 /** Runs a schema ({ field: [validators] }) against values. Returns { field: message }. */
@@ -35,7 +39,7 @@ export function validate(values, schema) {
   return errors;
 }
 
-/** Password strength 0–4, for the meter on Register. */
+/** Password strength 0–4, for the meter on Register / ChangePassword. */
 export function passwordStrength(v = "") {
   let score = 0;
   if (v.length >= 8) score++;
