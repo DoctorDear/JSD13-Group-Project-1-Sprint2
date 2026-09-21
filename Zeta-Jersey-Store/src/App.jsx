@@ -15,12 +15,15 @@ import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import ProfileBody from "./pages/ProfileBody";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
 
 
 
 export default function App() {
+  const devOnlyProfileBody = import.meta.env.DEV ? <ProfileBody /> : <Navigate to="/login" replace />;
+
   return (
     <Routes>
       {/* Store routes — public */}
@@ -42,6 +45,9 @@ export default function App() {
       {/* Open to everyone — magic link may open in any session state */}
       <Route path="/email-confirmation" element={<EmailConfirmation />} />
       <Route path="/change-password" element={<ChangePassword />} />
+
+      {/* Temporary dev-only preview for the profile mock UI */}
+      <Route path="/profile-body" element={devOnlyProfileBody} />
 
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
