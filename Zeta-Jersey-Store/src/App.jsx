@@ -16,6 +16,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import ProfileBody from "./pages/ProfileBody";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
 import RegisterSuccess from "./pages/RegisterSuccess";
@@ -61,6 +62,8 @@ export default function App() {
       <Route path="/change-password-success" element={<ChangePasswordSuccess />} />
 
       <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
+
+      {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
 
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
