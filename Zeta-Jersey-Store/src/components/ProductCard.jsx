@@ -1,18 +1,30 @@
 import { Heart, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const [imageFailed, setImageFailed] = useState(false);
+  const imageSrc = product.imageUrl || product?.images?.[0];
+
   return (
     <div
       onClick={() => navigate(`/products/${product._id || product.id}`)}
-      className="card h-full w-full max-w-[300px] shrink-0 rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
+      className="card flex w-full max-w-[290px] shrink-0 self-stretch flex-col rounded-xl bg-white-100 cursor-pointer hover:shadow-lg transition-shadow"
     >
-      <figure className="px-5 pt-5 ">
-        <img
-          className="rounded-xl aspect-square object-cover"
-          src={product.imageUrl || product?.images?.[0]}
-          alt={product.name}
-        />
+      <figure className="relative aspect-square w-full shrink-0 px-5 pt-5">
+        {imageSrc && !imageFailed ? (
+          <img
+            className="h-full w-full rounded-xl object-cover"
+            src={imageSrc}
+            alt={product.name}
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center rounded-xl bg-zeta-main-lighter text-sm text-zeta-muted">
+            Image unavailable
+          </div>
+        )}
         <span className="badge badge-outline absolute top-8 left-7 rounded-xl border-0 font-medium bg-zeta-sub-lighter text-zeta-sub-dark">
           NEW
         </span>
@@ -20,17 +32,20 @@ const ProductCard = ({ product }) => {
           <Heart size={20} />
         </button>
       </figure>
-      <div className="card-body">
+      <div className="card-body flex flex-1 flex-col">
         {product.brand && (
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zeta-muted">
+          <p className="h-5 text-xs font-semibold uppercase tracking-[0.14em] text-zeta-muted">
             {product.brand}
           </p>
         )}
-        <h2 className="card-title text-xl font-bold ">{product.name}</h2>
-        <div className="badge badge-outline rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
+        {!product.brand && <div className="h-5" aria-hidden="true" />}
+        <h2 className="card-title min-h-[3.5rem] line-clamp-2 text-xl font-bold">
+          {product.name}
+        </h2>
+        <div className="badge badge-outline min-h-8 rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
           {product.team || product.category || product.catagory}
         </div>
-        <p className="!line-clamp-3 h-[4.5em] overflow-hidden">
+        <p className="!line-clamp-3 h-[4.5rem] overflow-hidden">
           {product.description}
         </p>
         <div className="mt-auto flex flex-col gap-5">
