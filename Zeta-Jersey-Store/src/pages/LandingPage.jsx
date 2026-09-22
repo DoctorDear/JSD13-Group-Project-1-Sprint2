@@ -14,12 +14,12 @@ const productSections = [
   {
     id: "new-arrivals",
     title: "New Arrivals",
-    query: "sort=newest&limit=8",
+    query: "sort=newest&limit=12",
   },
   {
     id: "best-seller",
     title: "Best Seller",
-    query: "sort=best-selling&limit=8",
+    query: "sort=best-selling&limit=12",
   },
 ];
 
