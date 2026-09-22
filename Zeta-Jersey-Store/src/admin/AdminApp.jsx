@@ -9,7 +9,6 @@ import Customers from './Customers';
 import StockMovement from './StockMovement';
 import Settings from './Settings';
 import { Orders, Tasks } from './Operations';
-import './admin.css';
 
 const navClass = ({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isActive ? 'bg-primary/10 font-semibold text-primary' : 'text-base-content/65 hover:bg-base-100 hover:text-primary'}`;
 
