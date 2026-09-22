@@ -5,6 +5,7 @@ import FormError from "../components/FormError";
 import useForm from "../hooks/useForm";
 import { authService } from "../services/auth";
 import { rules, passwordStrength } from "../lib/validation";
+import { changePassword } from "../../../server/src/controllers/auth.controller";
 
 const HERO =
   "https://plus.unsplash.com/premium_photo-1747873867619-b745ebf65c03?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=&fit=crop&w=900&q=80";
