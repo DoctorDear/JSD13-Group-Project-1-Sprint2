@@ -33,7 +33,7 @@ const Navbar = ({ page = "home" }) => {
           className={`flex items-center h-10 rounded-full text-base text-white ${isHome ? "bg-zeta-sub/30 border border-white/10" : "bg-[#FFFFFF]/10 border border-white/10"}`}
         >
           <Link
-            to="/products?sort=newest"
+            to={isHome ? "#new-arrivals" : "/products?sort=newest"}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"
@@ -43,7 +43,7 @@ const Navbar = ({ page = "home" }) => {
             New Arrivals
           </Link>
           <Link
-            to="/products"
+            to={isHome ? "#best-seller" : "/products?sort=best-selling"}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"

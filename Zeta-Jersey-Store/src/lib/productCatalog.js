@@ -1,4 +1,5 @@
-export const PRODUCT_PAGE_SIZE = 6;
+// The desktop catalog uses four columns, so two complete rows fit per page.
+export const PRODUCT_PAGE_SIZE = 8;
 
 const normalise = (value) => String(value ?? "").trim().toLowerCase();
 
