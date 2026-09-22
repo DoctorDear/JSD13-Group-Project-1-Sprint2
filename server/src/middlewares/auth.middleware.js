@@ -1,17 +1,8 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
-  // เช็คทั้งจาก Cookie หรือ Header Bearer
-
-  let token = null;
-  // 1. ถ้ามีใน Cookie ให้หยิบจาก Cookie
-  if (req.cookies?.accessToken) {
-    token = req.cookies.accessToken;
-  }
-  // 2. ถ้าไม่มีใน Cookie แต่มีใน Header ให้หยิบจาก Header
-  else if (req.headers.authorization?.startsWith("Bearer ")) {
-    token = req.headers.authorization.split(" ")[1];
-  }
+  // เช็คจาก Cookie
+  const token = req.cookies?.accessToken;
 
   if (!token) {
     return res.status(401).json({
