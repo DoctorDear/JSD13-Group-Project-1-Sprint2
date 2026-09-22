@@ -63,6 +63,8 @@ export default function App() {
 
       <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
 
+      {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
+
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
