@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { routes as v1Routes } from "./v1/index.js";
+import { userRouter } from "./user.routes.js";
+import { orderRouter } from "./order.routes.js";
 
-export const routes = Router();
+const router = Router();
 
-routes.use("/v1", v1Routes);
+// นำเข้า Router ของแต่ละส่วน
+router.use("/users", userRouter);
+router.use("/orders", orderRouter);
+
+export const userRouter = router;
