@@ -1,5 +1,5 @@
-import ProductCard from "./ProductCard";
-import products from "../data/products.json";
+import ProductCard from "../ProductCard";
+import products from "../../data/products.json";
 
 function ProfileProductSection({ activeProductTab, onProductTabChange, likedProducts, onToggleLike }) {
   return (

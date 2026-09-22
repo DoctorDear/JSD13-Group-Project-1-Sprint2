@@ -1,10 +1,16 @@
 import { Product } from "../models/Product.model.js";
+import Order from "../models/Order.model.js";
 
 // read all product and filter by searc name
 export const getProducts = async (req, res, next) => {
   try {
-    const { search, ...filters } = req.query;
+    const { search, sort = "newest", limit: rawLimit, ...filters } = req.query;
     const query = {};
+
+    const parsedLimit = Number.parseInt(rawLimit, 10);
+    const limit = Number.isInteger(parsedLimit) && parsedLimit > 0
+      ? Math.min(parsedLimit, 50)
+      : null;
 
     // 1. ถ้ามีคำค้นหา (Search คลุมทั้ง name, description, tag)
     if (search) {
@@ -25,7 +31,48 @@ export const getProducts = async (req, res, next) => {
       }
     });
 
-    const products = await Product.find(query);
+    if (sort === "best-selling") {
+      const bestSellerRows = await Order.aggregate([
+        { $match: { orderStatus: { $ne: "cancelled" } } },
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.productId",
+            totalSold: { $sum: "$items.quantity" },
+          },
+        },
+        { $sort: { totalSold: -1 } },
+        ...(limit ? [{ $limit: limit }] : []),
+      ]);
+
+      if (bestSellerRows.length > 0) {
+        const rankByProductId = new Map(
+          bestSellerRows.map((row, index) => [row._id.toString(), index]),
+        );
+        const products = await Product.find({
+          ...query,
+          _id: { $in: bestSellerRows.map((row) => row._id) },
+        });
+
+        products.sort(
+          (first, second) =>
+            rankByProductId.get(first._id.toString()) -
+            rankByProductId.get(second._id.toString()),
+        );
+
+        return res.status(200).json(products);
+      }
+    }
+
+    const productQuery = Product.find(query).sort({
+      createdAt: -1,
+      date: -1,
+      _id: -1,
+    });
+
+    if (limit) productQuery.limit(limit);
+
+    const products = await productQuery;
 
     return res.status(200).json(products);
   } catch (err) {
