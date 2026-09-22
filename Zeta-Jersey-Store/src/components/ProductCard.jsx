@@ -18,6 +18,8 @@ const ProductCard = ({ product }) => {
             className="h-full w-full rounded-xl object-cover"
             src={imageSrc}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             onError={() => setImageFailed(true)}
           />
         ) : (
