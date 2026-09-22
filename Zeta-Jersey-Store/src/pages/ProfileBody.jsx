@@ -1,0 +1,214 @@
+import { useState } from "react";
+import ProfileProductSection from "../components/ProfilePages/ProfileProductSection.jsx";
+import ProfileCategories from "../components/ProfilePages/ProfileCategories.jsx";
+import ProfileHero from "../components/ProfilePages/ProfileHero.jsx";
+import ReviewsAndStats from "../components/ProfilePages/ReviewsAndStats.jsx";
+import Sidebar from "../components/ProfilePages/Sidebar.jsx";
+import EditProfilePage from "../components/ProfilePages/EditProfilePage.jsx";
+import ProfileDetailsPage from "../components/ProfilePages/ProfileDetailsPage.jsx";
+
+const toProfileView = (profile) => {
+  if (!profile) return null;
+
+  return {
+    ...profile,
+    name: [profile.firstName, profile.lastName].filter(Boolean).join(" "),
+    address: profile.addresses?.find((address) => address.isDefault)?.addressLine ?? "",
+    addressId: profile.addresses?.find((address) => address.isDefault)?._id,
+  };
+};
+
+function ProfileBody() {
+  const { user: authUser, setUser: setAuthUser } = useAuth();
+  const [activeMenu, setActiveMenu] = useState("Home");
+  const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
+  const [likedProducts, setLikedProducts] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isViewingDetails, setIsViewingDetails] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+
+    userService
+      .getProfile()
+      .then((data) => {
+        if (active) setUser(toProfileView(data?.user ?? data));
+      })
+      .catch(() => {
+        if (active) setUser(toProfileView(authUser));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [authUser]);
+
+  const toggleLike = (index) => {
+    setLikedProducts((current) =>
+      current.includes(index)
+        ? current.filter((item) => item !== index)
+        : [...current, index],
+    );
+  };
+
+  const handleMenuChange = (menu) => {
+    setActiveMenu(menu);
+    setIsEditing(false);
+    setIsViewingDetails(false);
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setIsViewingDetails(false);
+    setActiveMenu("My Account");
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleEditSave = async (formData) => {
+    const nameParts = formData.name.trim().split(/\s+/);
+    const firstName = nameParts.shift();
+    const lastName = nameParts.join(" ") || firstName;
+    const data = await userService.updateProfile({
+      firstName,
+      lastName,
+      phone: formData.phone.trim(),
+      ...(formData.address.trim() && user.addressId
+        ? {
+            address: {
+              addressLine: formData.address.trim(),
+            },
+          }
+        : {}),
+    });
+    let updatedUser = data?.user ?? data;
+
+    setUser(toProfileView(updatedUser));
+    setAuthUser(updatedUser);
+    setIsEditing(false);
+  };
+
+  const handleViewAllClick = () => {
+    setIsViewingDetails(true);
+    setIsEditing(false);
+  };
+
+  const handleBackFromDetails = () => {
+    setIsViewingDetails(false);
+  };
+
+  const renderContent = () => {
+    if (!user) {
+      return <div className="p-8 text-sm text-zeta-muted">Loading profile...</div>;
+    }
+
+    if (isEditing) {
+      return (
+        <EditProfilePage
+          initialData={user}
+          onCancel={handleEditCancel}
+          onSave={handleEditSave}
+        />
+      );
+    }
+
+    if (isViewingDetails) {
+      return (
+        <ProfileDetailsPage
+          user={user}
+          onBack={handleBackFromDetails}
+          onEditClick={handleEditClick}
+        />
+      );
+    }
+
+    switch (activeMenu) {
+      case "Home":
+        return (
+          <>
+            <ProfileHero user={user} onEditClick={handleEditClick} />
+            <ProfileCategories user={user} onViewAll={handleViewAllClick} />
+            <ProfileProductSection
+              activeProductTab={activeProductTab}
+              onProductTabChange={setActiveProductTab}
+              likedProducts={likedProducts}
+              onToggleLike={toggleLike}
+            />
+          </>
+        );
+
+      case "My Account":
+        return (
+          <>
+            <ProfileHero user={user} onEditClick={handleEditClick} />
+            <ProfileCategories user={user} onViewAll={handleViewAllClick} />
+          </>
+        );
+
+      case "Favorites":
+        return (
+          <>
+            <div className="mb-5 sm:mb-6">
+              <p className="text-xs font-bold tracking-widest text-[#8a948c]">FAVORITES</p>
+              <h1 className="mt-1 wrap-break-word text-2xl font-black sm:text-3xl">My Favorites</h1>
+            </div>
+            <ProfileProductSection
+              activeProductTab={activeProductTab}
+              onProductTabChange={setActiveProductTab}
+              likedProducts={likedProducts}
+              onToggleLike={toggleLike}
+            />
+          </>
+        );
+
+      case "My Reviews":
+        return (
+          <>
+            <div className="mb-5 sm:mb-6">
+              <p className="text-xs font-bold tracking-widest text-[#8a948c]">MY REVIEWS</p>
+              <h1 className="mt-1 wrap-break-word text-2xl font-black sm:text-3xl">Reviews & Stats</h1>
+            </div>
+            <ReviewsAndStats />
+          </>
+        );
+
+      case "Payment":
+        return (
+          <div className="flex flex-col items-center justify-center px-2 py-16 text-center sm:py-20">
+            <div className="mb-4 grid size-16 place-items-center rounded-2xl bg-zeta-sub-lighter text-zeta-sub-dark sm:size-20">
+              <svg width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20" />
+              </svg>
+            </div>
+            <p className="text-base font-black sm:text-lg">Payment Methods</p>
+            <p className="mt-2 max-w-full text-sm text-zeta-muted">ยังไม่มีข้อมูลการชำระเงิน</p>
+            <button className="btn mt-6 min-h-11 rounded-md border-0 bg-zeta-main px-6 text-white shadow-none hover:opacity-90 sm:px-8">
+              Add Payment Method
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <main className="min-h-screen w-full overflow-x-hidden bg-[#f5f7f2] text-[#18251e]">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:gap-8">
+        <Sidebar activeMenu={activeMenu} onMenuChange={handleMenuChange} />
+        <section className="min-w-0 flex-1">
+          <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-9">
+            {renderContent()}
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+export default ProfileBody;

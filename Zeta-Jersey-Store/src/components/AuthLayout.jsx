@@ -1,3 +1,6 @@
+import { useNavigate, Link } from "react-router-dom";
+import logoImg from "../assets/logo/Zeta_all_Green_Logo.png";
+
 export default function AuthLayout({
   image,
   imageAlt = "",
@@ -5,13 +8,23 @@ export default function AuthLayout({
   onBack,
   children,
 }) {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-700 to-violet-500 p-4 sm:p-8">
-      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8 min-h-[680px] lg:h-[700px] flex flex-col justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 h-full items-stretch">
 
           {/* Left — hero image + overlay header */}
-          <div className="relative rounded-2xl overflow-hidden min-h-[340px] lg:min-h-[640px]">
+          <div className="relative rounded-2xl overflow-hidden min-h-[300px] lg:h-full">
             <img
               src={image}
               alt={imageAlt}
@@ -22,9 +35,9 @@ export default function AuthLayout({
               {showBackButton && (
                 <button
                   type="button"
-                  onClick={onBack}
-                  className="rounded-full bg-lime-600/90 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur hover:bg-lime-600 transition"
-                >
+                  onClick={handleBack}
+                  className="rounded-full bg-lime-600/90 px-5 py-2.5 text-[11px] font-semibold text-white backdrop-blur hover:bg-lime-600 transition cursor-pointer"
+                Link to="/">
                   Back to website
                 </button>
               )}
@@ -32,7 +45,7 @@ export default function AuthLayout({
           </div>
 
           {/* Right — page content */}
-          <div className="flex flex-col justify-center lg:pr-6">{children}</div>
+          <div className="flex flex-col justify-center lg:pr-6 py-2 overflow-y-auto">{children}</div>
 
         </div>
       </div>
@@ -42,16 +55,19 @@ export default function AuthLayout({
 
 function Logo() {
   return (
-    <span className="text-3xl font-extrabold tracking-tight text-lime-400 drop-shadow">
-      Zeta
-      <sup className="ml-0.5 text-[10px] font-semibold align-super">jersey</sup>
-    </span>
+    <Link to="/">
+      <img
+        src={logoImg}
+        alt="Zeta Logo"
+        className="h-10 sm:h-12 w-auto object-contain drop-shadow scale-[5] origin-top-left -translate-x-[70px] -translate-y-[100px] cursor-pointer"
+      />
+    </Link>
   );
 }
 
-export function AuthTitle({ children }) {
+export function AuthTitle({ children, className = "" }) {
   return (
-    <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight text-black drop-shadow-[3px_4px_0_rgba(0,0,0,0.25)]">
+    <h1 className={`text-[29px] sm:text-[38px] font-extrabold tracking-tight text-black ${className}`}>
       {children}
     </h1>
   );
@@ -60,7 +76,7 @@ export function AuthTitle({ children }) {
 export function AuthButton({ children, className = "", ...rest }) {
   return (
     <button
-      className={`w-full rounded-lg bg-indigo-900 py-4 text-lg font-semibold text-white
+      className={`w-full rounded-lg bg-indigo-900 py-3.5 text-[13px] font-semibold text-white
         hover:bg-indigo-800 active:scale-[.99] transition ${className}`}
       {...rest}
     >

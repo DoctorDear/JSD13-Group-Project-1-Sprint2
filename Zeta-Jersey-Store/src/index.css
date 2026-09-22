@@ -4,8 +4,8 @@
 }
 
 @theme {
-  --font-sans: 'Poppins', sans-serif;
-  --font-poppins: 'Poppins', sans-serif;
+  --font-sans: 'Poppins', 'Google Sans', sans-serif;
+  --font-poppins: 'Poppins', 'Google Sans', sans-serif;
 
   --color-zeta-main: #2E1F93;
   --color-zeta-sub: #D3D648;
@@ -17,5 +17,5 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', 'Google Sans', sans-serif;
 }

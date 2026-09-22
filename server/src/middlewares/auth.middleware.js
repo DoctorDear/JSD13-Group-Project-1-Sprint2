@@ -1,29 +1,48 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
-	let token = null;
+  // เช็คทั้งจาก Cookie หรือ Header Bearer
 
-	if (req.cookies?.accessToken) {
-		token = req.cookies.accessToken;
-	} else if (req.headers.authorization?.startsWith("Bearer ")) {
-		token = req.headers.authorization.split(" ")[1];
-	}
+  let token = null;
+  // 1. ถ้ามีใน Cookie ให้หยิบจาก Cookie
+  if (req.cookies?.accessToken) {
+    token = req.cookies.accessToken;
+  }
+  // 2. ถ้าไม่มีใน Cookie แต่มีใน Header ให้หยิบจาก Header
+  else if (req.headers.authorization?.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
 
-	if (!token) {
-		return res.status(401).json({
-			success: false,
-			message: "Access denied, no token provided",
-		});
-	}
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Access denied, No token provided",
+    });
+  }
 
-	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		req.user = decoded;
-		return next();
-	} catch (err) {
-		return res.status(401).json({
-			success: false,
-			message: "Invalid or expired token",
-		});
-	}
+  try {
+    // ถอดรหัสตั๋ว
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // ฝากข้อมูล userId และ role ไว้ที่ req.user เพื่อให้ Controller อื่นเรียกใช้ได้
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token!",
+    });
+  }
 };
+
+// ตรวจสอบสิทธิ์เฉพาะ Admin เท่านั้น
+export const requireAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Forbidden: Admin access required",
+    });
+  }
+  next();
+};
+

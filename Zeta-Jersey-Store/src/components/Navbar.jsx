@@ -1,6 +1,6 @@
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = ({ page = "home" }) => {
   const isHome = page === "home";
@@ -32,8 +32,8 @@ const Navbar = ({ page = "home" }) => {
         <div
           className={`flex items-center h-10 rounded-full text-base text-white ${isHome ? "bg-zeta-sub/30 border border-white/10" : "bg-[#FFFFFF]/10 border border-white/10"}`}
         >
-          <a
-            href="#"
+          <Link
+            to={isHome ? "#new-arrivals" : "/products?sort=newest"}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"
@@ -41,9 +41,9 @@ const Navbar = ({ page = "home" }) => {
             }`}
           >
             New Arrivals
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to={isHome ? "#best-seller" : "/products?sort=best-selling"}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"
@@ -51,9 +51,9 @@ const Navbar = ({ page = "home" }) => {
             }`}
           >
             Best Seller
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/products"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"
@@ -61,9 +61,9 @@ const Navbar = ({ page = "home" }) => {
             }`}
           >
             League
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/products"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"
@@ -71,9 +71,9 @@ const Navbar = ({ page = "home" }) => {
             }`}
           >
             Collections
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/products?onSale=true"
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome
                 ? "hover:text-zeta-main hover:bg-zeta-sub/20"
@@ -81,7 +81,7 @@ const Navbar = ({ page = "home" }) => {
             }`}
           >
             On Sale
-          </a>
+          </Link>
         </div>
 
         {/* right: search & action icons */}

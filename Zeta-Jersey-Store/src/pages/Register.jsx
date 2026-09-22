@@ -27,7 +27,7 @@ export default function Register() {
     schema,
     async (values, { signal }) => {
       await register(values, { signal });
-      navigate("/verify-email", { state: { email: values.email } });
+      navigate("/register-success", { state: { email: values.email } });
     }
   );
 
@@ -35,12 +35,7 @@ export default function Register() {
   const bars = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-lime-500"];
 
   return (
-    <AuthLayout
-      image={HERO}
-      imageAlt="Young footballer sitting on the pitch"
-      showBackButton
-      onBack={() => navigate("/")}
-    >
+    <AuthLayout image={HERO} imageAlt="Young footballer sitting on the pitch" showBackButton>
       <AuthTitle>Register</AuthTitle>
 
       <p className="mt-3 text-lg text-gray-900">
@@ -54,22 +49,52 @@ export default function Register() {
         <FormError message={f.formError} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="First name" name="firstName" placeholder="First name"
-            value={f.values.firstName} onChange={f.handleChange} onBlur={f.handleBlur}
-            error={f.errorFor("firstName")} autoComplete="given-name" />
-          <Field label="Last name" name="lastName" placeholder="Last name"
-            value={f.values.lastName} onChange={f.handleChange} onBlur={f.handleBlur}
-            error={f.errorFor("lastName")} autoComplete="family-name" />
+          <Field
+            label="First name"
+            name="firstName"
+            placeholder="First name"
+            value={f.values.firstName}
+            onChange={f.handleChange}
+            onBlur={f.handleBlur}
+            error={f.errorFor("firstName")}
+            autoComplete="given-name"
+          />
+          <Field
+            label="Last name"
+            name="lastName"
+            placeholder="Last name"
+            value={f.values.lastName}
+            onChange={f.handleChange}
+            onBlur={f.handleBlur}
+            error={f.errorFor("lastName")}
+            autoComplete="family-name"
+          />
         </div>
 
-        <Field label="Email" name="email" type="email" placeholder="Your email"
-          value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" />
+        <Field
+          label="Email"
+          name="email"
+          type="email"
+          placeholder="Your email"
+          value={f.values.email}
+          onChange={f.handleChange}
+          onBlur={f.handleBlur}
+          error={f.errorFor("email")}
+          autoComplete="email"
+        />
 
         <div>
-          <Field label="Password" name="password" type="password" placeholder="Enter your password"
-            value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
-            error={f.errorFor("password")} autoComplete="new-password" />
+          <Field
+            label="Password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            value={f.values.password}
+            onChange={f.handleChange}
+            onBlur={f.handleBlur}
+            error={f.errorFor("password")}
+            autoComplete="new-password"
+          />
 
           {f.values.password && (
             <div className="mt-2 flex gap-1.5" aria-hidden="true">

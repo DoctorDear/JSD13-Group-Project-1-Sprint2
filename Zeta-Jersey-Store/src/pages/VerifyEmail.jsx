@@ -23,17 +23,12 @@ export default function VerifyEmail() {
     schema,
     async (values, { signal }) => {
       await authService.verifyEmail(values, { signal });
-      navigate("/email-confirmation", { state: { email: values.email } });
+      navigate("/reset-password-success", { state: { email: values.email } });
     }
   );
 
   return (
-    <AuthLayout
-      image={HERO}
-      imageAlt="Footballer sitting on the pitch beside a ball"
-      showBackButton
-      onBack={() => navigate("/")}
-    >
+    <AuthLayout image={HERO} imageAlt="Footballer sitting on the pitch beside a ball" showBackButton>
       <AuthTitle>Verify email</AuthTitle>
       <p className="mt-3 text-lg text-gray-900">Please enter your email</p>
 
@@ -46,12 +41,28 @@ export default function VerifyEmail() {
       <form onSubmit={f.handleSubmit} noValidate className="mt-8 space-y-7">
         <FormError message={f.formError} />
 
-        <Field label="Your email" name="email" type="email" placeholder="Your email"
-          value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" />
-        <Field label="Your password" name="password" type="password" placeholder="Enter your password"
-          value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("password")} autoComplete="new-password" />
+        <Field
+          label="Your email"
+          name="email"
+          type="email"
+          placeholder="Your email"
+          value={f.values.email}
+          onChange={f.handleChange}
+          onBlur={f.handleBlur}
+          error={f.errorFor("email")}
+          autoComplete="email"
+        />
+        <Field
+          label="Your password"
+          name="password"
+          type="password"
+          placeholder="Enter your password"
+          value={f.values.password}
+          onChange={f.handleChange}
+          onBlur={f.handleBlur}
+          error={f.errorFor("password")}
+          autoComplete="new-password"
+        />
 
         <AuthButton type="submit" disabled={f.submitting} className="mt-10 disabled:opacity-60">
           {f.submitting ? "Resetting…" : "Reset password"}

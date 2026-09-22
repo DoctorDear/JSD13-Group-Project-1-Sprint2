@@ -14,38 +14,72 @@ const schema = {
   password: [rules.loginPassword()],
 };
 
+const NOTICES = {
+  verified: "Email confirmed — you can log in now.",
+  registered: "Account created — log in to continue.",
+  passwordReset: "Password reset — log in with your new password.",
+  passwordChanged: "Password changed — log in with your new password.",
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { login } = useAuth();
 
-  const f = useForm({ email: "", password: "" }, schema, async (values, { signal }) => {
-    await login(values, { signal });
-    navigate(state?.from?.pathname || "/dashboard", { replace: true });
-  });
+  const noticeKey = Object.keys(NOTICES).find((key) => state?.[key]);
+
+  const f = useForm(
+    { email: state?.email || "", password: "" },
+    schema,
+    async (values, { signal }) => {
+      await login(values, { signal });
+      navigate("/login-success", { state: { from: state?.from?.pathname || "/" } });
+    }
+  );
 
   return (
-    <AuthLayout image={HERO} imageAlt="Football fan sitting in stadium seats at dusk">
+    <AuthLayout image={HERO} imageAlt="Football fan sitting in stadium seats at dusk" showBackButton >
       <AuthTitle>Log in</AuthTitle>
 
-      {state?.verified && (
-        <p role="status" className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800">
-          Email confirmed — you can log in now.
+      {noticeKey && (
+        <p
+          role="status"
+          className="mt-4 rounded-lg border border-lime-300 bg-lime-50 px-4 py-3 text-sm font-medium text-lime-800"
+        >
+          {NOTICES[noticeKey]}
         </p>
       )}
 
       <form onSubmit={f.handleSubmit} noValidate className="mt-10 space-y-7">
         <FormError message={f.formError} />
 
-        <Field label="Email" name="email" type="email" placeholder="Your email"
-          value={f.values.email} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("email")} autoComplete="email" />
-        <Field label="Password" name="password" type="password" placeholder="Enter your password"
-          value={f.values.password} onChange={f.handleChange} onBlur={f.handleBlur}
-          error={f.errorFor("password")} autoComplete="current-password" />
+        <Field
+          label="Email"
+          name="email"
+          type="email"
+          placeholder="Your email"
+          value={f.values.email}
+          onChange={f.handleChange}
+          onBlur={f.handleBlur}
+          error={f.errorFor("email")}
+          autoComplete="email"
+        />
+        <Field
+          label="Password"
+          name="password"
+          type="password"
+          placeholder="Enter your password"
+          value={f.values.password}
+          onChange={f.handleChange}
+          onBlur={f.handleBlur}
+          error={f.errorFor("password")}
+          autoComplete="current-password"
+        />
 
-        <Link to="/reset-password"
-          className="block text-lg text-gray-900 hover:text-indigo-700 hover:underline underline-offset-2 transition">
+        <Link
+          to="/reset-password"
+          className="block text-lg text-gray-900 hover:text-indigo-700 hover:underline underline-offset-2 transition"
+        >
           Forget Password ?
         </Link>
 
