@@ -31,6 +31,8 @@ import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
 
 
 export default function App() {
+  const devOnlyProfileBody = import.meta.env.DEV ? <ProfileBody /> : <Navigate to="/login" replace />;
+
   return (
     <Routes>
       <Route path="/admin/*" element={<AdminApp />} />
