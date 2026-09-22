@@ -34,3 +34,15 @@ export const verifyToken = (req, res, next) => {
     });
   }
 };
+
+// ตรวจสอบสิทธิ์เฉพาะ Admin เท่านั้น
+export const requireAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Forbidden: Admin access required",
+    });
+  }
+  next();
+};
+
