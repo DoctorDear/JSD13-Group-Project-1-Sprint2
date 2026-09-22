@@ -1,24 +1,278 @@
-import { useState } from 'react';
-import { Plus, Mail, Phone, Eye, Save } from 'lucide-react';
-import { PageHeading, SearchBox, Badge, EditActions, Empty, Field, Modal, ConfirmDelete } from './components';
-import { matches } from './data';
+import { useState } from "react";
+import { Plus, Mail, Phone, Eye, Save } from "lucide-react";
+import {
+  PageHeading,
+  SearchBox,
+  Badge,
+  EditActions,
+  Empty,
+  Field,
+  Modal,
+  ConfirmDelete,
+} from "./AdminUI";
+import { matches } from "./data";
 
 export default function Customers({ store, money }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [error, setError] = useState('');
-  const customers = store.customers.filter(c => matches(query, c.name, c.email));
+  const [error, setError] = useState("");
+  const customers = store.customers.filter((c) =>
+    matches(query, c.name, c.email),
+  );
   async function save(e) {
     e.preventDefault();
     const form = Object.fromEntries(new FormData(e.currentTarget));
     for (const key of Object.keys(form)) form[key] = form[key].trim();
-    if (!form.name) return setError('Customer name cannot be blank.');
-    if (store.customers.some(c => c.id !== editing.id && c.email.toLowerCase() === form.email.toLowerCase())) return setError('A customer with this email already exists.');
-    const customer = { orders: 0, spent: 0, ...editing, ...form, id: editing.id || crypto.randomUUID() };
-    if (!await store.update({ customers: editing.id ? store.customers.map(c => c.id === editing.id ? customer : c) : [...store.customers, customer] }, 'Customer saved.')) return;
+    if (!form.name) return setError("Customer name cannot be blank.");
+    if (
+      store.customers.some(
+        (c) =>
+          c.id !== editing.id &&
+          c.email.toLowerCase() === form.email.toLowerCase(),
+      )
+    )
+      return setError("A customer with this email already exists.");
+    const customer = {
+      orders: 0,
+      spent: 0,
+      ...editing,
+      ...form,
+      id: editing.id || crypto.randomUUID(),
+    };
+    if (
+      !(await store.update(
+        {
+          customers: editing.id
+            ? store.customers.map((c) => (c.id === editing.id ? customer : c))
+            : [...store.customers, customer],
+        },
+        "Customer saved.",
+      ))
+    )
+      return;
     setEditing(null);
   }
-  return <><PageHeading title="Customers" subtitle="Manage your customer database"><button className="btn btn-primary" onClick={() => { setError(''); setEditing({}); }}><Plus size={16} />Add Customer</button></PageHeading><SearchBox value={query} onChange={setQuery} placeholder="Search customers by name or email..." /><div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{customers.map(c => <article className="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm" key={c.id}><div className="mb-4 flex items-center justify-between gap-3"><span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">{c.name[0]}</span><Badge>{c.status}</Badge></div><h2 className="font-semibold">{c.name}</h2>{c.kind === 'user' && <small className="mt-1 block text-xs text-base-content/50">Registered account · read only</small>}<p className="mt-4 flex items-center gap-2 text-sm text-base-content/65"><Mail size={14} className="shrink-0" />{c.email}</p><p className="mt-2 flex items-center gap-2 text-sm text-base-content/65"><Phone size={14} className="shrink-0" />{c.phone || 'No phone number'}</p><div className="my-5 grid grid-cols-2 gap-3 rounded-xl bg-base-200 p-3"><div><span className="block text-xs text-base-content/55">Total Orders</span><strong className="mt-1 block">{c.orders}</strong></div><div><span className="block text-xs text-base-content/55">Total Spent</span><strong className="mt-1 block">{money(c.spent)}</strong></div></div><div className="flex items-center gap-2"><button className="btn btn-primary btn-sm flex-1" onClick={() => setViewing(c)}><Eye size={14} />View Details</button>{c.kind !== 'user' && <EditActions name={c.name} onEdit={() => { setError(''); setEditing(c); }} onDelete={() => setDeleting(c)} />}</div></article>)}</div>{!customers.length && <Empty />}{editing && <Modal error={store.saveError} title={editing.id ? 'Edit Customer' : 'Add Customer'} onClose={() => setEditing(null)}><form onSubmit={save}><div className="grid grid-cols-1 gap-5 sm:grid-cols-2"><Field className="sm:col-span-2" label="Company / Customer Name" name="name" required defaultValue={editing.name} maxLength={120} /><Field className="sm:col-span-2" label="Email" name="email" type="email" required defaultValue={editing.email} /><Field label="Phone" name="phone" type="tel" defaultValue={editing.phone} /><Field label="Status"><select name="status" defaultValue={editing.status || 'Active'}><option>Active</option><option>Inactive</option></select></Field></div>{error && <p role="alert" className="alert alert-error mt-5 py-3 text-sm">{error}</p>}<div className="mt-6 flex justify-end gap-3 border-t border-base-300 pt-5"><button className="btn btn-primary"><Save size={16} />Save Customer</button><button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>Cancel</button></div></form></Modal>}{viewing && <Modal error={store.saveError} title={viewing.name} onClose={() => setViewing(null)}><Badge>{viewing.status}</Badge><p className="mt-4 flex items-center gap-2 text-sm text-base-content/65"><Mail size={16} />{viewing.email}</p><p className="mt-2 flex items-center gap-2 text-sm text-base-content/65"><Phone size={16} />{viewing.phone || 'No phone number'}</p><div className="my-5 grid grid-cols-2 gap-3 rounded-xl bg-base-200 p-3"><div><span className="block text-xs text-base-content/55">Total Orders</span><strong className="mt-1 block">{viewing.orders}</strong></div><div><span className="block text-xs text-base-content/55">Total Spent</span><strong className="mt-1 block">{money(viewing.spent)}</strong></div></div><h3 className="font-semibold">Recent orders</h3>{store.orders.filter(o => o.customer === viewing.name).map(o => <div className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-base-200 p-3 text-sm" key={o.id}><div><strong className="block">{o.id}</strong><small className="text-xs text-base-content/55">{o.date}</small></div><div className="text-right"><strong className="block">{money(o.total)}</strong><small className="mt-1 block"><Badge>{o.status}</Badge></small></div></div>)}{!store.orders.some(o => o.customer === viewing.name) && <p className="mt-4 text-sm text-base-content/55">No orders found for this customer.</p>}</Modal>}{deleting && <ConfirmDelete error={store.saveError} name={deleting.name} onClose={() => setDeleting(null)} onConfirm={async () => { if (!await store.update({ customers: store.customers.filter(c => c.id !== deleting.id) }, 'Customer deleted.')) return; setDeleting(null); }} />}</>;
+  return (
+    <>
+      <PageHeading title="Customers" subtitle="Manage your customer database">
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setError("");
+            setEditing({});
+          }}
+        >
+          <Plus size={16} />
+          Add Customer
+        </button>
+      </PageHeading>
+      <SearchBox
+        value={query}
+        onChange={setQuery}
+        placeholder="Search customers by name or email..."
+      />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {customers.map((c) => (
+          <article
+            className="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm"
+            key={c.id}
+          >
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
+                {c.name[0]}
+              </span>
+              <Badge>{c.status}</Badge>
+            </div>
+            <h2 className="font-semibold">{c.name}</h2>
+            {c.kind === "user" && (
+              <small className="mt-1 block text-xs text-base-content/50">
+                Registered account · read only
+              </small>
+            )}
+            <p className="mt-4 flex items-center gap-2 text-sm text-base-content/65">
+              <Mail size={14} className="shrink-0" />
+              {c.email}
+            </p>
+            <p className="mt-2 flex items-center gap-2 text-sm text-base-content/65">
+              <Phone size={14} className="shrink-0" />
+              {c.phone || "No phone number"}
+            </p>
+            <div className="my-5 grid grid-cols-2 gap-3 rounded-xl bg-base-200 p-3">
+              <div>
+                <span className="block text-xs text-base-content/55">
+                  Total Orders
+                </span>
+                <strong className="mt-1 block">{c.orders}</strong>
+              </div>
+              <div>
+                <span className="block text-xs text-base-content/55">
+                  Total Spent
+                </span>
+                <strong className="mt-1 block">{money(c.spent)}</strong>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="btn btn-primary btn-sm flex-1"
+                onClick={() => setViewing(c)}
+              >
+                <Eye size={14} />
+                View Details
+              </button>
+              {c.kind !== "user" && (
+                <EditActions
+                  name={c.name}
+                  onEdit={() => {
+                    setError("");
+                    setEditing(c);
+                  }}
+                  onDelete={() => setDeleting(c)}
+                />
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+      {!customers.length && <Empty />}
+      {editing && (
+        <Modal
+          error={store.saveError}
+          title={editing.id ? "Edit Customer" : "Add Customer"}
+          onClose={() => setEditing(null)}
+        >
+          <form onSubmit={save}>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Field
+                className="sm:col-span-2"
+                label="Company / Customer Name"
+                name="name"
+                required
+                defaultValue={editing.name}
+                maxLength={120}
+              />
+              <Field
+                className="sm:col-span-2"
+                label="Email"
+                name="email"
+                type="email"
+                required
+                defaultValue={editing.email}
+              />
+              <Field
+                label="Phone"
+                name="phone"
+                type="tel"
+                defaultValue={editing.phone}
+              />
+              <Field label="Status">
+                <select name="status" defaultValue={editing.status || "Active"}>
+                  <option>Active</option>
+                  <option>Inactive</option>
+                </select>
+              </Field>
+            </div>
+            {error && (
+              <p role="alert" className="alert alert-error mt-5 py-3 text-sm">
+                {error}
+              </p>
+            )}
+            <div className="mt-6 flex justify-end gap-3 border-t border-base-300 pt-5">
+              <button className="btn btn-primary">
+                <Save size={16} />
+                Save Customer
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setEditing(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      {viewing && (
+        <Modal
+          error={store.saveError}
+          title={viewing.name}
+          onClose={() => setViewing(null)}
+        >
+          <Badge>{viewing.status}</Badge>
+          <p className="mt-4 flex items-center gap-2 text-sm text-base-content/65">
+            <Mail size={16} />
+            {viewing.email}
+          </p>
+          <p className="mt-2 flex items-center gap-2 text-sm text-base-content/65">
+            <Phone size={16} />
+            {viewing.phone || "No phone number"}
+          </p>
+          <div className="my-5 grid grid-cols-2 gap-3 rounded-xl bg-base-200 p-3">
+            <div>
+              <span className="block text-xs text-base-content/55">
+                Total Orders
+              </span>
+              <strong className="mt-1 block">{viewing.orders}</strong>
+            </div>
+            <div>
+              <span className="block text-xs text-base-content/55">
+                Total Spent
+              </span>
+              <strong className="mt-1 block">{money(viewing.spent)}</strong>
+            </div>
+          </div>
+          <h3 className="font-semibold">Recent orders</h3>
+          {store.orders
+            .filter((o) => o.customer === viewing.name)
+            .map((o) => (
+              <div
+                className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-base-200 p-3 text-sm"
+                key={o.id}
+              >
+                <div>
+                  <strong className="block">{o.id}</strong>
+                  <small className="text-xs text-base-content/55">
+                    {o.date}
+                  </small>
+                </div>
+                <div className="text-right">
+                  <strong className="block">{money(o.total)}</strong>
+                  <small className="mt-1 block">
+                    <Badge>{o.status}</Badge>
+                  </small>
+                </div>
+              </div>
+            ))}
+          {!store.orders.some((o) => o.customer === viewing.name) && (
+            <p className="mt-4 text-sm text-base-content/55">
+              No orders found for this customer.
+            </p>
+          )}
+        </Modal>
+      )}
+      {deleting && (
+        <ConfirmDelete
+          error={store.saveError}
+          name={deleting.name}
+          onClose={() => setDeleting(null)}
+          onConfirm={async () => {
+            if (
+              !(await store.update(
+                {
+                  customers: store.customers.filter(
+                    (c) => c.id !== deleting.id,
+                  ),
+                },
+                "Customer deleted.",
+              ))
+            )
+              return;
+            setDeleting(null);
+          }}
+        />
+      )}
+    </>
+  );
 }
