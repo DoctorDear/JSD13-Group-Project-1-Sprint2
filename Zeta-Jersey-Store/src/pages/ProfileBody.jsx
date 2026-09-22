@@ -7,18 +7,42 @@ import Sidebar from "../components/ProfilePages/Sidebar.jsx";
 import EditProfilePage from "../components/ProfilePages/EditProfilePage.jsx";
 import ProfileDetailsPage from "../components/ProfilePages/ProfileDetailsPage.jsx";
 
+const toProfileView = (profile) => {
+  if (!profile) return null;
+
+  return {
+    ...profile,
+    name: [profile.firstName, profile.lastName].filter(Boolean).join(" "),
+    address: profile.addresses?.find((address) => address.isDefault)?.addressLine ?? "",
+    addressId: profile.addresses?.find((address) => address.isDefault)?._id,
+  };
+};
+
 function ProfileBody() {
+  const { user: authUser, setUser: setAuthUser } = useAuth();
   const [activeMenu, setActiveMenu] = useState("Home");
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [likedProducts, setLikedProducts] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
-  const [user, setUser] = useState({
-    name: "Somchai K.",
-    email: "somchai@example.com",
-    phone: "0812345678",
-    address: "Bangkok, Thailand",
-  });
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+
+    userService
+      .getProfile()
+      .then((data) => {
+        if (active) setUser(toProfileView(data?.user ?? data));
+      })
+      .catch(() => {
+        if (active) setUser(toProfileView(authUser));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [authUser]);
 
   const toggleLike = (index) => {
     setLikedProducts((current) =>
@@ -44,8 +68,26 @@ function ProfileBody() {
     setIsEditing(false);
   };
 
-  const handleEditSave = (formData) => {
-    setUser(formData);
+  const handleEditSave = async (formData) => {
+    const nameParts = formData.name.trim().split(/\s+/);
+    const firstName = nameParts.shift();
+    const lastName = nameParts.join(" ") || firstName;
+    const data = await userService.updateProfile({
+      firstName,
+      lastName,
+      phone: formData.phone.trim(),
+      ...(formData.address.trim() && user.addressId
+        ? {
+            address: {
+              addressLine: formData.address.trim(),
+            },
+          }
+        : {}),
+    });
+    let updatedUser = data?.user ?? data;
+
+    setUser(toProfileView(updatedUser));
+    setAuthUser(updatedUser);
     setIsEditing(false);
   };
 
@@ -59,6 +101,10 @@ function ProfileBody() {
   };
 
   const renderContent = () => {
+    if (!user) {
+      return <div className="p-8 text-sm text-zeta-muted">Loading profile...</div>;
+    }
+
     if (isEditing) {
       return (
         <EditProfilePage
