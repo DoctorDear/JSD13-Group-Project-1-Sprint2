@@ -27,7 +27,7 @@ export default function ChangePassword() {
     schema,
     async (values, { signal }) => {
       await authService.changePassword(values, { signal });
-      navigate("/login", { replace: true, state: { passwordChanged: true } });
+      navigate("/change-password-success");
     }
   );
 
@@ -39,12 +39,15 @@ export default function ChangePassword() {
       image={HERO}
       imageAlt="Footballer in a black and white striped jersey on the pitch"
       showBackButton
-      onBack={() => navigate("/")}
     >
-      <AuthTitle className="p-[3px]">Change Password</AuthTitle>
+      <AuthTitle>
+        Change
+        <br />
+        password
+      </AuthTitle>
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-4 p-[3px]">
-        <FormError message={f.formError} className="p-[3px]" />
+      <form onSubmit={f.handleSubmit} noValidate className="mt-8 space-y-6">
+        <FormError message={f.formError} />
 
         <Field
           label="Your email"
@@ -56,7 +59,6 @@ export default function ChangePassword() {
           onBlur={f.handleBlur}
           error={f.errorFor("email")}
           autoComplete="email"
-          className="p-[3px]"
         />
 
         <Field
@@ -69,10 +71,9 @@ export default function ChangePassword() {
           onBlur={f.handleBlur}
           error={f.errorFor("oldPassword")}
           autoComplete="current-password"
-          className="p-[3px]"
         />
 
-        <div className="p-[3px]">
+        <div>
           <Field
             label="Your new password"
             name="newPassword"
@@ -83,35 +84,30 @@ export default function ChangePassword() {
             onBlur={f.handleBlur}
             error={f.errorFor("newPassword")}
             autoComplete="new-password"
-            className="p-[3px]"
           />
 
-          <div className="h-2 mt-1 p-[3px]" aria-hidden="true">
-            <div
-              className={`flex gap-1.5 transition-opacity p-[3px] ${
-                f.values.newPassword ? "opacity-100" : "opacity-0"
-              }`}
-            >
+          {f.values.newPassword && (
+            <div className="mt-2 flex gap-1.5" aria-hidden="true">
               {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
-                  className={`h-1.5 flex-1 rounded-full transition-colors p-[3px] ${
+                  className={`h-1.5 flex-1 rounded-full transition-colors ${
                     i < strength ? bars[strength - 1] : "bg-gray-200"
                   }`}
                 />
               ))}
             </div>
-          </div>
+          )}
         </div>
 
-        <AuthButton type="submit" disabled={f.submitting} className="disabled:opacity-60 p-[3px]">
+        <AuthButton type="submit" disabled={f.submitting} className="mt-10 disabled:opacity-60">
           {f.submitting ? "Changing…" : "Change password"}
         </AuthButton>
 
-        <p className="text-center text-[13px] text-gray-900 p-[3px]">
+        <p className="text-center text-lg text-gray-900">
           <Link
             to="/login"
-            className="underline underline-offset-2 font-medium hover:text-indigo-700 p-[3px]"
+            className="underline underline-offset-2 font-medium hover:text-indigo-700"
           >
             Back to log in
           </Link>

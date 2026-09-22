@@ -47,12 +47,12 @@ const Footer = () => {
               <h3 className="font-semibold text-2xl mb-3">Products</h3>
               <ul className="grid grid-cols-1 gap-2 font-light">
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#new-arrivals" className="hover:text-white">
                     New Arrivals
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <a href="#best-seller" className="hover:text-white">
                     Best Seller
                   </a>
                 </li>

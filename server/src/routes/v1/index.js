@@ -1,14 +1,17 @@
 import { Router } from "express";
-import { userRouter } from "./user.routes.js";
-import { orderRouter } from "./order.routes.js";
-import { router as authRouter } from "./auth.routes.js";
-import { router as productRouter } from "./product.routes.js";
+import { router as productRoutes } from "./product.routes.js";
+import { router as authRoutes } from "./auth.routes.js";
+import { router as userRoutes } from "./user.routes.js";
+import { router as reviewRoutes } from "./review.routes.js";
+import { router as orderRoutes } from "./order.routes.js";
 
 const router = Router();
 
-router.use("/users", userRouter);
-router.use("/orders", orderRouter);
-router.use("/auth", authRouter);
-router.use("/products", productRouter); // <--- 2. เพิ่มบรรทัดนี้เพื่อให้พาร์ท /api/v1/products เปิดใช้งาน
+router.use("/products/:productId/reviews", reviewRoutes);
+router.use("/products", productRoutes);
+router.use("/auth", authRoutes);
+router.use("/orders", orderRoutes);
+router.use("/users", userRoutes);
 
+export const routes = router;
 export default router;
