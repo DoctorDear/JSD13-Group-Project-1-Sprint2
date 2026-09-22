@@ -15,7 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/ProfileBody";
+import AdminApp from "./admin/AdminApp";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
 import ProfileBody from "./pages/ProfileBody";
@@ -33,6 +33,7 @@ import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
 export default function App() {
   return (
     <Routes>
+      <Route path="/admin/*" element={<AdminApp />} />
       {/* Store routes — public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/home" element={<LandingPage />} />

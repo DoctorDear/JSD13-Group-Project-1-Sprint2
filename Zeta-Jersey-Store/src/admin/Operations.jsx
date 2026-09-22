@@ -1,0 +1,25 @@
+import { useState } from 'react';
+import { Plus, Eye, Trash2 } from 'lucide-react';
+import { PageHeading, SearchBox, Badge, Empty, Modal, Field, ConfirmDelete } from './components';
+import { matches } from './data';
+
+export function Orders({ store, money }) {
+  const [query, setQuery] = useState('');
+  const [viewing, setViewing] = useState(null);
+  const orders = store.orders.filter(o => matches(query, o.number || o.id, o.customer, o.status));
+  return <><PageHeading title="Orders" subtitle="Manage orders, invoices and quotations" /><SearchBox value={query} onChange={setQuery} placeholder="Search orders by number, customer or status..." /><div className="ad-table-wrap"><table><thead><tr>{['Order', 'Customer', 'Date', 'Total', 'Status', 'Actions'].map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{orders.map(o => <tr key={o.id}><td className="ad-accent-text">{o.id}</td><td>{o.customer}</td><td className="muted">{o.date}</td><td>{money(o.total)}</td><td><Badge>{o.status}</Badge></td><td><button className="ad-icon-button" aria-label={`View ${o.id}`} onClick={() => setViewing(o)}><Eye size={17} /></button></td></tr>)}</tbody></table>{!orders.length && <Empty />}</div>{viewing && <Modal error={store.saveError} title={`Order ${viewing.id}`} onClose={() => setViewing(null)}><p>{viewing.customer}</p><p className="muted">{viewing.date}</p><div className="ad-order-total"><span>Total</span><strong>{money(viewing.total)}</strong></div><p className="ad-help">This is demo data. Status changes do not process payment or inventory.</p><form onSubmit={async e => { e.preventDefault(); const status = new FormData(e.currentTarget).get('status'); if (!await store.update({ orders: store.orders.map(o => o.id === viewing.id ? { ...o, status } : o) }, 'Order status updated.')) return; setViewing(null); }}><Field label="Order Status"><select name="status" defaultValue={viewing.status}>{['Pending', 'Processing', 'Paid', 'Shipped', 'Completed', 'Cancelled'].map(s => <option key={s}>{s}</option>)}</select></Field><div className="ad-form-actions"><button className="ad-button">Save Status</button></div></form></Modal>}</>;
+}
+
+export function Tasks({ store }) {
+  const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [query, setQuery] = useState('');
+  async function save(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+    if (!data.title.trim()) { e.currentTarget.elements.title.setCustomValidity('Enter a task title.'); e.currentTarget.reportValidity(); return; }
+    if (!await store.update({ tasks: [...store.tasks, { ...data, title: data.title.trim(), id: crypto.randomUUID(), status: 'To do' }] }, 'Task added.')) return;
+    setOpen(false);
+  }
+  return <><PageHeading title="Task Manager" subtitle="Keep your team and daily operations on track"><button className="ad-button" onClick={() => setOpen(true)}><Plus size={16} />Add Task</button></PageHeading><SearchBox value={query} onChange={setQuery} placeholder="Search tasks..." /><div className="ad-task-board">{['To do', 'In progress', 'Done'].map(status => { const tasks = store.tasks.filter(t => t.status === status && matches(query, t.title, t.description)); return <section className="ad-task-column" key={status}><h2>{status}<span>{tasks.length}</span></h2>{tasks.map(t => <article className="ad-panel ad-task" key={t.id}><div className="ad-card-top"><Badge>{t.priority}</Badge><button className="ad-icon-button danger" aria-label={`Delete ${t.title}`} onClick={() => setDeleting(t)}><Trash2 size={15} /></button></div><h3>{t.title}</h3><p>{t.description}</p>{t.due && <small>Due {t.due}</small>}<select aria-label={`Status of ${t.title}`} value={t.status} onChange={e => store.update({ tasks: store.tasks.map(item => item.id === t.id ? { ...item, status: e.target.value } : item) }, 'Task status updated.')}><option>To do</option><option>In progress</option><option>Done</option></select></article>)}{!tasks.length && <Empty text="No tasks here yet." />}</section>; })}</div>{open && <Modal error={store.saveError} title="Add Task" onClose={() => setOpen(false)}><form onSubmit={save}><div className="ad-form-grid"><Field className="full" label="Task Title" name="title" required maxLength={150} onInput={e => e.target.setCustomValidity('')} /><Field className="full" label="Description"><textarea name="description" rows={3} /></Field><Field label="Priority"><select name="priority"><option>Medium</option><option>High</option><option>Low</option></select></Field><Field label="Due Date" name="due" type="date" /></div><div className="ad-form-actions"><button className="ad-button">Add Task</button><button type="button" className="ad-button secondary" onClick={() => setOpen(false)}>Cancel</button></div></form></Modal>}{deleting && <ConfirmDelete error={store.saveError} name={deleting.title} onClose={() => setDeleting(null)} onConfirm={async () => { if (!await store.update({ tasks: store.tasks.filter(t => t.id !== deleting.id) }, 'Task deleted.')) return; setDeleting(null); }} />}</>;
+}
