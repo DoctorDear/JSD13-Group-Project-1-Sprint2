@@ -14,7 +14,6 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
-import Dashboard from "./pages/Dashboard";
 import AdminApp from "./admin/AdminApp";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
@@ -71,7 +70,6 @@ export default function App() {
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<ProfileBody />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

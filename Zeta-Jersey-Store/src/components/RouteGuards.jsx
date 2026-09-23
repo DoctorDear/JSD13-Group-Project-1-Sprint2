@@ -30,7 +30,7 @@ export function GuestRoute() {
 
   if (booting) return <Splash />;
   if (isAuthenticated) {
-    const target = location.state?.from?.pathname || "/dashboard";
+    const target = location.state?.from?.pathname || "/login-success";
     return <Navigate to={target} replace />;
   }
   return <Outlet />;
