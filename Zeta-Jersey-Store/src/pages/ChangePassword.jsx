@@ -106,7 +106,7 @@ export default function ChangePassword() {
 
         <p className="text-center text-lg text-gray-900">
           <Link
-            to="/login"
+            to="/auth/login"
             className="underline underline-offset-2 font-medium hover:text-indigo-700"
           >
             Back to log in

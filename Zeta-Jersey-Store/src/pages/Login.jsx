@@ -33,7 +33,7 @@ export default function Login() {
     schema,
     async (values, { signal }) => {
       await login(values, { signal });
-      navigate("/api/v1/auth/login-success", { state: { from: state?.from?.pathname || "/" } });
+      navigate("/auth/login-success", { state: { from: state?.from?.pathname || "/" } });
     }
   );
 
