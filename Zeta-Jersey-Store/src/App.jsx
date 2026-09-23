@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute, GuestRoute } from "./components/RouteGuards";
 import MainLayout from "./components/MainLayout";
 
@@ -30,6 +32,15 @@ import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
 
 
 export default function App() {
+  function Logout() {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+    useEffect(() => {
+      logout().finally(() => navigate("/auth/login", { replace: true }));
+    }, [logout, navigate]);
+    return null;
+  }
+
   const devOnlyProfileBody = import.meta.env.DEV ? <ProfileBody /> : <Navigate to="/login" replace />;
 
   return (
@@ -64,6 +75,9 @@ export default function App() {
       <Route path="/auth/change-password-success" element={<ChangePasswordSuccess />} />
 
       <Route path="/auth/verify-email-success" element={<VerifyEmailSuccess />} />
+      <Route path="/auth/logout" element={<Logout />} />
+
+
 
       {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
 
