@@ -27,7 +27,7 @@ export default function Register() {
     schema,
     async (values, { signal }) => {
       await register(values, { signal });
-      navigate("/register-success", { state: { email: values.email } });
+      navigate("/auth/register-success", { state: { email: values.email } });
     }
   );
 
@@ -40,7 +40,7 @@ export default function Register() {
 
       <p className="mt-3 text-lg text-gray-900">
         Already have account?{" "}
-        <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
+        <Link to="/auth/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
           Log in
         </Link>
       </p>

@@ -46,24 +46,24 @@ export default function App() {
 
       {/* Guests only — full-bleed auth pages, no navbar */}
       <Route element={<GuestRoute />}>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/register" element={<Register />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/verify-email" element={<VerifyEmail />} />
       </Route>
 
       {/* Open to everyone — magic link may open in any session state */}
-      <Route path="/email-confirmation" element={<EmailConfirmation />} />
-      <Route path="/change-password" element={<ChangePassword />} />
+      <Route path="/auth/email-confirmation" element={<EmailConfirmation />} />
+      <Route path="/auth/change-password" element={<ChangePassword />} />
 
-      <Route path="/register-success" element={<RegisterSuccess />} />
-      <Route path="/login-success" element={<LoginSuccess />} />
+      <Route path="/auth/register-success" element={<RegisterSuccess />} />
+      <Route path="/auth/login-success" element={<LoginSuccess />} />
       
-      <Route path="/reset-password-success" element={<ResetPasswordSuccess />} />
+      <Route path="/auth/reset-password-success" element={<ResetPasswordSuccess />} />
 
-      <Route path="/change-password-success" element={<ChangePasswordSuccess />} />
+      <Route path="/auth/change-password-success" element={<ChangePasswordSuccess />} />
 
-      <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
+      <Route path="/auth/verify-email-success" element={<VerifyEmailSuccess />} />
 
       {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
 

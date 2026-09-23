@@ -33,7 +33,7 @@ export default function Login() {
     schema,
     async (values, { signal }) => {
       await login(values, { signal });
-      navigate("/login-success", { state: { from: state?.from?.pathname || "/" } });
+      navigate("/auth/login-success", { state: { from: state?.from?.pathname || "/" } });
     }
   );
 
@@ -77,7 +77,7 @@ export default function Login() {
         />
 
         <Link
-          to="/reset-password"
+          to="/auth/reset-password"
           className="block text-lg text-gray-900 hover:text-indigo-700 hover:underline underline-offset-2 transition"
         >
           Forget Password ?
@@ -89,7 +89,7 @@ export default function Login() {
 
         <p className="text-center text-lg text-gray-900">
           No account yet?{" "}
-          <Link to="/register" className="underline underline-offset-2 font-medium hover:text-indigo-700">
+          <Link to="/auth/register" className="underline underline-offset-2 font-medium hover:text-indigo-700">
             Register
           </Link>
         </p>

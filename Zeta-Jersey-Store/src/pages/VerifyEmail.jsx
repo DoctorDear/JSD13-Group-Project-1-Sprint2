@@ -23,7 +23,7 @@ export default function VerifyEmail() {
     schema,
     async (values, { signal }) => {
       await authService.verifyEmail(values, { signal });
-      navigate("/reset-password-success", { state: { email: values.email } });
+      navigate("/auth/reset-password-success", { state: { email: values.email } });
     }
   );
 
@@ -69,7 +69,7 @@ export default function VerifyEmail() {
         </AuthButton>
 
         <p className="text-center text-lg text-gray-900">
-          <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
+          <Link to="/auth/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
             Back to log in
           </Link>
         </p>
