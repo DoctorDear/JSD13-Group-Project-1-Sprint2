@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 function Splash() {
   return (
@@ -19,7 +19,7 @@ export function ProtectedRoute() {
   const location = useLocation();
 
   if (booting) return <Splash />;
-  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location }} />;
+  if (!isAuthenticated) return <Navigate to="/auth/login" replace state={{ from: location }} />;
   return <Outlet />;
 }
 
@@ -30,7 +30,7 @@ export function GuestRoute() {
 
   if (booting) return <Splash />;
   if (isAuthenticated) {
-    const target = location.state?.from?.pathname || "/dashboard";
+    const target = location.state?.from?.pathname || "/auth/login-success";
     return <Navigate to={target} replace />;
   }
   return <Outlet />;
