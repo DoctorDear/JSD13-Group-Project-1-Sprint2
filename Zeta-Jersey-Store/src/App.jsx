@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
-import { ProtectedRoute, GuestRoute } from "./components/RouteGuards";
+import { ProtectedRoute, GuestRoute, AdminRoute } from "./components/RouteGuards";
 import MainLayout from "./components/MainLayout";
 
 import LandingPage from "./pages/LandingPage";
@@ -45,7 +45,10 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/admin/*" element={<AdminApp />} />
+      {/* Admin routes — restricted to role: admin */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin/*" element={<AdminApp />} />
+      </Route>
       {/* Store routes — public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/home" element={<LandingPage />} />
