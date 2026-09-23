@@ -27,7 +27,7 @@ export default function ChangePassword() {
     schema,
     async (values, { signal }) => {
       await authService.changePassword(values, { signal });
-      navigate("/change-password-success");
+      navigate("/auth/change-password-success");
     }
   );
 

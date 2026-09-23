@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
     const checkAuth = async () => {
       setAuthLoading(true);
       try {
-        const res = await fetch(`${apiBase}/users/auth`, {
+        const res = await fetch(`${apiBase}/auth`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Not authenticated");
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
   const login = async ({ email, password }) => {
     setAuthError(null);
     try {
-      const res = await fetch(`${apiBase}/users/login`, {
+      const res = await fetch(`${apiBase}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -53,7 +53,7 @@ export function AuthProvider({ children }) {
   const register = async ({ username, email, password }) => {
     setAuthError(null);
     try {
-      const res = await fetch(`${apiBase}/users`, {
+      const res = await fetch(`${apiBase}/auth/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     setAuthError(null);
     try {
-      await fetch(`${apiBase}/users/logout`, {
+      await fetch(`${apiBase}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
