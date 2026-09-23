@@ -4,6 +4,7 @@ import MainLayout from "./components/MainLayout";
 
 import LandingPage from "./pages/LandingPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import AllProductsPage from "./pages/AllProductsPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
@@ -14,9 +15,10 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
+import AdminApp from "./admin/AdminApp";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
+import ProfileBody from "./pages/ProfileBody";
 import RegisterSuccess from "./pages/RegisterSuccess";
 import LoginSuccess from "./pages/LoginSuccess";
 import ResetPasswordSuccess from "./pages/ResetPasswordSuccess";
@@ -29,11 +31,15 @@ import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
 
 
 export default function App() {
+  const devOnlyProfileBody = import.meta.env.DEV ? <ProfileBody /> : <Navigate to="/login" replace />;
+
   return (
     <Routes>
+      <Route path="/admin/*" element={<AdminApp />} />
       {/* Store routes — public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/home" element={<LandingPage />} />
+      <Route path="/products" element={<AllProductsPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
@@ -60,11 +66,13 @@ export default function App() {
 
       <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
 
+      {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
+
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<ProfileBody />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

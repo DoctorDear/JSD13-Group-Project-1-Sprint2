@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { authService } from "../services/auth";
-import { tokenStore, onUnauthorized } from "../lib/api";
+import { onUnauthorized } from "../lib/api";
 
 
 
@@ -16,15 +16,10 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      if (!tokenStore.get()) {
-        if (alive) setBooting(false);
-        return;
-      }
       try {
         const me = await authService.me();
         if (alive) setUser(me?.user ?? me);
       } catch {
-        tokenStore.clear();
         if (alive) setUser(null);
       } finally {
         if (alive) setBooting(false);

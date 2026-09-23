@@ -1,5 +1,4 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
-const REFRESH_PATH = import.meta.env.VITE_REFRESH_ENDPOINT ?? "/auth/refresh";
 
 export class ApiError extends Error {
   constructor(message, { status = 0, fieldErrors = {}, code } = {}) {
@@ -11,20 +10,12 @@ export class ApiError extends Error {
   }
 }
 
-const TOKEN_KEY = "zeta.token";
-export const tokenStore = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (t) => t && localStorage.setItem(TOKEN_KEY, t),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
-};
-
 const unauthorizedHandlers = new Set();
 export function onUnauthorized(fn) {
   unauthorizedHandlers.add(fn);
   return () => unauthorizedHandlers.delete(fn);
 }
 function emitUnauthorized() {
-  tokenStore.clear();
   unauthorizedHandlers.forEach((fn) => fn());
 }
 
@@ -64,32 +55,9 @@ function defaultMessage(status) {
   return "Request failed. Please try again.";
 }
 
-let refreshPromise = null;
-
-async function refreshToken() {
-  if (refreshPromise) return refreshPromise;
-
-  refreshPromise = (async () => {
-    const res = await fetch(`${BASE_URL}${REFRESH_PATH}`, {
-      method: "POST",
-      credentials: "include",
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) {
-      throw new ApiError("Session expired", { status: res.status, code: "refresh_failed" });
-    }
-    const data = await parseBody(res);
-    const token = data?.token ?? data?.accessToken;
-    tokenStore.set(token);
-    return token ?? null;
-  })().finally(() => { refreshPromise = null; });
-
-  return refreshPromise;
-}
-
 export async function request(
   path,
-  { method = "GET", body, signal, auth = false, headers = {}, _retried = false } = {}
+  { method = "GET", body, signal, headers = {} } = {}
 ) {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -99,28 +67,15 @@ export async function request(
       headers: {
         Accept: "application/json",
         ...(body ? { "Content-Type": "application/json" } : {}),
-        ...(auth && tokenStore.get() ? { Authorization: `Bearer ${tokenStore.get()}` } : {}),
         ...headers,
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
 
-    if (res.status === 401 && auth && !_retried && path !== REFRESH_PATH) {
-      try {
-        await refreshToken();
-      } catch {
-        emitUnauthorized();
-        throw new ApiError("Your session expired. Please log in again.", {
-          status: 401,
-          code: "session_expired",
-        });
-      }
-      return request(path, { method, body, signal, auth, headers, _retried: true });
-    }
-
     const payload = await parseBody(res);
 
     if (!res.ok) {
+      if (res.status === 401) emitUnauthorized();
       throw new ApiError(payload?.message || defaultMessage(res.status), {
         status: res.status,
         code: payload?.code,
