@@ -1,6 +1,6 @@
 import express from "express";
 import { connectDB } from "./config/db.js";
-import { routes as apiRoutes } from "./routes/index.js";
+import apiRouter from "./routes/v1/index.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -15,12 +15,13 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api", apiRoutes);
+// กำหนด Prefix หลักของ API
+app.use("/api/v1", apiRouter);
 
 // Centralize Error Handling Middleware
 app.use((err, req, res, next) => {
   return res.status(500).json({
-    error: "Something went wrong on ther server...",
+    error: "Something went wrong on the server...",
     message: err.message,
   });
 });
