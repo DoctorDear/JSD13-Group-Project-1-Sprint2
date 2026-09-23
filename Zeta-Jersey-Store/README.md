@@ -60,3 +60,48 @@ _การพัฒนาระบบหลังบ้านและการ�
 - [ ] CRUD Operations ทุกตัวสามารถทำงานร่วมกับ MongoDB ได้อย่างสมบูรณ์
 - [ ] สมาชิกในทีมเข้าใจโครงสร้างของโค้ด สามารถอธิบายพฤติกรรมการทำงานได้ทั้งหมด (Coding Fluency)
 - [ ] สามารถแปลงลอจิกและความคิดออกมาเป็นโค้ดได้โดยไม่มีอุปสรรคสำคัญ
+# Premier League adidas demo catalog
+
+The saved demo catalog includes men's 2026/27 home shirts for Arsenal, Aston Villa,
+Fulham, Leeds United, Liverpool, Manchester United, Newcastle United, and Nottingham
+Forest. Each record has a `sourceUrl`, and its two product photos are stored under
+`public/images/adidas-pl-2627/`. Fulham and Nottingham Forest photos come from the
+clubs' official shops; the other six come from adidas. The THB price (฿2,990), stock
+quantity, and availability are fictional demo values, not live shop data.
+
+Run `npm run import:adidas-pl-demo` in this directory to download the photos and add
+any missing demo records. The importer preserves existing catalog entries and skips
+demo IDs already present. To add the same records to a configured MongoDB catalog,
+run `npm run seed:adidas-pl-demo` in `server/`; this only inserts missing SKUs and
+does not change existing products. The storefront also displays the local demo
+records when the API is unavailable or the database has not been seeded.
+
+These third-party product photos are for this project demo. Review usage rights
+before publishing or using them commercially.
+
+# Nike five-league demo catalog
+
+The catalog also includes 2026/27 Nike home-shirt demo entries for all 14 Nike
+clubs in the Premier League (Chelsea, Tottenham, Brighton), La Liga (Barcelona,
+Atlético Madrid, Elche, Deportivo), Serie A (Inter, Monza), Bundesliga
+(Elversberg, Freiburg), and Ligue 1 (PSG, Angers, Toulouse). Images were fetched
+from official Nike or club pages into `public/images/nike-top5-2627/`; each
+record links to its source. Some clubs publish campaign photos rather than a
+standalone product photo. The ฿2,990 prices and quantities are demo data.
+
+Run `npm run import:nike-top5-demo` here to fetch images and add missing catalog
+records. Run `npm run seed:nike-top5-demo` in `server/` to insert missing SKUs
+into a configured MongoDB. Both commands preserve existing records.
+
+# Puma five-league demo catalog
+
+Eight men's 2026/27 Puma home fan jerseys are included: Manchester City,
+Valencia CF, Girona FC, AC Milan, Borussia Dortmund, RB Leipzig, Olympique de
+Marseille, and Stade Rennais. Each has three locally stored product photos
+(model, shirt front, shirt back) from Puma's official product page under
+`public/images/puma-top5-2627/`. Source pages are linked in the catalog records.
+The THB price and stock are fictional demo values.
+
+Run `npm run import:puma-top5-demo` here to download photos and append missing
+records, or `npm run seed:puma-top5-demo` in `server/` to insert the records into
+a configured MongoDB. Existing unrelated products are preserved.

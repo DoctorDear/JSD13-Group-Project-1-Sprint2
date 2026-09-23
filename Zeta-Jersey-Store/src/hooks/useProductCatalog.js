@@ -11,6 +11,10 @@ import {
 } from "../lib/productCatalog";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const localImportedDemo = productData.filter((product) =>
+  product.id?.startsWith("demo-pl-") || product.id?.startsWith("demo-nike-") || product.id?.startsWith("demo-puma-"),
+);
+const localDemoBySku = new Map(localImportedDemo.map((product) => [product.sku, product]));
 
 export default function useProductCatalog() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -52,7 +56,14 @@ export default function useProductCatalog() {
       if (!Array.isArray(remoteProducts)) {
         throw new Error("Catalog response was not a list");
       }
-      setProducts(remoteProducts);
+      const remoteSkus = new Set(remoteProducts.map((product) => product.sku));
+      setProducts([
+        ...remoteProducts.map((product) => {
+          const local = localDemoBySku.get(product.sku);
+          return local ? { ...product, imageUrl: local.imageUrl, images: local.images } : product;
+        }),
+        ...localImportedDemo.filter((product) => !remoteSkus.has(product.sku)),
+      ]);
     } catch {
       setProducts(productData);
       setError(

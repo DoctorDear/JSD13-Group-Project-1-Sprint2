@@ -34,7 +34,13 @@
         "discount": "15% OFF"
       }
     ],
-    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
     "isAvailable": true
   },
   {
@@ -72,7 +78,13 @@
         "discount": "15% OFF"
       }
     ],
-    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
     "isAvailable": true
   },
   {
@@ -110,7 +122,13 @@
         "discount": "15% OFF"
       }
     ],
-    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
     "isAvailable": true
   },
   {
@@ -148,7 +166,1167 @@
         "discount": "15% OFF"
       }
     ],
-    "sizes": ["S", "M", "L", "XL", "2XL"],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
     "isAvailable": true
+  },
+  {
+    "id": "demo-pl-jz3168",
+    "sku": "JZ3168",
+    "brand": "Adidas",
+    "name": "Arsenal FC 26/27 Home Jersey",
+    "team": "Arsenal",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Arsenal's red 2026/27 home replica jersey by adidas.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/jz3168-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/jz3168-1.jpg",
+      "/images/adidas-pl-2627/jz3168-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.adidas.co.uk/arsenal-fc-26-27-home-jersey/JZ3168.html"
+  },
+  {
+    "id": "demo-pl-jz4736",
+    "sku": "JZ4736",
+    "brand": "Adidas",
+    "name": "Aston Villa 26/27 Home Jersey",
+    "team": "Aston Villa",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Aston Villa's claret 2026/27 home replica jersey by adidas.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/jz4736-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/jz4736-1.jpg",
+      "/images/adidas-pl-2627/jz4736-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.adidas.co.uk/aston-villa-26-27-home-jersey/JZ4736.html"
+  },
+  {
+    "id": "demo-pl-adi01362",
+    "sku": "ADI01362",
+    "brand": "Adidas",
+    "name": "Fulham 26/27 Adult Home Shirt",
+    "team": "Fulham",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Fulham's white 2026/27 home replica jersey by adidas, inspired by the River Thames.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/adi01362-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/adi01362-1.jpg",
+      "/images/adidas-pl-2627/adi01362-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://shop.fulhamfc.com/kit/kitviewall/mens/6906_fulham-2627-adult-home-shirt.html"
+  },
+  {
+    "id": "demo-pl-jz7169",
+    "sku": "JZ7169",
+    "brand": "Adidas",
+    "name": "Leeds United 26/27 Home Jersey",
+    "team": "Leeds United",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Leeds United's white 2026/27 home replica jersey by adidas.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/jz7169-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/jz7169-1.jpg",
+      "/images/adidas-pl-2627/jz7169-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.adidas.co.uk/leeds-united-26-27-home-jersey/JZ7169.html"
+  },
+  {
+    "id": "demo-pl-ka6852",
+    "sku": "KA6852",
+    "brand": "Adidas",
+    "name": "Liverpool FC 26/27 Home Jersey",
+    "team": "Liverpool",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Liverpool's burgundy 2026/27 home replica jersey by adidas.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/ka6852-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/ka6852-1.jpg",
+      "/images/adidas-pl-2627/ka6852-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.adidas.co.uk/liverpool-fc-26-27-home-jersey/KA6852.html"
+  },
+  {
+    "id": "demo-pl-ka6871",
+    "sku": "KA6871",
+    "brand": "Adidas",
+    "name": "Manchester United 26/27 Home Jersey",
+    "team": "Manchester United",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Manchester United's red 2026/27 home replica jersey by adidas.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/ka6871-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/ka6871-1.jpg",
+      "/images/adidas-pl-2627/ka6871-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.adidas.co.uk/manchester-united-26-27-home-jersey/KA6871.html"
+  },
+  {
+    "id": "demo-pl-jz4707",
+    "sku": "JZ4707",
+    "brand": "Adidas",
+    "name": "Newcastle United FC 26/27 Home Jersey",
+    "team": "Newcastle United",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Newcastle United's black and white 2026/27 home replica jersey by adidas.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/jz4707-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/jz4707-1.jpg",
+      "/images/adidas-pl-2627/jz4707-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.adidas.co.uk/newcastle-united-fc-26-27-home-jersey/JZ4707.html"
+  },
+  {
+    "id": "demo-pl-jy8110",
+    "sku": "JY8110",
+    "brand": "Adidas",
+    "name": "Nottingham Forest 26/27 Home Shirt",
+    "team": "Nottingham Forest",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Nottingham Forest's red 2026/27 home jersey by adidas, inspired by the River Trent.",
+    "quantity": 20,
+    "imageUrl": "/images/adidas-pl-2627/jy8110-1.jpg",
+    "images": [
+      "/images/adidas-pl-2627/jy8110-1.jpg",
+      "/images/adidas-pl-2627/jy8110-2.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://shop.nottinghamforest.co.uk/products/nffc-26-27-home-shirt"
+  },
+  {
+    "id": "demo-nike-chelsea-2627",
+    "sku": "NIKE-DEMO-CHELSEA-2627",
+    "brand": "Nike",
+    "name": "Chelsea 26/27 Home Shirt",
+    "team": "Chelsea",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Chelsea's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/chelsea-hd.jpg",
+    "images": [
+      "/images/nike-top5-2627/chelsea-hd.jpg",
+      "/images/nike-top5-2627/chelsea-2.jpg",
+      "/images/nike-top5-2627/chelsea-3.jpg",
+      "/images/nike-top5-2627/chelsea-4.jpg",
+      "/images/nike-top5-2627/chelsea-5.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.nike.com/t/chelsea-fc-2026-27-stadium-home-mens-nike-dri-fit-soccer-repica-jersey-iobrwJJt/II1904-453"
+  },
+  {
+    "id": "demo-nike-tottenham-2627",
+    "sku": "NIKE-DEMO-TOTTENHAM-2627",
+    "brand": "Nike",
+    "name": "Tottenham Hotspur 26/27 Home Shirt",
+    "team": "Tottenham Hotspur",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Tottenham Hotspur's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/tottenham-hd.jpg",
+    "images": [
+      "/images/nike-top5-2627/tottenham-hd.jpg",
+      "/images/nike-top5-2627/tottenham-2.jpg",
+      "/images/nike-top5-2627/tottenham-3.jpg",
+      "/images/nike-top5-2627/tottenham-4.jpg",
+      "/images/nike-top5-2627/tottenham-5.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.nike.com/fr/t/maillot-de-foot-replica-nike-dri-fit-tottenham-hotspur-2026-27-stadium-domicile-pour-homme-8uf9sMGP"
+  },
+  {
+    "id": "demo-nike-brighton-2627",
+    "sku": "NIKE-DEMO-BRIGHTON-2627",
+    "brand": "Nike",
+    "name": "Brighton & Hove Albion 26/27 Home Shirt",
+    "team": "Brighton & Hove Albion",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Brighton & Hove Albion's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/brighton.jpg",
+    "images": [
+      "/images/nike-top5-2627/brighton.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://shop.brightonandhovealbion.com/new-in/new/new-in/7588_BHAFC-Adult-2627-Home-Shirt.html"
+  },
+  {
+    "id": "demo-nike-barcelona-2627",
+    "sku": "NIKE-DEMO-BARCELONA-2627",
+    "brand": "Nike",
+    "name": "FC Barcelona 26/27 Home Shirt",
+    "team": "FC Barcelona",
+    "league": "La Liga",
+    "category": "La Liga",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "FC Barcelona's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/barcelona-hd.jpg",
+    "images": [
+      "/images/nike-top5-2627/barcelona-hd.jpg",
+      "/images/nike-top5-2627/barcelona-2.jpg",
+      "/images/nike-top5-2627/barcelona-3.jpg",
+      "/images/nike-top5-2627/barcelona-4.jpg",
+      "/images/nike-top5-2627/barcelona-5.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.nike.com/t/fc-barcelona-2026-27-stadium-home-mens-nike-dri-fit-soccer-replica-jersey-yT3tF8r4/II1872-683"
+  },
+  {
+    "id": "demo-nike-atletico-2627",
+    "sku": "NIKE-DEMO-ATLETICO-2627",
+    "brand": "Nike",
+    "name": "Atlético Madrid 26/27 Home Shirt",
+    "team": "Atlético Madrid",
+    "league": "La Liga",
+    "category": "La Liga",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Atlético Madrid's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/atletico-hd.jpg",
+    "images": [
+      "/images/nike-top5-2627/atletico-hd.jpg",
+      "/images/nike-top5-2627/atletico-2.jpg",
+      "/images/nike-top5-2627/atletico-3.jpg",
+      "/images/nike-top5-2627/atletico-4.jpg",
+      "/images/nike-top5-2627/atletico-5.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.nike.com/at/en/t/atletico-madrid-2026-27-stadium-home-mens-nike-dri-fit-football-replica-jersey-htruianm/II1893-101"
+  },
+  {
+    "id": "demo-nike-elche-2627",
+    "sku": "NIKE-DEMO-ELCHE-2627",
+    "brand": "Nike",
+    "name": "Elche CF 26/27 Home Shirt",
+    "team": "Elche CF",
+    "league": "La Liga",
+    "category": "La Liga",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Elche CF's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/elche.jpg",
+    "images": [
+      "/images/nike-top5-2627/elche.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.elchecf.es/noticias/home-kit-elche-cf-202627-less-new-more-true"
+  },
+  {
+    "id": "demo-nike-deportivo-2627",
+    "sku": "NIKE-DEMO-DEPORTIVO-2627",
+    "brand": "Nike",
+    "name": "Deportivo de La Coruña 26/27 Home Shirt",
+    "team": "Deportivo de La Coruña",
+    "league": "La Liga",
+    "category": "La Liga",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Deportivo de La Coruña's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/deportivo.png",
+    "images": [
+      "/images/nike-top5-2627/deportivo.png"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.rcdeportivo.es/es/noticias/el-rc-deportivo-y-nike-presentan-la-primera-equipacion-para-la-temporada-2026-27-una-nueva-era-v"
+  },
+  {
+    "id": "demo-nike-inter-2627",
+    "sku": "NIKE-DEMO-INTER-2627",
+    "brand": "Nike",
+    "name": "Inter Milan 26/27 Home Shirt",
+    "team": "Inter Milan",
+    "league": "Serie A",
+    "category": "Serie A",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Inter Milan's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/inter-hd.jpg",
+    "images": [
+      "/images/nike-top5-2627/inter-hd.jpg",
+      "/images/nike-top5-2627/inter-2.jpg",
+      "/images/nike-top5-2627/inter-3.jpg",
+      "/images/nike-top5-2627/inter-4.jpg",
+      "/images/nike-top5-2627/inter-5.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.nike.com/t/inter-milan-2026-27-stadium-home-mens-nike-dri-fit-soccer-replica-jersey-8kKIpfQc/II1889-409"
+  },
+  {
+    "id": "demo-nike-monza-2627",
+    "sku": "NIKE-DEMO-MONZA-2627",
+    "brand": "Nike",
+    "name": "AC Monza 26/27 Home Shirt",
+    "team": "AC Monza",
+    "league": "Serie A",
+    "category": "Serie A",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "AC Monza's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/monza.jpg",
+    "images": [
+      "/images/nike-top5-2627/monza.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.acmonza.com/en/news/nike-new-kits-home-away-2027/"
+  },
+  {
+    "id": "demo-nike-elversberg-2627",
+    "sku": "NIKE-DEMO-ELVERSBERG-2627",
+    "brand": "Nike",
+    "name": "SV Elversberg 26/27 Home Shirt",
+    "team": "SV Elversberg",
+    "league": "Bundesliga",
+    "category": "Bundesliga",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "SV Elversberg's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/elversberg.jpg",
+    "images": [
+      "/images/nike-top5-2627/elversberg.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://sv07elversberg.de/unsere-farben-unsere-zeit-das-neue-heimtrikot-fuer-die-bundesliga-saison-2026-2027/"
+  },
+  {
+    "id": "demo-nike-freiburg-2627",
+    "sku": "NIKE-DEMO-FREIBURG-2627",
+    "brand": "Nike",
+    "name": "SC Freiburg 26/27 Home Shirt",
+    "team": "SC Freiburg",
+    "league": "Bundesliga",
+    "category": "Bundesliga",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "SC Freiburg's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/freiburg.jpg",
+    "images": [
+      "/images/nike-top5-2627/freiburg.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://shop.scfreiburg.com/SC-Freiburg-Trikot-Heim-2627-rot/products/6974?locale=de"
+  },
+  {
+    "id": "demo-nike-psg-2627",
+    "sku": "NIKE-DEMO-PSG-2627",
+    "brand": "Nike",
+    "name": "Paris Saint-Germain 26/27 Home Shirt",
+    "team": "Paris Saint-Germain",
+    "league": "Ligue 1",
+    "category": "Ligue 1",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Paris Saint-Germain's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/psg.png",
+    "images": [
+      "/images/nike-top5-2627/psg.png"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.nike.com/t/paris-saint-germain-2026-27-stadium-home-mens-nike-dri-fit-soccer-repica-jersey-G0RMdauR/II1885-417"
+  },
+  {
+    "id": "demo-nike-angers-2627",
+    "sku": "NIKE-DEMO-ANGERS-2627",
+    "brand": "Nike",
+    "name": "Angers SCO 26/27 Home Shirt",
+    "team": "Angers SCO",
+    "league": "Ligue 1",
+    "category": "Ligue 1",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Angers SCO's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/angers.png",
+    "images": [
+      "/images/nike-top5-2627/angers.png"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://boutique.angers-sco.fr/products/maillot-domicile-ad-26-27"
+  },
+  {
+    "id": "demo-nike-toulouse-2627",
+    "sku": "NIKE-DEMO-TOULOUSE-2627",
+    "brand": "Nike",
+    "name": "Toulouse FC 26/27 Home Shirt",
+    "team": "Toulouse FC",
+    "league": "Ligue 1",
+    "category": "Ligue 1",
+    "collection": "2026/27 Collection",
+    "edition": "Stadium Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Toulouse FC's 2026/27 Nike home shirt. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/nike-top5-2627/toulouse.webp",
+    "images": [
+      "/images/nike-top5-2627/toulouse.webp"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.toulousefc.com/play/blog/2026/07/le-toulouse-football-club-devoile-son-nouveau-maillot-domicile-2026-2027"
+  },
+  {
+    "id": "demo-puma-man-city-2627",
+    "sku": "PUMA-DEMO-784326-01",
+    "brand": "Puma",
+    "name": "Manchester City 26/27 Home Jersey",
+    "team": "Manchester City",
+    "league": "Premier League",
+    "category": "Premier League",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Manchester City's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/man-city-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/man-city-1.jpg",
+      "/images/puma-top5-2627/man-city-2.jpg",
+      "/images/puma-top5-2627/man-city-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/en/pd/manchester-city-26-27-home-jersey-men/784326"
+  },
+  {
+    "id": "demo-puma-valencia-2627",
+    "sku": "PUMA-DEMO-784523-01",
+    "brand": "Puma",
+    "name": "Valencia CF 26/27 Home Jersey",
+    "team": "Valencia CF",
+    "league": "La Liga",
+    "category": "La Liga",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Valencia CF's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/valencia-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/valencia-1.jpg",
+      "/images/puma-top5-2627/valencia-2.jpg",
+      "/images/puma-top5-2627/valencia-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/de/pd/valencia-cf-26-27-heimtrikot-herren/784523"
+  },
+  {
+    "id": "demo-puma-girona-2627",
+    "sku": "PUMA-DEMO-786186-01",
+    "brand": "Puma",
+    "name": "Girona FC 26/27 Home Jersey",
+    "team": "Girona FC",
+    "league": "La Liga",
+    "category": "La Liga",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Girona FC's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/girona-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/girona-1.jpg",
+      "/images/puma-top5-2627/girona-2.jpg",
+      "/images/puma-top5-2627/girona-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/de/pd/girona-f.c.-26%2F27-heimtrikot-herren/786186"
+  },
+  {
+    "id": "demo-puma-ac-milan-2627",
+    "sku": "PUMA-DEMO-784121-01",
+    "brand": "Puma",
+    "name": "AC Milan 26/27 Home Jersey",
+    "team": "AC Milan",
+    "league": "Serie A",
+    "category": "Serie A",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "AC Milan's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/ac-milan-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/ac-milan-1.jpg",
+      "/images/puma-top5-2627/ac-milan-2.jpg",
+      "/images/puma-top5-2627/ac-milan-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/en/pd/ac-milan-26-27-home-jersey-men/784121"
+  },
+  {
+    "id": "demo-puma-dortmund-2627",
+    "sku": "PUMA-DEMO-784088-01",
+    "brand": "Puma",
+    "name": "Borussia Dortmund 26/27 Home Jersey",
+    "team": "Borussia Dortmund",
+    "league": "Bundesliga",
+    "category": "Bundesliga",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Borussia Dortmund's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/dortmund-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/dortmund-1.jpg",
+      "/images/puma-top5-2627/dortmund-2.jpg",
+      "/images/puma-top5-2627/dortmund-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/en/pd/borussia-dortmund-26-27-home-jersey-men/784088"
+  },
+  {
+    "id": "demo-puma-leipzig-2627",
+    "sku": "PUMA-DEMO-784042-01",
+    "brand": "Puma",
+    "name": "RB Leipzig 26/27 Home Jersey",
+    "team": "RB Leipzig",
+    "league": "Bundesliga",
+    "category": "Bundesliga",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "RB Leipzig's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/leipzig-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/leipzig-1.jpg",
+      "/images/puma-top5-2627/leipzig-2.jpg",
+      "/images/puma-top5-2627/leipzig-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/en/pd/rb-leipzig-26-27-home-jersey-men/784042"
+  },
+  {
+    "id": "demo-puma-marseille-2627",
+    "sku": "PUMA-DEMO-784252-01",
+    "brand": "Puma",
+    "name": "Olympique de Marseille 26/27 Home Jersey",
+    "team": "Olympique de Marseille",
+    "league": "Ligue 1",
+    "category": "Ligue 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Olympique de Marseille's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/marseille-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/marseille-1.jpg",
+      "/images/puma-top5-2627/marseille-2.jpg",
+      "/images/puma-top5-2627/marseille-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/de/pd/olympique-de-marseille-26%2F27-heimtrikot-herren/784252"
+  },
+  {
+    "id": "demo-puma-rennes-2627",
+    "sku": "PUMA-DEMO-784305-01",
+    "brand": "Puma",
+    "name": "Stade Rennais 26/27 Home Jersey",
+    "team": "Stade Rennais",
+    "league": "Ligue 1",
+    "category": "Ligue 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 2990,
+    "originalPrice": 0,
+    "description": "Stade Rennais's 2026/27 Puma home fan jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/puma-top5-2627/rennes-1.jpg",
+    "images": [
+      "/images/puma-top5-2627/rennes-1.jpg",
+      "/images/puma-top5-2627/rennes-2.jpg",
+      "/images/puma-top5-2627/rennes-3.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://eu.puma.com/de/en/pd/stade-rennais-26%2F27-home-jersey/784305"
   }
 ]

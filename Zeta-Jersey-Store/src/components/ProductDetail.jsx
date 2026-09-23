@@ -2,6 +2,7 @@ import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
+import demoProducts from "../data/products.json";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
 
@@ -19,11 +20,19 @@ const ProductDetail = () => {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/api/v1/products/${id}`);
+        if (!response.ok) throw new Error(`Product request failed (${response.status})`);
         const data = await response.json();
-        setProduct(data.product);
+        const local = demoProducts.find((item) => item.sku && item.sku === data.product?.sku);
+        setProduct(local ? { ...data.product, imageUrl: local.imageUrl, images: local.images } : data.product);
         setVariants(data.variants || []);
       } catch (err) {
-        setError(err.message);
+        const demoProduct = demoProducts.find((item) => item.id === id);
+        if (demoProduct) {
+          setProduct(demoProduct);
+          setVariants([]);
+        } else {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -132,7 +141,7 @@ const ProductDetail = () => {
                   </span>
                   {product.price.toLocaleString()}
                 </div>
-                {product.originalPrice && (
+                {Number(product.originalPrice) > 0 && (
                   <div className="text-lg font-normal text-zeta-muted line-through">
                     <span>฿</span>
                     {product.originalPrice.toLocaleString()}
@@ -235,7 +244,14 @@ const ProductDetail = () => {
           </section>
         )}
 
-        <ProductReviewSection productId={product._id || product.id} />
+        {product._id ? (
+          <ProductReviewSection productId={product._id} />
+        ) : (
+          <section className="pt-8 sm:pt-10">
+            <h2 className="text-2xl font-bold text-zeta-main">Reviews</h2>
+            <p className="mt-3 text-sm text-zeta-muted">No reviews for this demo product yet.</p>
+          </section>
+        )}
       </div>
       <SizeGuideModal
         product={product}

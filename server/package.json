@@ -7,6 +7,9 @@
     "doc": "doc"
   },
   "scripts": {
+    "seed:adidas-pl-demo": "node --env-file=.env src/scripts/seed-adidas-pl-demo.js",
+    "seed:nike-top5-demo": "node --env-file=.env src/scripts/seed-nike-top5-demo.js",
+    "seed:puma-top5-demo": "node --env-file=.env src/scripts/seed-puma-top5-demo.js",
     "dev": "node --env-file=.env --watch src/server.js",
     "start": "node src/server.js",
     "seed:reviews": "node --env-file=.env src/scripts/seed-review-demo.js",

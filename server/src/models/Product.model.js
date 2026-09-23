@@ -6,6 +6,7 @@ const productSchema = new mongoose.Schema(
     groupId: { type: String, default: null, trim: true }, // e.g. "LFC-2627-HOME"
     edition: { type: String, default: null }, // e.g. "Player Edition", "Stadium Edition"
     brand: { type: String, default: "Adidas", trim: true },
+    team: { type: String, default: null, trim: true },
     name: { type: String, required: true, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
@@ -30,6 +31,7 @@ const productSchema = new mongoose.Schema(
       default: "football",
     },
     images: [{ type: String }],
+    sourceUrl: { type: String, default: null },
     sizes: { type: [String], default: ["S", "M", "L", "XL", "2XL"] },
     isActive: { type: Boolean, default: true },
   },

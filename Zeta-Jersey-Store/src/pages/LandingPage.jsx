@@ -7,8 +7,13 @@ import Footer from "../components/Footer";
 import HeroSection from "../components/HeroSection";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import productData from "../data/products.json";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const localImportedDemo = productData.filter((product) =>
+  product.id?.startsWith("demo-pl-") || product.id?.startsWith("demo-nike-") || product.id?.startsWith("demo-puma-"),
+);
+const localDemoBySku = new Map(localImportedDemo.map((product) => [product.sku, product]));
 
 const productSections = [
   {
@@ -185,9 +190,22 @@ const LandingPage = () => {
           }),
         );
 
-        setProductsBySection(Object.fromEntries(sectionResults));
+        const sections = Object.fromEntries(sectionResults);
+        const remoteNewArrivals = sections["new-arrivals"];
+        const remoteSkus = new Set(remoteNewArrivals.map((product) => product.sku));
+        sections["new-arrivals"] = [
+          ...localImportedDemo.filter((product) => !remoteSkus.has(product.sku)).reverse(),
+          ...remoteNewArrivals.map((product) => {
+            const local = localDemoBySku.get(product.sku);
+            return local ? { ...product, imageUrl: local.imageUrl, images: local.images } : product;
+          }),
+        ].slice(0, 8);
+        setProductsBySection(sections);
       } catch (err) {
-        if (err.name !== "AbortError") setError(err.message);
+        if (err.name !== "AbortError") {
+          setProductsBySection({ "new-arrivals": [...localImportedDemo].reverse().slice(0, 8) });
+          setError(null);
+        }
       }
     };
 
@@ -214,7 +232,7 @@ const LandingPage = () => {
           id={id}
           title={title}
           products={productsBySection[id]}
-          error={error}
+          error={id === "new-arrivals" && productsBySection[id]?.length ? null : error}
         />
       ))}
 
