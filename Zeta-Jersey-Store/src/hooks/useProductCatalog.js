@@ -10,7 +10,7 @@ import {
   sortProducts,
 } from "../lib/productCatalog";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 export default function useProductCatalog() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,7 +41,7 @@ export default function useProductCatalog() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/products`);
+      const response = await fetch(`${API_BASE_URL}/v1/products`);
       if (!response.ok) throw new Error(`Catalog request failed (${response.status})`);
 
       const payload = await response.json();

@@ -8,7 +8,7 @@ import HeroSection from "../components/HeroSection";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 const productSections = [
   {
@@ -173,7 +173,7 @@ const LandingPage = () => {
         const sectionResults = await Promise.all(
           productSections.map(async ({ id, query }) => {
             const response = await fetch(
-              `${API_URL}/api/v1/products?${query}`,
+              `${API_BASE_URL}/v1/products?${query}`,
               { signal: controller.signal },
             );
 

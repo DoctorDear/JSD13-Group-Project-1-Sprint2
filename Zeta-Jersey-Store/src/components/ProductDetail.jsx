@@ -5,7 +5,7 @@ import { getProductLeague } from "../lib/productCatalog";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -18,7 +18,7 @@ const ProductDetail = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/v1/products/${id}`);
+        const response = await fetch(`${API_BASE_URL}/v1/products/${id}`);
         const data = await response.json();
         setProduct(data.product);
         setVariants(data.variants || []);
