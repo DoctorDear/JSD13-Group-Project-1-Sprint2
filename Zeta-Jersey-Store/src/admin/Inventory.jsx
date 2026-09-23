@@ -12,17 +12,42 @@ import {
   ConfirmDelete,
 } from "./AdminUI";
 import { matches, stockStatus } from "./data";
+import { adminService } from "../services/adminService";
 
 export function Inventory({ store, money }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All statuses");
   const [deleting, setDeleting] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
+
+  if (store.loading) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="text-sm text-base-content/60">Loading products from server...</p>
+      </div>
+    );
+  }
+
+  if (store.error) {
+    return (
+      <div className="alert alert-error rounded-2xl shadow-sm">
+        <span>⚠️ Error loading products: {store.error}</span>
+        <button className="btn btn-sm btn-ghost ml-auto" onClick={store.reload}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const products = store.products.filter(
     (p) =>
       matches(query, p.name, p.sku, p.category) &&
       (filter === "All statuses" || stockStatus(p) === filter),
   );
+
   return (
     <>
       <PageHeading title="Inventory Management" subtitle="Manage your products">
@@ -82,7 +107,10 @@ export function Inventory({ store, money }) {
                   <EditActions
                     name={p.name}
                     onEdit={() => navigate(`/admin/inventory/${p.id}/edit`)}
-                    onDelete={() => setDeleting(p)}
+                    onDelete={() => {
+                      setDeleteError("");
+                      setDeleting(p);
+                    }}
                   />
                 </td>
               </tr>
@@ -96,21 +124,27 @@ export function Inventory({ store, money }) {
       </p>
       {deleting && (
         <ConfirmDelete
-          archive
-          error={store.saveError}
+          archive={false}
+          error={deleteError}
           name={deleting.name}
-          onClose={() => setDeleting(null)}
-          onConfirm={async () => {
-            if (
-              !(await store.update(
-                {
-                  products: store.products.filter((p) => p.id !== deleting.id),
-                },
-                "Product archived. Stock movement history retained.",
-              ))
-            )
-              return;
+          loading={isDeleting}
+          onClose={() => {
+            if (isDeleting) return;
             setDeleting(null);
+            setDeleteError("");
+          }}
+          onConfirm={async () => {
+            try {
+              setIsDeleting(true);
+              setDeleteError("");
+              await adminService.deleteProduct(deleting.id);
+              await store.refresh("Product deleted successfully.");
+              setDeleting(null);
+            } catch (err) {
+              setDeleteError(err.message || "Failed to delete product.");
+            } finally {
+              setIsDeleting(false);
+            }
           }}
         />
       )}
@@ -123,7 +157,18 @@ export function ProductForm({ store }) {
   const navigate = useNavigate();
   const existing = store.products.find((p) => p.id === id);
   const [error, setError] = useState("");
-  if (id && !existing)
+  const [submitting, setSubmitting] = useState(false);
+
+  if (id && !existing && store.loading) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="text-sm text-base-content/60">Loading product...</p>
+      </div>
+    );
+  }
+
+  if (id && !existing && !store.loading)
     return (
       <>
         <PageHeading
@@ -135,56 +180,56 @@ export function ProductForm({ store }) {
         </Link>
       </>
     );
+
   async function save(e) {
     e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
     const form = Object.fromEntries(new FormData(e.currentTarget));
     for (const key of Object.keys(form)) form[key] = form[key].trim();
-    if (!form.name || !form.sku)
+
+    if (!form.name || !form.sku) {
+      setSubmitting(false);
       return setError("Product name and SKU cannot be blank.");
+    }
+
     if (
       store.products.some(
         (p) => p.id !== id && p.sku.toLowerCase() === form.sku.toLowerCase(),
       )
-    )
+    ) {
+      setSubmitting(false);
       return setError("This SKU already exists. Enter a unique SKU.");
-    const product = {
-      ...form,
-      id: id || crypto.randomUUID(),
-      stock: Number(form.stock),
+    }
+
+    const payload = {
+      name: form.name,
+      sku: form.sku.toUpperCase(),
+      category: form.category || "Premier League",
+      description: form.description || `${form.name} official jersey.`,
       price: Number(form.price),
-      cost: Number(form.cost),
-      reorder: Number(form.reorder),
+      quantity: Number(form.stock),
+      brand: form.supplier || form.brand || "Adidas",
+      images: form.imageUrl ? [form.imageUrl] : existing?.imageUrl ? [existing.imageUrl] : [],
     };
-    const delta = product.stock - (existing?.stock || 0);
-    const movements = delta
-      ? [
-          {
-            id: crypto.randomUUID(),
-            productId: product.id,
-            name: product.name,
-            sku: product.sku,
-            type: existing ? "Adjustment" : "Stock In",
-            quantity: delta,
-            source: existing ? "Product edit" : "Initial stock",
-            date: new Date().toISOString(),
-          },
-          ...store.movements,
-        ]
-      : store.movements;
-    if (
-      !(await store.update(
-        {
-          products: existing
-            ? store.products.map((p) => (p.id === id ? product : p))
-            : [...store.products, product],
-          movements,
-        },
-        existing ? "Product updated." : "Product added.",
-      ))
-    )
-      return;
-    navigate("/admin/inventory");
+
+    try {
+      if (existing) {
+        await adminService.updateProduct(id, payload);
+        await store.refresh("Product updated successfully.");
+      } else {
+        await adminService.createProduct(payload);
+        await store.refresh("Product added successfully.");
+      }
+      navigate("/admin/inventory");
+    } catch (err) {
+      setError(err.message || "Failed to save product. Please check your inputs.");
+    } finally {
+      setSubmitting(false);
+    }
   }
+
   return (
     <>
       <PageHeading
@@ -242,6 +287,13 @@ export function ProductForm({ store }) {
               ))}
             </select>
           </Field>
+          <Field
+            className="md:col-span-2"
+            label="Image URL (optional)"
+            name="imageUrl"
+            placeholder="https://example.com/jersey.jpg"
+            defaultValue={existing?.imageUrl}
+          />
           <Field label="Description" className="md:col-span-2" required>
             <textarea
               required
@@ -306,9 +358,9 @@ export function ProductForm({ store }) {
           </p>
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-base-300 pt-5">
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary" type="submit" disabled={submitting}>
             <Save size={17} />
-            Save Product
+            {submitting ? "Saving..." : "Save Product"}
           </button>
           <Link className="btn btn-ghost" to="/admin/inventory">
             Cancel
@@ -318,3 +370,4 @@ export function ProductForm({ store }) {
     </>
   );
 }
+

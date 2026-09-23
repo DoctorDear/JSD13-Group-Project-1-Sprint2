@@ -1,15 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import {adminService} from "../services/admin"
-import {
-  // initialProducts,
-  initialCustomers,
-  initialMovements,
-  // initialOrders,
-  initialSettings,
-  initialTasks,
-} from "./data";
-
-import { useEffect, useState, useCallback } from "react";
 import { adminService } from "../services/adminService";
 import {
   initialCustomers,

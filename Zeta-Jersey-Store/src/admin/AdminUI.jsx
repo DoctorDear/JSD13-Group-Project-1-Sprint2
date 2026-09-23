@@ -194,6 +194,7 @@ export function ConfirmDelete({
   onConfirm,
   error,
   archive = false,
+  loading = false,
 }) {
   return (
     <Modal
@@ -209,11 +210,16 @@ export function ConfirmDelete({
           : "This cannot be undone."}
       </p>
       <div className="mt-6 flex justify-end gap-3">
-        <button className="btn btn-ghost" onClick={onClose}>
+        <button className="btn btn-ghost" onClick={onClose} disabled={loading}>
           Cancel
         </button>
-        <button className="btn btn-error" onClick={onConfirm}>
-          {archive ? "Archive" : "Delete"}
+        <button
+          className="btn btn-error flex items-center gap-2"
+          onClick={onConfirm}
+          disabled={loading}
+        >
+          {loading && <span className="loading loading-spinner loading-xs"></span>}
+          {loading ? "Deleting..." : archive ? "Archive" : "Delete"}
         </button>
       </div>
     </Modal>
