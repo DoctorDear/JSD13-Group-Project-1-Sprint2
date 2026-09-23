@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute, GuestRoute } from "./components/RouteGuards";
 import MainLayout from "./components/MainLayout";
 
@@ -14,7 +16,6 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import EmailConfirmation from "./pages/EmailConfirmation";
-import Dashboard from "./pages/Dashboard";
 import AdminApp from "./admin/AdminApp";
 import Settings from "./pages/Settings";
 import ChangePassword from "./pages/ChangePassword";
@@ -31,6 +32,15 @@ import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
 
 
 export default function App() {
+  function Logout() {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+    useEffect(() => {
+      logout().finally(() => navigate("/", { replace: true }));
+    }, [logout, navigate]);
+    return null;
+  }
+
   const devOnlyProfileBody = import.meta.env.DEV ? <ProfileBody /> : <Navigate to="/login" replace />;
 
   return (
@@ -47,31 +57,33 @@ export default function App() {
 
       {/* Guests only — full-bleed auth pages, no navbar */}
       <Route element={<GuestRoute />}>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/register" element={<Register />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/verify-email" element={<VerifyEmail />} />
       </Route>
 
       {/* Open to everyone — magic link may open in any session state */}
-      <Route path="/email-confirmation" element={<EmailConfirmation />} />
-      <Route path="/change-password" element={<ChangePassword />} />
+      <Route path="/auth/email-confirmation" element={<EmailConfirmation />} />
+      <Route path="/auth/change-password" element={<ChangePassword />} />
 
-      <Route path="/register-success" element={<RegisterSuccess />} />
-      <Route path="/login-success" element={<LoginSuccess />} />
+      <Route path="/auth/register-success" element={<RegisterSuccess />} />
+      <Route path="/auth/login-success" element={<LoginSuccess />} />
       
-      <Route path="/reset-password-success" element={<ResetPasswordSuccess />} />
+      <Route path="/auth/reset-password-success" element={<ResetPasswordSuccess />} />
 
-      <Route path="/change-password-success" element={<ChangePasswordSuccess />} />
+      <Route path="/auth/change-password-success" element={<ChangePasswordSuccess />} />
 
-      <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
+      <Route path="/auth/verify-email-success" element={<VerifyEmailSuccess />} />
+      <Route path="/auth/logout" element={<Logout />} />
+
+
 
       {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
 
       {/* Authenticated — wrapped in MainLayout */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<ProfileBody />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

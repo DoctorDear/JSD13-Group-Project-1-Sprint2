@@ -2,7 +2,11 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { authService } from "../services/auth";
 import { onUnauthorized } from "../lib/api";
 
-const AuthContext = createContext(null);
+
+
+export const AuthContext = createContext(null);
+
+
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -34,7 +38,10 @@ export function AuthProvider({ children }) {
     return nextUser;
   }, []);
 
-  const register = useCallback((payload, opts) => authService.register(payload, opts), []);
+  const register = useCallback(async (payload, opts) => {
+    const data = await authService.register(payload, opts);
+    return data?.data ?? data?.user ?? data;
+  }, []);
 
   const logout = useCallback(async () => {
     await authService.logout();

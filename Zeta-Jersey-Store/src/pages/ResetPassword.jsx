@@ -17,7 +17,7 @@ export default function ResetPassword() {
 
   const f = useForm({ email: state?.email || "" }, schema, async (values, { signal }) => {
     await authService.requestPasswordReset(values, { signal });
-    navigate("/verify-email", { state: { email: values.email, sent: true } });
+    navigate("/auth/verify-email", { state: { email: values.email, sent: true } });
   });
 
   return (
@@ -43,7 +43,7 @@ export default function ResetPassword() {
 
         <p className="mt-4 text-center text-[13px] text-gray-900 p-[3px]">
           Remembered it?{" "}
-          <Link to="/login" className="underline underline-offset-2 font-medium hover:text-indigo-700 p-[3px]">
+          <Link to="/auth/login" className="underline underline-offset-2 font-medium hover:text-indigo-700 p-[3px]">
             Log in
           </Link>
         </p>
