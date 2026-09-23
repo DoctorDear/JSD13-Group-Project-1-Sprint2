@@ -36,7 +36,7 @@ export default function App() {
     const { logout } = useAuth();
     const navigate = useNavigate();
     useEffect(() => {
-      logout().finally(() => navigate("/auth/login", { replace: true }));
+      logout().finally(() => navigate("/", { replace: true }));
     }, [logout, navigate]);
     return null;
   }
