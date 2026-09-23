@@ -6,7 +6,6 @@ import { SocialButton, GoogleIcon, AppleIcon } from "../components/SocialButtons
 import useForm from "../hooks/useForm";
 import { useAuth } from "../contexts/AuthContext";
 import { rules, passwordStrength } from "../lib/validation";
-import { register } from "../../../server/src/controllers/auth.controller";
 
 const HERO =
   "https://plus.unsplash.com/premium_photo-1676736592730-bfd847c0c8c8?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&w=900&q=80";
