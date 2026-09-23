@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const RATING_LABELS = {
   comfort: ["Comfort", "Uncomfortable", "Comfortable"],
   quality: ["Quality", "Poor", "Excellent"],
@@ -69,7 +69,7 @@ export default function ProductReviewSection({ productId }) {
         if (rating) query.set("rating", rating);
         if (tag) query.set("tags", tag);
 
-        const response = await fetch(`${API_URL}/api/v1/products/${productId}/reviews?${query}`, {
+        const response = await fetch(`${API_BASE_URL}/v1/products/${productId}/reviews?${query}`, {
           signal: controller.signal,
         });
         const payload = await response.json();
