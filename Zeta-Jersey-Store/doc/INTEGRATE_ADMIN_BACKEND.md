@@ -18,6 +18,7 @@
 6. [ขั้นตอนที่ 4: การส่ง Bearer Token และตรวจสอบสิทธิ์ Admin](#ขั้นตอนที่-4-การส่ง-bearer-token-และตรวจสอบสิทธิ์-admin)
 7. [ขั้นตอนที่ 5: จัดการ Loading, Empty, และ Error States ใน UI](#ขั้นตอนที่-5-จัดการ-loading-empty-และ-error-states-ใน-ui)
 8. [คู่มือการทดสอบระบบ (Testing & Verification Checklist)](#8-คู่มือการทดสอบระบบ-testing--verification-checklist)
+9. [สรุปการปรับปรุงระบบเพิ่มเติม & การแก้ปัญหาจริง (Enhancements & Troubleshooting)](#9-สรุปการปรับปรุงระบบเพิ่มเติม--การแก้ปัญหาจริง-enhancements--troubleshooting)
 
 ---
 
@@ -423,3 +424,50 @@ if (store.error) {
 - [ ] **5. ทดสอบ Error Handling:**
   - ลองหยุด Backend Server (Ctrl+C ใน terminal ของ server) แล้วกด Refresh หน้า Admin
   - หน้าเว็บต้องแสดงกล่องข้อความ Error สีแดงที่อ่านเข้าใจได้ ไม่ปล่อยให้หน้าเว็บจอขาว (White Screen)
+
+---
+
+## 9. สรุปการปรับปรุงระบบเพิ่มเติม & การแก้ปัญหาจริง (Enhancements & Troubleshooting)
+
+เพื่อให้โค้ดพร้อมส่งขึ้น Production และสอดคล้องกับ Acceptance Criteria แบบ 100% เราได้มีการปรับปรุงเพิ่มเติมอีก 7 รายการหลัก ดังนี้:
+
+### 9.1 การจัดกึ่งกลาง Modal ยืนยันการลบสินค้า & เพิ่ม Spinner (`AdminUI.jsx` & `Inventory.jsx`)
+- **ปัญหาเดิม:** หน้าต่าง `<dialog>` แสดงผลชิดมุมซ้ายบนของหน้าจอ (`top: 0, left: 0`) เนื่องจาก CSS Reset ของ Tailwind / DaisyUI
+- **การแก้ไขใน `AdminUI.jsx`:**
+  - เพิ่มคลาส `fixed inset-0 m-auto h-fit w-full max-w-md` ทำให้ Modal ลอยอยู่กึ่งกลางหน้าจออย่างสมบูรณ์
+  - เพิ่ม prop `loading = false` ใน `<ConfirmDelete />` เมื่อกำลังลบ (`isDeleting === true`) ปุ่ม Delete จะขึ้น Spinner ติ้วๆ เปลี่ยนข้อความเป็น `"Deleting..."` และ `disabled` ปุ่มเพื่อป้องกันการกดย้ำ
+
+### 9.2 เชื่อมต่อระบบอัปเดตสถานะออเดอร์เข้ากับ Backend (`useAdminStore.js`)
+- **การแก้ไข:** ใน `useAdminStore.js` เพิ่มฟังก์ชัน `update(patch, message)`
+  - เมื่อมีการเปลี่ยนสถานะ Order ในหน้า Operations/Orders จะเรียก `adminService.updateOrderStatus(mongoId, status)` ยิง `PATCH /api/v1/orders/:id/status` ไปยัง Backend
+  - รองรับการเก็บ State ของ `customers`, `movements`, `settings`, `tasks` ใน React State เพื่อให้ UI ทำงานได้ลื่นไหล
+
+### 9.3 ปรับปรุงหน้า Dashboard และ Orders ให้ครอบคลุมทุกสถานะ (`Overview.jsx` & `Operations.jsx`)
+- **การแก้ไขใน `Overview.jsx`:**
+  - เพิ่ม Loading Spinner และ Error Alert พร้อมปุ่ม Retry
+  - คำนวณ `totalRevenue` และ `paidOrders` ให้ครอบคลุมสถานะ `["Paid", "Completed", "Shipped"]` ตามรูปแบบที่ Mongoose Order Model บันทึกจริง
+- **การแก้ไขใน `Operations.jsx`:**
+  - เพิ่ม Loading State และ Error State ในคอมโพเนนต์ `Orders`
+
+### 9.4 แก้ไขปัญหา Network Error จาก CORS และ Port ชนกัน (`server.js` & `.env`)
+- **ปัญหาที่พบ:** พอร์ต 5173 ถูกจองไว้โดยโปรเจกต์อื่น ทำให้ Vite สลับไปใช้พอร์ต `5174` ส่งผลให้เบราว์เซอร์ติดบล็อก CORS
+- **การแก้ไข:**
+  - ปรับ `server/src/server.js` ให้ยอมรับ Origins: `["http://localhost:5173", "http://localhost:5174"]`
+  - ปรับ `Zeta-Jersey-Store/.env` เป็น `VITE_API_BASE_URL=http://localhost:3001/api`
+
+### 9.5 ป้องกัน Path ซ้ำซ้อน `/v1/v1` ใน `src/lib/api.js`
+- **ปัญหาที่พบ:** หน้า Login แจ้งเตือน `Cannot POST /api/v1/v1/auth/login` เนื่องจาก `auth.js` ใส่ `/v1/auth` แต่ `.env` มี `/v1` ต่อท้าย
+- **การแก้ไขใน `src/lib/api.js`:**
+  - เพิ่มฟังก์ชัน Clean Path ตรวจสอบและตัด `/v1` ซ้ำซ้อนอัตโนมัติ ทำให้ทุก Service (`auth`, `adminService`, `userService`) ทำงานร่วมกันได้อย่างราบรื่น
+
+### 9.6 ล็อคสิทธิ์เข้าถึงหน้า Admin ด้วย `AdminRoute` (`RouteGuards.jsx` & `App.jsx`)
+- **การแก้ไข:**
+  - ใน `src/components/RouteGuards.jsx` สร้างคอมโพเนนต์ `AdminRoute`:
+    - ตรวจสอบ `isAuthenticated` หากยังไม่ล็อกอินให้ Redirect ไป `/auth/login`
+    - ตรวจสอบ `user.role === 'admin'` หากไม่ใช่แอดมินให้ Redirect ไปหน้าแรก
+  - ใน `src/App.jsx` นำ `AdminRoute` ไปครอบเส้นทาง `/admin/*` ทั้งหมด
+
+### 9.7 ปรับปุ่ม Sign Out ให้ล้าง Cookie จริง (`AdminApp.jsx`)
+- **ปัญหาเดิม:** ปุ่ม Sign Out เดิมเป็นเพียง `<Link to="/">` ที่เปลี่ยนหน้าเฉยๆ ไม่ได้ล้าง Cookie ออกจากเบราว์เซอร์
+- **การแก้ไข:**
+  - ปรับปุ่ม Sign Out (ทั้งในแถบ Sidebar และเมนูโปรไฟล์มุมขวาบน) ให้เรียก `useAuth().logout()` ซึ่งจะยิง `POST /api/v1/auth/logout` ล้าง Cookie `accessToken` ออกจากเบราว์เซอร์ แล้วจึง Redirect ไปหน้า `/auth/login` ทันที
