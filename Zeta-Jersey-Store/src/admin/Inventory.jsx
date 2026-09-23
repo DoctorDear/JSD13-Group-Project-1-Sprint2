@@ -26,7 +26,9 @@ export function Inventory({ store, money }) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <span className="loading loading-spinner loading-lg text-primary"></span>
-        <p className="text-sm text-base-content/60">Loading products from server...</p>
+        <p className="text-sm text-base-content/60">
+          Loading products from server...
+        </p>
       </div>
     );
   }
@@ -34,7 +36,7 @@ export function Inventory({ store, money }) {
   if (store.error) {
     return (
       <div className="alert alert-error rounded-2xl shadow-sm">
-        <span>⚠️ Error loading products: {store.error}</span>
+        <span>Error loading products: {store.error}</span>
         <button className="btn btn-sm btn-ghost ml-auto" onClick={store.reload}>
           Retry
         </button>
@@ -211,7 +213,11 @@ export function ProductForm({ store }) {
       price: Number(form.price),
       quantity: Number(form.stock),
       brand: form.supplier || form.brand || "Adidas",
-      images: form.imageUrl ? [form.imageUrl] : existing?.imageUrl ? [existing.imageUrl] : [],
+      images: form.imageUrl
+        ? [form.imageUrl]
+        : existing?.imageUrl
+          ? [existing.imageUrl]
+          : [],
     };
 
     try {
@@ -224,7 +230,9 @@ export function ProductForm({ store }) {
       }
       navigate("/admin/inventory");
     } catch (err) {
-      setError(err.message || "Failed to save product. Please check your inputs.");
+      setError(
+        err.message || "Failed to save product. Please check your inputs.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -358,7 +366,11 @@ export function ProductForm({ store }) {
           </p>
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-base-300 pt-5">
-          <button className="btn btn-primary" type="submit" disabled={submitting}>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={submitting}
+          >
             <Save size={17} />
             {submitting ? "Saving..." : "Save Product"}
           </button>
@@ -370,4 +382,3 @@ export function ProductForm({ store }) {
     </>
   );
 }
-
