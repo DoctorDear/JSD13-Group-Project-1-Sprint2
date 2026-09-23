@@ -7,6 +7,7 @@
     "import:adidas-pl-demo": "node scripts/import-adidas-pl-demo.mjs",
     "import:nike-top5-demo": "node scripts/import-nike-top5-demo.mjs",
     "import:puma-top5-demo": "node scripts/import-puma-top5-demo.mjs",
+    "import:thai-league-demo": "node scripts/import-thai-league-demo.mjs",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

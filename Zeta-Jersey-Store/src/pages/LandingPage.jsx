@@ -11,7 +11,7 @@ import productData from "../data/products.json";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const localImportedDemo = productData.filter((product) =>
-  product.id?.startsWith("demo-pl-") || product.id?.startsWith("demo-nike-") || product.id?.startsWith("demo-puma-"),
+  product.id?.startsWith("demo-pl-") || product.id?.startsWith("demo-nike-") || product.id?.startsWith("demo-puma-") || product.id?.startsWith("demo-thai-"),
 );
 const localDemoBySku = new Map(localImportedDemo.map((product) => [product.sku, product]));
 

@@ -156,6 +156,16 @@ const ProductDetail = () => {
               <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
                 {product.description}
               </p>
+              {(product.id?.startsWith("demo-thai-") || product.sku?.startsWith("THAI-DEMO-")) && product.sourceUrl && (
+                <a
+                  href={product.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-zeta-main underline underline-offset-2"
+                >
+                  View jersey source
+                </a>
+              )}
               <div className="h-px w-full bg-slate-200" />
 
               {variants.length > 0 && (

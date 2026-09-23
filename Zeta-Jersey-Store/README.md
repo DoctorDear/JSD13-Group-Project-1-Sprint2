@@ -105,3 +105,17 @@ The THB price and stock are fictional demo values.
 Run `npm run import:puma-top5-demo` here to download photos and append missing
 records, or `npm run seed:puma-top5-demo` in `server/` to insert the records into
 a configured MongoDB. Existing unrelated products are preserved.
+
+# Thai League 1 demo catalog
+
+Ten 2026/27 Thai League 1 home shirts are included in the local catalog.
+PT Prachuap FC and Port FC use images and product references from their official
+online stores. The remaining kit images and references are from the
+[2026/27 Thai League 1 kit index](https://www.footballkitarchive.com/thai-league-1-kits-2026-27-l286/).
+The images are stored under `public/images/thai-league-2627/` for this
+educational demo. Except for the verified PT Prachuap FC and Port FC prices,
+prices, stock, sizes, and edition labels are illustrative.
+
+Run `npm run import:thai-league-demo` here to fetch missing images and refresh
+the ten local catalog records. Run `npm run seed:thai-league-demo` in `server/`
+only when you intend to insert them into a configured MongoDB.

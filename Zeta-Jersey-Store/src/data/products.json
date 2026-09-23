@@ -1328,5 +1328,375 @@
     "isAvailable": true,
     "isActive": true,
     "sourceUrl": "https://eu.puma.com/de/en/pd/stade-rennais-26%2F27-home-jersey/784305"
+  },
+  {
+    "id": "demo-thai-bg-pathum-2627",
+    "sku": "THAI-DEMO-BG-PATHUM-2627",
+    "brand": "Nike",
+    "name": "BG Pathum United 26/27 Home Jersey",
+    "team": "BG Pathum United",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "BG Pathum United's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/bg-pathum.jpg",
+    "images": [
+      "/images/thai-league-2627/bg-pathum.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/bg-pathum-united-2026-27-home-kit-518582/"
+  },
+  {
+    "id": "demo-thai-bangkok-2627",
+    "sku": "THAI-DEMO-BANGKOK-2627",
+    "brand": "Adidas",
+    "name": "Bangkok United 26/27 Home Jersey",
+    "team": "Bangkok United",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Bangkok United's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/bangkok.jpg",
+    "images": [
+      "/images/thai-league-2627/bangkok.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/bangkok-united-2026-27-home-kit-513678/"
+  },
+  {
+    "id": "demo-thai-buriram-2627",
+    "sku": "THAI-DEMO-BURIRAM-2627",
+    "brand": "In-House",
+    "name": "Buriram United 26/27 Home Jersey",
+    "team": "Buriram United",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Buriram United's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/buriram.jpg",
+    "images": [
+      "/images/thai-league-2627/buriram.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/buriram-united-2026-27-home-kit-493588/"
+  },
+  {
+    "id": "demo-thai-chonburi-2627",
+    "sku": "THAI-DEMO-CHONBURI-2627",
+    "brand": "FBT",
+    "name": "Chonburi FC 26/27 Home Jersey",
+    "team": "Chonburi FC",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Chonburi FC's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/chonburi.jpg",
+    "images": [
+      "/images/thai-league-2627/chonburi.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/chonburi-fc-2026-27-home-kit-511912/"
+  },
+  {
+    "id": "demo-thai-lamphun-2627",
+    "sku": "THAI-DEMO-LAMPHUN-2627",
+    "brand": "Kelme",
+    "name": "Lamphun Warriors 26/27 Home Jersey",
+    "team": "Lamphun Warriors",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Lamphun Warriors's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/lamphun.jpg",
+    "images": [
+      "/images/thai-league-2627/lamphun.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/lamphun-warriors-2026-27-home-kit-513798/"
+  },
+  {
+    "id": "demo-thai-port-2627",
+    "sku": "THAI-DEMO-PORT-2627",
+    "brand": "Mizuno",
+    "name": "Port FC 26/27 Home Jersey",
+    "team": "Port FC",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Port FC's 2026/27 home jersey. Demo catalog entry; stock is illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/port.jpg",
+    "images": [
+      "/images/thai-league-2627/port.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.portfcstore.com/products/26-27-home-port-tpl-player-m-copy"
+  },
+  {
+    "id": "demo-thai-ratchaburi-2627",
+    "sku": "THAI-DEMO-RATCHABURI-2627",
+    "brand": "Mizuno",
+    "name": "Ratchaburi FC 26/27 Home Jersey",
+    "team": "Ratchaburi FC",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Ratchaburi FC's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/ratchaburi.jpg",
+    "images": [
+      "/images/thai-league-2627/ratchaburi.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/ratchaburi-fc-2026-27-home-kit-514105/"
+  },
+  {
+    "id": "demo-thai-sukhothai-2627",
+    "sku": "THAI-DEMO-SUKHOTHAI-2627",
+    "brand": "Warrix",
+    "name": "Sukhothai FC 26/27 Home Jersey",
+    "team": "Sukhothai FC",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Sukhothai FC's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/sukhothai.jpg",
+    "images": [
+      "/images/thai-league-2627/sukhothai.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/sukhothai-fc-2026-27-home-kit-505611/"
+  },
+  {
+    "id": "demo-thai-uthai-thani-2627",
+    "sku": "THAI-DEMO-UTHAI-THANI-2627",
+    "brand": "Hummel",
+    "name": "Uthai Thani FC 26/27 Home Jersey",
+    "team": "Uthai Thani FC",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Fan Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 990,
+    "originalPrice": 0,
+    "description": "Uthai Thani FC's 2026/27 home jersey. Demo catalog entry; price and stock are illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/uthai-thani.jpg",
+    "images": [
+      "/images/thai-league-2627/uthai-thani.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.footballkitarchive.com/uthai-thani-fc-2026-27-home-kit-514727/"
+  },
+  {
+    "id": "demo-thai-pt-prachuap-2627",
+    "sku": "THAI-DEMO-PT-PRACHUAP-2627",
+    "brand": "Ari",
+    "name": "PT Prachuap FC 26/27 Home Jersey",
+    "team": "PT Prachuap FC",
+    "league": "Thai League 1",
+    "category": "Thai League 1",
+    "collection": "2026/27 Collection",
+    "edition": "Player Edition",
+    "kitType": "home",
+    "fit": "regular",
+    "activity": "football",
+    "tag": [
+      "2026/27",
+      "Home Kit",
+      "Demo"
+    ],
+    "price": 890,
+    "originalPrice": 0,
+    "description": "PT Prachuap FC's 2026/27 home jersey. Demo catalog entry; stock is illustrative.",
+    "quantity": 20,
+    "imageUrl": "/images/thai-league-2627/pt-prachuap.jpg",
+    "images": [
+      "/images/thai-league-2627/pt-prachuap.jpg"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL"
+    ],
+    "isAvailable": true,
+    "isActive": true,
+    "sourceUrl": "https://www.arionline.com/products/aap3396-30-ari-pt-prachuap-fc-2026-2027-home-player-jersey-orange-green-black"
   }
 ]
