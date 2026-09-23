@@ -5,10 +5,13 @@ import { router as userRoutes } from "./user.routes.js";
 import { router as reviewRoutes } from "./review.routes.js";
 import { router as orderRoutes } from "./order.routes.js";
 
-export const routes = Router();
+const router = Router();
 
-routes.use("/products/:productId/reviews", reviewRoutes);
-routes.use("/products", productRoutes);
-routes.use("/auth", authRoutes);
-routes.use("/orders", orderRoutes);
-routes.use("/users", userRoutes);
+router.use("/products/:productId/reviews", reviewRoutes);
+router.use("/products", productRoutes);
+router.use("/auth", authRoutes);
+router.use("/orders", orderRoutes);
+router.use("/users", userRoutes);
+
+export const routes = router;
+export default router;
