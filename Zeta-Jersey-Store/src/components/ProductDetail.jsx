@@ -1,7 +1,8 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom"; // 1. เพิ่ม useNavigate
 import { getProductLeague } from "../lib/productCatalog";
+import { api } from "../lib/api"; // 2. นำเข้า api สำหรับยิง request
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
 
@@ -12,7 +13,9 @@ const ProductDetail = () => {
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [adding, setAdding] = useState(false); // สถานะตอนกดปุ่มเพิ่มลงตะกร้า
   const { id } = useParams();
+  const navigate = useNavigate(); // เรียกใช้ navigate
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -32,9 +35,30 @@ const ProductDetail = () => {
   }, [id]);
 
   const [selectedImg, setSelectedImg] = useState(null);
-
   const [selectedSize, setSelectedSize] = useState("M");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+
+  // ฟังก์ชันเพิ่มสินค้าลงตะกร้า
+  const handleAddToCart = async () => {
+    try {
+      setAdding(true);
+      const payload = {
+        productId: product._id || product.id,
+        size: selectedSize,
+        quantity: 1,
+        price: product.price
+      };
+      // ยิง API ไปที่ Backend (ระบบ api.js จะแนบ Token ให้อัตโนมัติ)
+      await api.post("/users/cart", payload);
+      // เพิ่มสำเร็จ พาไปหน้า Cart
+      navigate("/cart");
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert(err.response?.data?.message || "กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (loading)
     return (
@@ -87,11 +111,10 @@ const ProductDetail = () => {
                 <button
                   key={index}
                   onClick={() => setSelectedImg(imgUrl)}
-                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 transition sm:w-full ${
-                    currentImg === imgUrl // condition
-                      ? "ring-2 ring-zeta-sub" // if truly
-                      : "opacity-70 hover:opacity-100" // if falsy
-                  }`}
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 transition sm:w-full ${currentImg === imgUrl
+                    ? "ring-2 ring-zeta-sub"
+                    : "opacity-70 hover:opacity-100"
+                    }`}
                 >
                   <img
                     src={imgUrl}
@@ -159,11 +182,10 @@ const ProductDetail = () => {
                       <button
                         key={item._id}
                         onClick={() => setProduct(item)}
-                        className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${
-                          product._id === item._id
-                            ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
-                            : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
-                        }`}
+                        className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${product._id === item._id
+                          ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
+                          : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
+                          }`}
                       >
                         <div className="text-sm">{item.edition}</div>
                         <div className="pt-1 text-xs font-normal text-zeta-muted">
@@ -204,9 +226,13 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex w-full gap-3">
-                <button className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={adding}
+                  className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90 disabled:opacity-60"
+                >
                   <ShoppingBag size={19} />
-                  <span>Add to Cart</span>
+                  <span>{adding ? "Adding..." : "Add to Cart"}</span>
                 </button>
                 <button
                   className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5"

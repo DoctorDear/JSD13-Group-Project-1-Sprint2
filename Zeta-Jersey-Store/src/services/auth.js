@@ -1,4 +1,4 @@
-import { api, tokenStore } from "../lib/api";
+import { api } from "../lib/api";
 
 export const authService = {
   register: (payload, o) =>
@@ -9,13 +9,9 @@ export const authService = {
       password: payload.password,
     }, o),
 
-  async login({ email, password }, o) {
-    const data = await api.post("/auth/login", { email, password }, o);
-    tokenStore.set(data?.token ?? data?.accessToken);
-    return data;
-  },
+  login: ({ email, password }, o) => api.post("/auth/login", { email, password }, o),
 
-  me: (o) => api.get("/auth/me", { ...o, auth: true }),
+  me: (o) => api.get("/auth/me", o),
 
   requestPasswordReset: ({ email }, o) => api.post("/auth/password/forgot", { email }, o),
 
@@ -26,10 +22,9 @@ export const authService = {
   resendVerification: ({ email }, o) => api.post("/auth/verify-email/resend", { email }, o),
 
   changePassword: ({ email, oldPassword, newPassword }, o) =>
-    api.post("/auth/password/change", { email, oldPassword, newPassword }, { ...o, auth: true }),
+    api.post("/auth/password/change", { email, oldPassword, newPassword }, o),
 
   async logout() {
     try { await api.post("/auth/logout"); } catch { /* ignore */ }
-    tokenStore.clear();
   },
 };

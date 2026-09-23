@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/api'; // 1. นำเข้า api helper แทน axios ธรรมดา
 import CartItemCard from '../components/CartItemCard';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -8,15 +8,11 @@ const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [discountCode, setDiscountCode] = useState('');
-    const [email, setEmail] = useState('');
 
-    // 1. ฟังก์ชันดึงข้อมูลตะกร้าจาก Backend (GET /api/v1/users/cart)
+    // ฟังก์ชันดึงข้อมูลตะกร้าจาก Backend
     const fetchCart = async () => {
         try {
-            const token = localStorage.getItem('token'); // ดึง Token จากตอน Login
-            const response = await axios.get('http://localhost:3001/api/v1/users/cart', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/users/cart');
             if (response.data.success) {
                 setCartItems(response.data.cart || []);
             }
@@ -37,37 +33,31 @@ const CartPage = () => {
         );
     };
 
-    // 2. ฟังก์ชันลบสินค้าเฉพาะชิ้นออกจากตะกร้า (DELETE /api/v1/users/cart/:itemId)
+    // ฟังก์ชันลบสินค้าออกจากตะกร้า
     const handleRemoveItem = async (itemId) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:3001/api/v1/users/cart/${itemId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            fetchCart(); // โหลดข้อมูลตะกร้าใหม่หลังจากลบสำเร็จ
+            await api.delete(`/users/cart/${itemId}`);
+            fetchCart();
         } catch (error) {
             console.error('Error removing item:', error);
             alert('ไม่สามารถลบสินค้าได้');
         }
     };
 
-    // 3. ฟังก์ชันสร้างคำสั่งซื้อ (POST /api/v1/orders) เมื่อกด Go to Checkout
+    // ฟังก์ชันสร้างคำสั่งซื้อเมื่อกด Go to Checkout
     const handleCheckout = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:3001/api/v1/orders', {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.post('/users/orders', {}); // ปรับ Endpoint ตาม Backend ของคุณ
             if (response.data.success) {
                 alert('สร้างคำสั่งซื้อสำเร็จ!');
-                setCartItems([]); // ล้างหน้าจอเพราะตะกร้าถูกเคลียร์แล้ว
+                setCartItems([]);
             }
         } catch (error) {
             alert(error.response?.data?.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ');
         }
     };
 
-    // คำนวณราคารวม (ตรวจสอบโครงสร้างข้อมูลว่ามี price อยู่ใน item หรือ item.productId)
+    // คำนวณราคารวม
     const subtotal = cartItems.reduce((acc, item) => {
         const price = item.price || item.productId?.price || 0;
         return acc + price * item.quantity;
