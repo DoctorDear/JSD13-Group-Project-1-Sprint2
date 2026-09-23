@@ -142,10 +142,32 @@ function InventoryHealth({ products }) {
 }
 
 export default function Overview({ store, money }) {
+  if (store.loading) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="text-sm text-base-content/60">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
+  if (store.error) {
+    return (
+      <div className="alert alert-error rounded-2xl shadow-sm">
+        <span>Error loading dashboard: {store.error}</span>
+        <button className="btn btn-sm btn-ghost ml-auto" onClick={store.reload}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const totalRevenue = store.orders
-    .filter((o) => o.status === "Paid")
+    .filter((o) => ["Paid", "Completed", "Shipped"].includes(o.status))
     .reduce((n, o) => n + o.total, 0);
-  const paidOrders = store.orders.filter((o) => o.status === "Paid").length;
+  const paidOrders = store.orders.filter((o) =>
+    ["Paid", "Completed", "Shipped"].includes(o.status),
+  ).length;
   const conversion = store.customers.length
     ? Math.round((paidOrders / store.customers.length) * 100)
     : 0;

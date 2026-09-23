@@ -99,25 +99,60 @@ export function useAdminStore() {
     return () => clearTimeout(timer);
   }, [notice]);
 
+  const [customers, setCustomers] = useState(initialCustomers);
+  const [movements, setMovements] = useState(initialMovements);
+  const [settings, setSettings] = useState(initialSettings);
+  const [tasks, setTasks] = useState(initialTasks);
+
   // ฟังก์ชันช่วยสำหรับการ Refresh ข้อมูลล่าสุด
   const refresh = async (message) => {
     await fetchData();
     if (message) setNotice(message);
   };
 
+  // ฟังก์ชันรองรับการอัปเดตข้อมูล (เช่น สถานะคำสั่งซื้อ, งาน Tasks)
+  const update = async (patch, message) => {
+    if (patch.orders) {
+      const changed = patch.orders.find((po) => {
+        const curr = orders.find((o) => o.id === po.id);
+        return curr && curr.status !== po.status;
+      });
+      if (changed && changed.mongoId) {
+        try {
+          await adminService.updateOrderStatus(
+            changed.mongoId,
+            changed.status.toLowerCase(),
+          );
+          await refresh(message || "Order status updated.");
+          return true;
+        } catch (err) {
+          setError(err.message || "Failed to update order status");
+          return false;
+        }
+      }
+    }
+    if (patch.tasks) setTasks(patch.tasks);
+    if (patch.customers) setCustomers(patch.customers);
+    if (patch.movements) setMovements(patch.movements);
+    if (patch.settings) setSettings(patch.settings);
+    if (message) setNotice(message);
+    return true;
+  };
+
   return {
     products,
     orders,
-    customers: initialCustomers,
-    movements: initialMovements,
-    settings: initialSettings,
-    tasks: initialTasks,
+    customers,
+    movements,
+    settings,
+    tasks,
     loading,
     error,
     notice,
     setNotice,
     refresh,
     reload: fetchData,
+    update,
   };
 }
 

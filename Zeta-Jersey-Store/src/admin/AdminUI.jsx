@@ -160,7 +160,7 @@ export function Modal({ title, children, onClose, error }) {
   return (
     <dialog
       ref={ref}
-      className="rounded-2xl border border-base-300 bg-base-100 p-6 text-base-content shadow-2xl backdrop:bg-black/40"
+      className="fixed inset-0 m-auto h-fit w-full max-w-md rounded-2xl border border-base-300 bg-base-100 p-6 text-base-content shadow-2xl backdrop:bg-black/40"
       aria-labelledby="admin-dialog-title"
       onCancel={onClose}
       onClick={(e) => {

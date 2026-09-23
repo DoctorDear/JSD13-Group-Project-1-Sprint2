@@ -14,6 +14,27 @@ import { matches } from "./data";
 export function Orders({ store, money }) {
   const [query, setQuery] = useState("");
   const [viewing, setViewing] = useState(null);
+
+  if (store.loading) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="text-sm text-base-content/60">Loading orders from server...</p>
+      </div>
+    );
+  }
+
+  if (store.error) {
+    return (
+      <div className="alert alert-error rounded-2xl shadow-sm">
+        <span>Error loading orders: {store.error}</span>
+        <button className="btn btn-sm btn-ghost ml-auto" onClick={store.reload}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const orders = store.orders.filter((o) =>
     matches(query, o.number || o.id, o.customer, o.status),
   );
