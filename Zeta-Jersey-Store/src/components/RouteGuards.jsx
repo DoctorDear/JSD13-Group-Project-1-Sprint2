@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { loginReturnPath } from "../lib/loginReturnPath.js";
 
 function Splash() {
   return (
@@ -30,7 +31,9 @@ export function GuestRoute() {
 
   if (booting) return <Splash />;
   if (isAuthenticated) {
-    const target = location.state?.from?.pathname || "/auth/login-success";
+    const target = location.state?.from
+      ? loginReturnPath(location.state.from)
+      : "/auth/login-success";
     return <Navigate to={target} replace />;
   }
   return <Outlet />;

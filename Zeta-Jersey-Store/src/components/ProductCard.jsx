@@ -1,6 +1,7 @@
-import { Heart, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import WishlistButton from "./WishlistButton.jsx";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -28,9 +29,10 @@ const ProductCard = ({ product }) => {
         <span className="badge badge-outline absolute top-8 left-7 rounded-xl border-0 font-medium bg-zeta-sub-lighter text-zeta-sub-dark">
           NEW
         </span>
-        <button className="absolute top-7 right-7 bg-white rounded-full p-2 m-1">
-          <Heart size={20} />
-        </button>
+        <WishlistButton
+          productId={product._id || product.id}
+          className="absolute top-7 right-7 m-1 rounded-full bg-white p-2 text-zeta-main disabled:opacity-50"
+        />
       </figure>
       <div className="card-body flex flex-1 flex-col">
         {product.brand && (
