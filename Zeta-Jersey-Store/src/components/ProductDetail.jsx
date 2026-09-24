@@ -1,40 +1,96 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
+import { api } from "../lib/api.js";
+import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [adding, setAdding] = useState(false);
   const { id } = useParams();
+  const location = useLocation();
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/v1/products/${id}`);
-        const data = await response.json();
+        setError(null);
+        const data = await api.get(`/products/${id}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
         setProduct(data.product);
         setVariants(data.variants || []);
       } catch (err) {
-        setError(err.message);
+        if (!controller.signal.aborted) setError(err.message);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
     if (id) fetchProduct();
+    return () => controller.abort();
   }, [id]);
 
-  const [selectedImg, setSelectedImg] = useState(null);
+  useEffect(() => {
+    if (!loading && product && location.hash === "#reviews") {
+      document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading, product, location.hash]);
 
+  const [selectedImg, setSelectedImg] = useState(null);
   const [selectedSize, setSelectedSize] = useState("M");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+
+  // ฟังก์ชันเพิ่มสินค้าลงตะกร้า (บันทึกลง localStorage ทันทีโดยไม่ต้องเช็ค Login)
+  // ฟังก์ชันเพิ่มสินค้าลงตะกร้าแบบเบ็ดเสร็จในตัว (ไม่พึ่งพาฟังก์ชันนอก)
+  const handleAddToCart = () => {
+    try {
+      setAdding(true);
+
+      const rawCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+      const existingCart = Array.isArray(rawCart) ? rawCart.filter(item => item && typeof item === 'object') : [];
+
+      const currentProductId = product?._id || product?.id;
+
+      const itemIndex = existingCart.findIndex(
+        (item) => (item.id === currentProductId) && (item.size === selectedSize)
+      );
+
+      if (itemIndex > -1) {
+        existingCart[itemIndex].quantity = (existingCart[itemIndex].quantity || 1) + 1;
+      } else {
+        const newItem = {
+          id: currentProductId,
+          name: product?.name || "Unknown Product",
+          price: product?.price || 0,
+          image: product?.images?.[0] || "",
+          size: selectedSize || "Free Size",
+          quantity: 1,
+          edition: product?.edition || "",
+        };
+        existingCart.push(newItem);
+      }
+
+      localStorage.setItem("cartItems", JSON.stringify(existingCart));
+
+      // 🛑 ตัดปัญหาเรื่องฟังก์ชันนอกพัง โดยการบังคับรีโหลดหน้าเว็บเบาๆ หรือยิง Event แจ้ง Navbar ทันที
+      window.dispatchEvent(new Event("storage"));
+
+      // ✅ เปลี่ยนจาก alert น่ารำคาญ เป็นการแจ้งเตือนสั้นๆ หรือปล่อยผ่านให้ตะกร้าขยับเลย
+      alert("Added to cart successfully!");
+
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert("ไม่สามารถเพิ่มสินค้าลงตะกร้าได้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (loading)
     return (
@@ -87,11 +143,10 @@ const ProductDetail = () => {
                 <button
                   key={index}
                   onClick={() => setSelectedImg(imgUrl)}
-                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 transition sm:w-full ${
-                    currentImg === imgUrl // condition
-                      ? "ring-2 ring-zeta-sub" // if truly
-                      : "opacity-70 hover:opacity-100" // if falsy
-                  }`}
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 transition sm:w-full ${currentImg === imgUrl
+                    ? "ring-2 ring-zeta-sub"
+                    : "opacity-70 hover:opacity-100"
+                    }`}
                 >
                   <img
                     src={imgUrl}
@@ -130,17 +185,18 @@ const ProductDetail = () => {
                   <span className="mr-1 align-baseline font-[Arial] text-[0.9em] font-normal leading-none">
                     ฿
                   </span>
-                  {product.price.toLocaleString()}
+                  {Number(product.price ?? 0).toLocaleString()}
                 </div>
-                {product.originalPrice && (
+                {Number(product.originalPrice) > Number(product.price) && (
                   <div className="text-lg font-normal text-zeta-muted line-through">
                     <span>฿</span>
-                    {product.originalPrice.toLocaleString()}
+                    {Number(product.originalPrice).toLocaleString()}
                   </div>
                 )}
-                {product.discount && (
+                {Number(product.originalPrice) > Number(product.price) && (
                   <span className="rounded-md bg-zeta-main px-2 py-1 text-xs font-semibold text-white">
-                    {product.discount}
+                    {product.discount ||
+                      `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF`}
                   </span>
                 )}
               </div>
@@ -158,12 +214,11 @@ const ProductDetail = () => {
                     {variants.map((item) => (
                       <button
                         key={item._id}
-                        onClick={() => setProduct(item)}
-                        className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${
-                          product._id === item._id
-                            ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
-                            : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
-                        }`}
+                        onClick={() => setProduct(prev => ({ ...prev, ...item }))}
+                        className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${product._id === item._id
+                          ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
+                          : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
+                          }`}
                       >
                         <div className="text-sm">{item.edition}</div>
                         <div className="pt-1 text-xs font-normal text-zeta-muted">
@@ -191,11 +246,14 @@ const ProductDetail = () => {
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                  {product?.sizes.map((size) => (
+                  {product?.sizes?.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`h-12 rounded-xl border text-sm font-bold transition-all ${selectedSize === size ? "bg-zeta-main text-white" : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"}`}
+                      className={`h-12 rounded-xl border text-sm font-bold transition-all ${selectedSize === size
+                        ? "bg-zeta-main text-white"
+                        : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"
+                        }`}
                     >
                       {size}
                     </button>
@@ -204,9 +262,13 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex w-full gap-3">
-                <button className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={adding}
+                  className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90 disabled:opacity-60"
+                >
                   <ShoppingBag size={19} />
-                  <span>Add to Cart</span>
+                  <span>{adding ? "Adding..." : "Add to Cart"}</span>
                 </button>
                 <button
                   className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5"
@@ -224,7 +286,8 @@ const ProductDetail = () => {
             {productAttributes.map(([label, value], index) => (
               <div
                 key={label}
-                className={`px-1 sm:px-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""}`}
+                className={`px-1 sm:px-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""
+                  }`}
               >
                 <p className="text-sm text-zeta-muted">{label}</p>
                 <p className="mt-1 text-xl font-bold uppercase tracking-[0.12em] text-zeta-main">
@@ -235,7 +298,10 @@ const ProductDetail = () => {
           </section>
         )}
 
-        <ProductReviewSection productId={product._id || product.id} />
+        <div id="reviews" className="scroll-mt-24">
+          <ProductReviewComposer key={product._id || product.id} productId={product._id || product.id} />
+          <ProductReviewSection key={product._id || product.id} productId={product._id || product.id} />
+        </div>
       </div>
       <SizeGuideModal
         product={product}

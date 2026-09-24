@@ -15,12 +15,14 @@ import {
   removeFromWishlist,
 } from "../../controllers/user.controller.js";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
+import { getMyReviews } from "../../controllers/review.controller.js";
 
 export const router = Router();
 
 // Profile Routes
 router.get("/profile", verifyToken, getProfile);
 router.patch("/profile", verifyToken, updateProfile);
+router.get("/reviews", verifyToken, getMyReviews);
 
 // Address Routes
 router.post("/address", verifyToken, addAddress);

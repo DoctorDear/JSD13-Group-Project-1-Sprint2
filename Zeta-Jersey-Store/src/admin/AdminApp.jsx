@@ -6,6 +6,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import {
   Box,
@@ -24,6 +25,7 @@ import {
   Home,
 } from "lucide-react";
 import logo from "../assets/logo/Zeta_Default_Logo_Crop.png";
+import { useAuth } from "../contexts/AuthContext";
 import { useAdminStore } from "./useAdminStore";
 import Overview from "./Overview";
 import { Inventory, ProductForm } from "./Inventory";
@@ -37,14 +39,28 @@ const navClass = ({ isActive }) =>
 
 export default function AdminApp() {
   const store = useAdminStore();
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate("/auth/login", { replace: true });
+    }
+  };
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [topMenu, setTopMenu] = useState(null);
   const location = useLocation();
   const money = (value) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: store.settings.currency,
-    }).format(value);
+    new Intl.NumberFormat(
+      store.settings?.currency === "THB" ? "th-TH" : "en-US",
+      {
+        style: "currency",
+        currency: store.settings?.currency || "THB",
+      },
+    ).format(value);
   const pendingOrders = store.orders.filter((order) =>
     ["Pending", "Processing"].includes(order.status),
   );
@@ -142,14 +158,15 @@ export default function AdminApp() {
             <SettingsIcon size={18} />
             Settings
           </NavLink>
-          <Link
-            className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-base-content/65 transition-colors hover:bg-base-100 hover:text-primary"
-            to="/"
-            title="Return to the Zeta Jersey store"
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-base-content/65 transition-colors hover:bg-base-100 hover:text-primary cursor-pointer"
+            title="Sign out of Admin"
           >
             <LogOut size={18} />
             Sign Out
-          </Link>
+          </button>
         </nav>
         <div className="mt-auto px-2 text-xs text-base-content/45">
           <span className="mr-2 inline-block size-2 rounded-full bg-success align-middle" />
@@ -307,12 +324,19 @@ export default function AdminApp() {
                 aria-expanded={openTopMenu === "account"}
               >
                 <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                  ZD
+                  {user?.firstName && user?.lastName
+                    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                    : (user?.firstName?.[0] || "A").toUpperCase()}
                 </span>
                 <span className="hidden text-left sm:block">
-                  <strong className="block text-sm">Zeta Admin</strong>
-                  <small className="block text-xs text-base-content/55">
-                    Store manager
+                  <strong className="block text-sm">
+                    {user
+                      ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+                        user.email
+                      : "Admin"}
+                  </strong>
+                  <small className="block text-xs text-base-content/55 capitalize">
+                    {user?.role || "Admin"}
                   </small>
                 </span>
                 <ChevronDown size={16} />
@@ -321,12 +345,19 @@ export default function AdminApp() {
                 <div className={`${menuPanel} w-64`} role="menu">
                   <div className="flex items-center gap-3 border-b border-base-200 px-4 py-4">
                     <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                      ZD
+                      {user?.firstName && user?.lastName
+                        ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                        : (user?.firstName?.[0] || "A").toUpperCase()}
                     </span>
-                    <span>
-                      <strong className="block text-sm">Zeta Admin</strong>
-                      <small className="block text-xs text-base-content/55">
-                        Store manager
+                    <span className="min-w-0 flex-1 truncate">
+                      <strong className="block truncate text-sm">
+                        {user
+                          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+                            user.email
+                          : "Admin"}
+                      </strong>
+                      <small className="block truncate text-xs text-base-content/55">
+                        {user?.email || "admin@zetastore.com"}
                       </small>
                     </span>
                   </div>
@@ -344,13 +375,14 @@ export default function AdminApp() {
                     <Home size={16} />
                     View storefront
                   </Link>
-                  <Link
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-error hover:bg-error/10"
-                    to="/"
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-error hover:bg-error/10 cursor-pointer"
                   >
                     <LogOut size={16} />
                     Sign out
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>

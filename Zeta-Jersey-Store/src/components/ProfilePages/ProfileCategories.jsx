@@ -5,22 +5,22 @@ function ProfileCategories({ user, onViewAll }) {
     {
       icon: UserRound,
       title: "Personal Information",
-      detail: `Name: ${user?.name || "Somchai K."}`,
+      detail: `Name: ${user?.name || "—"}`,
     },
     {
       icon: House,
       title: "Shipping Address",
-      detail: user?.address || "Bangkok, Thailand",
+      detail: user?.address || "No address saved",
     },
     {
       icon: LockKeyhole,
       title: "Security",
-      detail: "Password & 2FA Protected",
+      detail: "Account settings",
     },
     {
       icon: Settings,
       title: "Settings & Contact",
-      detail: `${user?.email || "somchai@example.com"} • ${user?.phone || "0812345678"}`,
+      detail: [user?.email, user?.phone].filter(Boolean).join(" • ") || "No contact details",
     },
   ];
 

@@ -61,6 +61,138 @@ const cleanTags = (tags) => {
   return [...new Set(tags.map((tag) => String(tag).trim()).filter(Boolean))].slice(0, 10);
 };
 
+export const getMyReviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.find({ userId: req.user.userId })
+      .populate("productId", "name images")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      reviews: reviews.map((review) => ({
+        id: review._id,
+        product: review.productId
+          ? {
+              id: review.productId._id,
+              name: review.productId.name,
+              images: review.productId.images,
+            }
+          : null,
+        orderId: review.orderId,
+        rating: review.rating,
+        detailedRatings: review.detailedRatings,
+        isRecommended: review.isRecommended,
+        title: review.title,
+        body: review.body,
+        status: review.status,
+        createdAt: review.createdAt,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getReviewEligibility = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    if (!isValidProductId(productId)) {
+      return res.status(400).json({ message: "Invalid product id" });
+    }
+
+    const product = await Product.exists({ _id: productId, isActive: true });
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const userId = req.user.userId;
+    const [review, completedOrder] = await Promise.all([
+      Review.exists({ productId, userId }),
+      Order.exists({ userId, orderStatus: "completed", "items.productId": productId }),
+    ]);
+    const hasReviewed = Boolean(review);
+    return res.status(200).json({
+      canReview: Boolean(completedOrder) && !hasReviewed,
+      hasReviewed,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyProductReview = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    if (!isValidProductId(productId)) {
+      return res.status(400).json({ message: "Invalid product id" });
+    }
+
+    const review = await Review.findOne({ productId, userId: req.user.userId })
+      .populate("userId", "firstName lastName");
+    if (!review) return res.status(404).json({ message: "Your review was not found" });
+
+    return res.status(200).json({ review: serializeReview(review) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateMyProductReview = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    if (!isValidProductId(productId)) {
+      return res.status(400).json({ message: "Invalid product id" });
+    }
+
+    const input = req.body || {};
+    const changes = {};
+    if (input.rating !== undefined) {
+      const rating = Number(input.rating);
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "rating must be an integer from 1 to 5" });
+      }
+      changes.rating = rating;
+    }
+    if (input.body !== undefined) {
+      const body = String(input.body || "").trim();
+      if (!body || body.length > 2000) {
+        return res.status(400).json({ message: "Review text must be 1 to 2000 characters" });
+      }
+      changes.body = body;
+    }
+    if (input.title !== undefined) {
+      const title = String(input.title || "").trim();
+      if (title.length > 120) {
+        return res.status(400).json({ message: "Review title must be at most 120 characters" });
+      }
+      changes.title = title;
+    }
+    if (input.detailedRatings !== undefined) {
+      const { value, error } = cleanDetailedRatings(input.detailedRatings);
+      if (error) return res.status(400).json({ message: error });
+      changes.detailedRatings = value;
+    }
+    if (input.isRecommended !== undefined) {
+      if (typeof input.isRecommended !== "boolean") {
+        return res.status(400).json({ message: "isRecommended must be a boolean" });
+      }
+      changes.isRecommended = input.isRecommended;
+    }
+    if (Object.keys(changes).length === 0) {
+      return res.status(400).json({ message: "No review changes provided" });
+    }
+
+    const review = await Review.findOneAndUpdate(
+      { productId, userId: req.user.userId },
+      { $set: changes },
+      { new: true, runValidators: true },
+    ).populate("userId", "firstName lastName");
+    if (!review) return res.status(404).json({ message: "Your review was not found" });
+
+    return res.status(200).json({ review: serializeReview(review) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getProductReviews = async (req, res, next) => {
   try {
     const { productId } = req.params;
@@ -199,7 +331,7 @@ export const createProductReview = async (req, res, next) => {
       Review.exists({ productId, userId: req.user.userId }),
       Order.findOne({
         userId: req.user.userId,
-        orderStatus: { $in: ["processing", "shipped", "completed"] },
+        orderStatus: "completed",
         "items.productId": productId,
       }).sort({ createdAt: -1 }),
     ]);

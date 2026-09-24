@@ -94,8 +94,8 @@ export default function Settings({ store }) {
           </SectionTitle>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Field label="Currency">
-              <select name="currency" defaultValue={store.settings.currency}>
-                {["USD", "THB", "EUR", "GBP"].map((c) => (
+              <select name="currency" defaultValue={store.settings?.currency || "THB"}>
+                {["THB", "USD", "EUR", "GBP"].map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>

@@ -314,6 +314,8 @@ export const updateProfile = async (req, res, next) => {
           "phone",
           "addressLine",
           "province",
+          "district",
+          "subdistrict",
           "postalCode",
         ];
         for (const field of addressFields) {
@@ -350,6 +352,8 @@ export const updateProfile = async (req, res, next) => {
         "phone",
         "addressLine",
         "province",
+        "district",
+        "subdistrict",
         "postalCode",
       ]) {
         if (address[field] !== undefined) {
@@ -405,6 +409,8 @@ export const addAddress = async (req, res, next) => {
       phone,
       addressLine,
       province,
+      district,
+      subdistrict,
       postalCode,
       isDefault,
     } = req.body;
@@ -431,6 +437,8 @@ export const addAddress = async (req, res, next) => {
       phone: phone.trim(),
       addressLine: addressLine.trim(),
       province: province.trim(),
+      ...(district ? { district: district.trim() } : {}),
+      ...(subdistrict ? { subdistrict: subdistrict.trim() } : {}),
       postalCode: postalCode.trim(),
       isDefault: Boolean(isDefault),
     };
@@ -502,6 +510,8 @@ export const updateAddress = async (req, res, next) => {
       "phone",
       "addressLine",
       "province",
+      "district",
+      "subdistrict",
       "postalCode",
       "isDefault",
     ];
