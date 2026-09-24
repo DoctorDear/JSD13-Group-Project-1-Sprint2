@@ -9,7 +9,6 @@ export default function WishlistButton({ productId, className = "", size = 20 })
   const { isAuthenticated, booting } = useAuth();
   const { items, loading, busyId, toggle } = useWishlist();
   const [feedback, setFeedback] = useState("");
-  const [animating, setAnimating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const saved = wishlistHasProduct(items, productId);
@@ -21,7 +20,6 @@ export default function WishlistButton({ productId, className = "", size = 20 })
     event.stopPropagation();
     if (waitingForOtherProduct) return;
     setFeedback("");
-    setAnimating(true);
     if (!isAuthenticated) {
       navigate("/auth/login", { state: { from: location } });
       return;
@@ -42,13 +40,12 @@ export default function WishlistButton({ productId, className = "", size = 20 })
         aria-pressed={saved}
         aria-busy={busyId === productId}
         title={!validId ? "Wishlist is available for catalog products" : undefined}
-        className={className}
+        className={`group ${className}`}
       >
         <Heart
           size={size}
           fill={saved ? "currentColor" : "none"}
-          className={animating ? "wishlist-heart-pop" : ""}
-          onAnimationEnd={() => setAnimating(false)}
+          className="motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-active:scale-75"
         />
       </button>
       {feedback && (
