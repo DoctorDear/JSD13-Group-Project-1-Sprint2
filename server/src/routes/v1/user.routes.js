@@ -10,6 +10,9 @@ import {
   updateCartItemQuantity,
   removeCartItem,
   clearCart,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
 } from "../../controllers/user.controller.js";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 import { getMyReviews } from "../../controllers/review.controller.js";
@@ -32,6 +35,11 @@ router.post("/cart", verifyToken, addToCart);
 router.patch("/cart/:itemId", verifyToken, updateCartItemQuantity);
 router.delete("/cart", verifyToken, clearCart);
 router.delete("/cart/:itemId", verifyToken, removeCartItem);
+
+// Wishlist Routes
+router.get("/wishlist", verifyToken, getWishlist);
+router.post("/wishlist/:productId", verifyToken, addToWishlist);
+router.delete("/wishlist/:productId", verifyToken, removeFromWishlist);
 
 export const userRouter = router;
 export default router;

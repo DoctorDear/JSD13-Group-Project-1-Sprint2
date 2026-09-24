@@ -1,6 +1,8 @@
 # Sprint 2: E-Commerce Application (MERN Stack)
 
 > เอกสารอธิบายการ implement ฝั่ง Frontend อยู่ที่ [`doc/FRONTEND_IMPLEMENTATION.md`](doc/FRONTEND_IMPLEMENTATION.md)
+>
+> เอกสาร Wishlist อยู่ที่ [`doc/WISHLIST.md`](doc/WISHLIST.md) และ [Backend API](../server/doc/WISHLIST.md)
 
 ## 🎯 Sprint Goal
 

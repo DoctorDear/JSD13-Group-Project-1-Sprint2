@@ -119,14 +119,14 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
 
           {/* Action Icons: Wishlist, Cart, Profile */}
           <div className="flex items-center gap-1.5 text-white">
-            <button
-              type="button"
+            <Link
+              to="/profile?tab=favorites"
               aria-label="wishlist"
               className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${isHome ? "hover:text-zeta-main hover:bg-zeta-sub/25" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
                 }`}
             >
               <Heart className="w-6 h-6" />
-            </button>
+            </Link>
 
             {/* ปุ่มตะกร้าสินค้า - กดแล้วไปหน้า /cart พร้อมแสดง Badge จำนวนสินค้า */}
             <button

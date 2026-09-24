@@ -1,4 +1,4 @@
-import { Heart, Ruler, ShoppingBag } from "lucide-react";
+import { Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
@@ -6,6 +6,7 @@ import { api } from "../lib/api.js";
 import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
+import WishlistButton from "./WishlistButton.jsx";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -270,12 +271,10 @@ const ProductDetail = () => {
                   <ShoppingBag size={19} />
                   <span>{adding ? "Adding..." : "Add to Cart"}</span>
                 </button>
-                <button
+                <WishlistButton
+                  productId={product._id || product.id}
                   className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5"
-                  aria-label="Add to wishlist"
-                >
-                  <Heart size={20} />
-                </button>
+                />
               </div>
             </div>
           </div>
