@@ -1,6 +1,6 @@
 import { api } from "../lib/api";
 
-const AUTH_PATH = "/auth";
+const AUTH_PATH = "/v1/auth";
 
 export const authService = {
   register: (payload, o) =>

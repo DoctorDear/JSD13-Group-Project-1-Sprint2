@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { authService } from "../services/auth";
 import { onUnauthorized } from "../lib/api";
+import { authUserFromResponse } from "./authUser";
 
 
 
@@ -18,7 +19,7 @@ export function AuthProvider({ children }) {
     (async () => {
       try {
         const me = await authService.me();
-        if (alive) setUser(me?.user ?? me);
+        if (alive) setUser(authUserFromResponse(me));
       } catch {
         if (alive) setUser(null);
       } finally {
@@ -33,7 +34,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials, opts) => {
     const data = await authService.login(credentials, opts);
-    const nextUser = data?.user ?? data;
+    const nextUser = authUserFromResponse(data);
+    if (!nextUser) throw new Error("Login returned an invalid user response");
     setUser(nextUser);
     return nextUser;
   }, []);
