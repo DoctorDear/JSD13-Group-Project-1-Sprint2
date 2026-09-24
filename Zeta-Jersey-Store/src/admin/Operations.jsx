@@ -91,18 +91,50 @@ export function Orders({ store, money }) {
           title={`Order ${viewing.id}`}
           onClose={() => setViewing(null)}
         >
-          <p>{viewing.customer}</p>
-          <p className="mt-1 text-sm text-base-content/55">{viewing.date}</p>
-          <div className="my-5 flex items-center justify-between border-y border-base-300 py-4">
-            <span className="text-sm text-base-content/65">Total</span>
-            <strong className="text-lg">{money(viewing.total)}</strong>
+          <div className="space-y-1">
+            <p className="font-semibold text-base-content">{viewing.customer}</p>
+            {viewing.email && (
+              <p className="text-xs text-base-content/60">Email: {viewing.email}</p>
+            )}
+            {viewing.phone && viewing.phone !== "-" && (
+              <p className="text-xs text-base-content/60">Phone: {viewing.phone}</p>
+            )}
+            <p className="text-xs text-base-content/50">Date: {viewing.date}</p>
           </div>
-          <p className="text-sm text-base-content/55">
-            This is demo data. Status changes do not process payment or
-            inventory.
-          </p>
+
+          {viewing.items && viewing.items.length > 0 && (
+            <div className="my-4 rounded-xl border border-base-200 bg-base-200/40 p-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-base-content/50">
+                Order Items ({viewing.items.length})
+              </span>
+              <div className="mt-2 divide-y divide-base-200">
+                {viewing.items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between py-2 text-sm"
+                  >
+                    <div>
+                      <p className="font-medium text-base-content">{item.name}</p>
+                      <p className="text-xs text-base-content/50">
+                        SKU: {item.sku} · Size: {item.size || "-"} · Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <span className="font-medium text-base-content">
+                      {money(item.price * item.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="my-4 flex items-center justify-between border-y border-base-300 py-3">
+            <span className="text-sm font-medium text-base-content/70">Total Amount</span>
+            <strong className="text-xl font-bold text-primary">{money(viewing.total)}</strong>
+          </div>
+
           <form
-            className="mt-5"
+            className="mt-4"
             onSubmit={async (e) => {
               e.preventDefault();
               const status = new FormData(e.currentTarget).get("status");
@@ -113,7 +145,7 @@ export function Orders({ store, money }) {
                       o.id === viewing.id ? { ...o, status } : o,
                     ),
                   },
-                  "Order status updated.",
+                  "Order status updated in database.",
                 ))
               )
                 return;
@@ -125,7 +157,6 @@ export function Orders({ store, money }) {
                 {[
                   "Pending",
                   "Processing",
-                  "Paid",
                   "Shipped",
                   "Completed",
                   "Cancelled",
@@ -134,8 +165,17 @@ export function Orders({ store, money }) {
                 ))}
               </select>
             </Field>
-            <div className="mt-6 flex justify-end border-t border-base-300 pt-5">
-              <button className="btn btn-primary">Save Status</button>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setViewing(null)}
+              >
+                Close
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Update Status
+              </button>
             </div>
           </form>
         </Modal>

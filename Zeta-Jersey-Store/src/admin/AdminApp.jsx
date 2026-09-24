@@ -321,12 +321,19 @@ export default function AdminApp() {
                 aria-expanded={openTopMenu === "account"}
               >
                 <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                  ZD
+                  {user?.firstName && user?.lastName
+                    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                    : (user?.firstName?.[0] || "A").toUpperCase()}
                 </span>
                 <span className="hidden text-left sm:block">
-                  <strong className="block text-sm">Zeta Admin</strong>
-                  <small className="block text-xs text-base-content/55">
-                    Store manager
+                  <strong className="block text-sm">
+                    {user
+                      ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+                        user.email
+                      : "Admin"}
+                  </strong>
+                  <small className="block text-xs text-base-content/55 capitalize">
+                    {user?.role || "Admin"}
                   </small>
                 </span>
                 <ChevronDown size={16} />
@@ -335,11 +342,16 @@ export default function AdminApp() {
                 <div className={`${menuPanel} w-64`} role="menu">
                   <div className="flex items-center gap-3 border-b border-base-200 px-4 py-4">
                     <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                      {user?.firstName?.[0] || "A"}
+                      {user?.firstName && user?.lastName
+                        ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                        : (user?.firstName?.[0] || "A").toUpperCase()}
                     </span>
                     <span className="min-w-0 flex-1 truncate">
                       <strong className="block truncate text-sm">
-                        {user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email : "Zeta Admin"}
+                        {user
+                          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+                            user.email
+                          : "Admin"}
                       </strong>
                       <small className="block truncate text-xs text-base-content/55">
                         {user?.email || "admin@zetastore.com"}
