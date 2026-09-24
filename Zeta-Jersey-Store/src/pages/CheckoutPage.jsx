@@ -2,10 +2,12 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CheckOutItemCard from '../components/CheckOutItemCard';
+import ThaiLocationFields from '../components/ThaiLocationFields.jsx';
 
 const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [useSameBilling, setUseSameBilling] = useState(true);
+  const [deliveryLocation, setDeliveryLocation] = useState({ postalCode: '', province: '', district: '', subdistrict: '' });
 
   return (
     <div className="min-h-screen bg-white">
@@ -87,8 +89,6 @@ const CheckoutPage = () => {
                   </label>
                   <select className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none">
                     <option>Thailand</option>
-                    <option>United States</option>
-                    <option>United Kingdom</option>
                   </select>
                   <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,56 +105,7 @@ const CheckoutPage = () => {
                 <input type="text" placeholder="Apartment, suite, etc (optional)" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
                 <input type="text" placeholder="Address" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
 
-                {/* Responsive Grid สำหรับ City, Province, Postcode */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* City Dropdown */}
-                  <div className="relative">
-                    <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      City
-                    </label>
-                    <select className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none">
-                      <option>Bangkok</option>
-                      <option>Samut Prakan</option>
-                    </select>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
-                  </div>
-
-                  {/* Province Dropdown */}
-                  <div className="relative">
-                    <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      Province
-                    </label>
-                    <select className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none">
-                      <option>Bangkok</option>
-                      <option>Samut Prakan</option>
-                    </select>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
-                  </div>
-
-                  {/* Postcode Dropdown */}
-                  <div className="relative">
-                    <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      Postcode
-                    </label>
-                    <select className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none">
-                      <option>10270</option>
-                      <option>10540</option>
-                    </select>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
+                <ThaiLocationFields value={deliveryLocation} onChange={setDeliveryLocation} />
 
                 <input type="text" placeholder="Telephone" className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" />
               </div>

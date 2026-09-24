@@ -28,6 +28,7 @@ const orderSchema = new mongoose.Schema(
       phone: String,
       addressLine: String,
       province: String,
+      district: String,
       postalCode: String,
     },
     payment: {
@@ -40,7 +41,7 @@ const orderSchema = new mongoose.Schema(
     orderStatus: {
       type: String,
       enum: ["pending", "processing", "shipped", "completed", "cancelled"],
-      default: "completed",
+      default: "pending",
     },
   },
   { timestamps: true },

@@ -5,6 +5,8 @@ const addressSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   addressLine: { type: String, required: true },
   province: { type: String, required: true },
+  district: { type: String },
+  subdistrict: { type: String },
   postalCode: { type: String, required: true },
   isDefault: { type: Boolean, default: false },
 });

@@ -1,11 +1,11 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
+import { api } from "../lib/api.js";
+import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -13,23 +13,33 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const location = useLocation();
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/v1/products/${id}`);
-        const data = await response.json();
+        setError(null);
+        const data = await api.get(`/products/${id}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
         setProduct(data.product);
         setVariants(data.variants || []);
       } catch (err) {
-        setError(err.message);
+        if (!controller.signal.aborted) setError(err.message);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
     if (id) fetchProduct();
+    return () => controller.abort();
   }, [id]);
+
+  useEffect(() => {
+    if (!loading && product && location.hash === "#reviews") {
+      document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading, product, location.hash]);
 
   const [selectedImg, setSelectedImg] = useState(null);
 
@@ -235,7 +245,10 @@ const ProductDetail = () => {
           </section>
         )}
 
-        <ProductReviewSection productId={product._id || product.id} />
+        <div id="reviews" className="scroll-mt-24">
+          <ProductReviewComposer key={product._id || product.id} productId={product._id || product.id} />
+          <ProductReviewSection key={product._id || product.id} productId={product._id || product.id} />
+        </div>
       </div>
       <SizeGuideModal
         product={product}

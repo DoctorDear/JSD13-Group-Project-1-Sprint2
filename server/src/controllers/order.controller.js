@@ -140,9 +140,9 @@ const ALLOWED_ORDER_STATUSES = [
 
 export const getMyOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ userId: req.user.userId }).sort({
-      createdAt: -1,
-    });
+    const orders = await Order.find({ userId: req.user.userId })
+      .populate("items.productId", "images isActive")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,

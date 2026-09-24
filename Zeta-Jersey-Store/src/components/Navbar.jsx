@@ -144,9 +144,9 @@ const Navbar = ({ page = "home" }) => {
               <ShoppingCart className="w-6 h-6" />
             </button>
 
-            <button
-              type="button"
-              aria-lable="whishlist"
+            <Link
+              to="/profile"
+              aria-label="Profile"
               className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
                 isHome
                   ? "hover:text-zeta-main hover:bg-zeta-sub/35"
@@ -154,7 +154,7 @@ const Navbar = ({ page = "home" }) => {
               }`}
             >
               <CircleUser className="w-6 h-6" />
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
