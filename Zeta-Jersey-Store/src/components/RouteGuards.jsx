@@ -35,3 +35,18 @@ export function GuestRoute() {
   }
   return <Outlet />;
 }
+
+/** Blocks non-admin users — requires login with role: 'admin'. */
+export function AdminRoute() {
+  const { user, isAuthenticated, booting } = useAuth();
+  const location = useLocation();
+
+  if (booting) return <Splash />;
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+  }
+  if (user?.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+  return <Outlet />;
+}

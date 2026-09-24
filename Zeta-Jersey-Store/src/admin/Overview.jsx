@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   DollarSign,
@@ -5,30 +6,35 @@ import {
   ArrowUpRight,
   ShoppingBag,
   TrendingUp,
-  TrendingDown,
 } from "lucide-react";
 import { ProductMark } from "./AdminUI";
 
-function SalesHistory({ money }) {
-  const samples = [
-    320, 560, 430, 690, 420, 610, 500, 860, 730, 680, 490, 590, 540, 350,
-  ];
-  const labels = [
-    "Sat",
-    "Sun",
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
-    "Sun",
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-  ];
+function SalesHistory({ orders = [], money }) {
+  const [period, setPeriod] = useState("2 weeks");
+  const numDays = period === "Last 7 days" ? 7 : 14;
+
+  const days = Array.from({ length: numDays }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (numDays - 1 - i));
+    return d;
+  });
+
+  const dailyTotals = days.map((day) => {
+    const dateStr = day.toISOString().slice(0, 10);
+    const dayOrders = orders.filter((o) => {
+      const oDate = o.raw?.createdAt
+        ? new Date(o.raw.createdAt).toISOString().slice(0, 10)
+        : "";
+      return oDate === dateStr;
+    });
+    return dayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  });
+
+  const maxTotal = Math.max(...dailyTotals, 1000);
+  const labels = days.map((d) =>
+    d.toLocaleDateString("en-US", { weekday: "short" }),
+  );
+
   return (
     <section className="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -36,23 +42,24 @@ function SalesHistory({ money }) {
         <select
           className="select select-bordered select-sm"
           aria-label="Sales history period"
-          defaultValue="2 weeks"
+          value={period}
+          onChange={(e) => setPeriod(e.target.value)}
         >
           <option>Last 2 weeks</option>
           <option>Last 7 days</option>
         </select>
       </div>
       <div
-        className="grid h-72 grid-cols-[2.5rem_minmax(0,1fr)] gap-3"
+        className="grid h-72 grid-cols-[3.5rem_minmax(0,1fr)] gap-3"
         role="img"
-        aria-label="Sales history for the last two weeks"
+        aria-label="Sales history calculated from MongoDB orders"
       >
         <div className="flex flex-col justify-between pb-6 text-right text-xs text-base-content/50">
-          <span>$900</span>
-          <span>$675</span>
-          <span>$450</span>
-          <span>$225</span>
-          <span>$0</span>
+          <span>{money(maxTotal)}</span>
+          <span>{money(Math.round(maxTotal * 0.75))}</span>
+          <span>{money(Math.round(maxTotal * 0.5))}</span>
+          <span>{money(Math.round(maxTotal * 0.25))}</span>
+          <span>{money(0)}</span>
         </div>
         <div
           className="flex items-end gap-1.5 pb-6"
@@ -63,27 +70,32 @@ function SalesHistory({ money }) {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {samples.map((value, index) => (
-            <div
-              className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"
-              key={`${labels[index]}-${index}`}
-            >
+          {dailyTotals.map((value, index) => {
+            const heightPercent =
+              maxTotal > 0 ? Math.round((value / maxTotal) * 100) : 0;
+            const isHighest = value > 0 && value === Math.max(...dailyTotals);
+            return (
               <div
-                className={`relative w-full rounded-t-lg ${index === 7 ? "bg-secondary" : "bg-base-300"}`}
-                style={{ height: `${value / 9}%` }}
-                title={`${labels[index]}: ${money(value)}`}
+                className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"
+                key={`${labels[index]}-${index}`}
               >
-                {index === 7 && (
-                  <span className="absolute bottom-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded border border-base-300 bg-base-100 px-1.5 py-1 text-[10px] shadow-sm">
-                    {money(value)}
-                  </span>
-                )}
+                <div
+                  className={`relative w-full rounded-t-lg transition-all duration-300 ${isHighest ? "bg-secondary" : value > 0 ? "bg-primary" : "bg-base-300/60"}`}
+                  style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                  title={`${labels[index]}: ${money(value)}`}
+                >
+                  {value > 0 && (
+                    <span className="absolute bottom-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded border border-base-300 bg-base-100 px-1.5 py-1 text-[10px] font-semibold shadow-sm">
+                      {money(value)}
+                    </span>
+                  )}
+                </div>
+                <small className="mt-1.5 text-[10px] text-base-content/50">
+                  {labels[index]}
+                </small>
               </div>
-              <small className="mt-1.5 text-[10px] text-base-content/50">
-                {labels[index]}
-              </small>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -142,28 +154,52 @@ function InventoryHealth({ products }) {
 }
 
 export default function Overview({ store, money }) {
+  if (store.loading) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="text-sm text-base-content/60">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
+  if (store.error) {
+    return (
+      <div className="alert alert-error rounded-2xl shadow-sm">
+        <span>Error loading dashboard: {store.error}</span>
+        <button className="btn btn-sm btn-ghost ml-auto" onClick={store.reload}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const totalRevenue = store.orders
-    .filter((o) => o.status === "Paid")
+    .filter((o) => ["Paid", "Completed", "Shipped"].includes(o.status))
     .reduce((n, o) => n + o.total, 0);
-  const paidOrders = store.orders.filter((o) => o.status === "Paid").length;
-  const conversion = store.customers.length
-    ? Math.round((paidOrders / store.customers.length) * 100)
+  const paidOrders = store.orders.filter((o) =>
+    ["Paid", "Completed", "Shipped"].includes(o.status),
+  ).length;
+  const customerCount = store.customers.length;
+  const conversion = customerCount > 0
+    ? Math.round((paidOrders / customerCount) * 100)
     : 0;
+
   const stats = [
     {
       label: "Total sales",
       value: money(totalRevenue),
       Icon: DollarSign,
       tone: "green",
-      detail: "↑ 12.5% from last period",
+      detail: `${paidOrders} paid orders`,
       to: "/admin/orders",
     },
     {
       label: "Total customers",
-      value: store.customers.length.toLocaleString(),
+      value: customerCount.toLocaleString(),
       Icon: Users,
       tone: "blue",
-      detail: `${store.customers.filter((c) => c.status === "Active").length} active accounts`,
+      detail: `${customerCount} customers from orders`,
       to: "/admin/customers",
     },
     {
@@ -171,7 +207,7 @@ export default function Overview({ store, money }) {
       value: paidOrders,
       Icon: ShoppingBag,
       tone: "purple",
-      detail: "↑ 5.6% from last period",
+      detail: `${store.orders.length} total orders`,
       to: "/admin/orders",
     },
     {
@@ -179,8 +215,8 @@ export default function Overview({ store, money }) {
       value: `${conversion}%`,
       Icon: TrendingUp,
       tone: "green",
-      detail: "↑ 3.0% from last period",
-      to: "/admin/customers",
+      detail: "Order conversion",
+      to: "/admin/orders",
     },
   ];
   const products = [...store.products]
@@ -194,7 +230,7 @@ export default function Overview({ store, money }) {
         <span className="text-base-content/80">Dashboard</span>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map(({ label, value, Icon, tone, detail, to }, index) => (
+        {stats.map(({ label, value, Icon, tone, detail, to }) => (
           <Link
             className="group flex items-start gap-4 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
             to={to}
@@ -212,14 +248,8 @@ export default function Overview({ store, money }) {
               <strong className="mt-1 block text-2xl font-semibold tracking-tight text-base-content">
                 {value}
               </strong>
-              <small
-                className={`mt-1 flex items-center gap-1 text-xs ${index === 2 ? "text-error" : "text-success"}`}
-              >
-                {index === 2 ? (
-                  <TrendingDown size={11} />
-                ) : (
-                  <ArrowUpRight size={11} />
-                )}
+              <small className="mt-1 flex items-center gap-1 text-xs text-success">
+                <ArrowUpRight size={11} />
                 {detail}
               </small>
             </div>
@@ -227,7 +257,7 @@ export default function Overview({ store, money }) {
         ))}
       </div>
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,.95fr)]">
-        <SalesHistory money={money} />
+        <SalesHistory orders={store.orders} money={money} />
         <InventoryHealth products={store.products} />
       </div>
       <section className="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">

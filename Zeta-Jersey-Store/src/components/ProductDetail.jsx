@@ -185,17 +185,18 @@ const ProductDetail = () => {
                   <span className="mr-1 align-baseline font-[Arial] text-[0.9em] font-normal leading-none">
                     ฿
                   </span>
-                  {product.price?.toLocaleString()}
+                  {Number(product.price ?? 0).toLocaleString()}
                 </div>
-                {product.originalPrice && (
+                {Number(product.originalPrice) > Number(product.price) && (
                   <div className="text-lg font-normal text-zeta-muted line-through">
                     <span>฿</span>
-                    {product.originalPrice.toLocaleString()}
+                    {Number(product.originalPrice).toLocaleString()}
                   </div>
                 )}
-                {product.discount && (
+                {Number(product.originalPrice) > Number(product.price) && (
                   <span className="rounded-md bg-zeta-main px-2 py-1 text-xs font-semibold text-white">
-                    {product.discount}
+                    {product.discount ||
+                      `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF`}
                   </span>
                 )}
               </div>

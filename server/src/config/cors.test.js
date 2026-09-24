@@ -11,7 +11,12 @@ test("the API accepts credentialed requests from either local Vite hostname", as
   const server = app.listen(0);
   t.after(() => new Promise((resolve) => server.close(resolve)));
 
-  for (const origin of ["http://localhost:5173", "http://127.0.0.1:5173"]) {
+  for (const origin of [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+  ]) {
     const response = await fetch(`http://127.0.0.1:${server.address().port}/api/v1/products`, {
       headers: { Origin: origin },
     });

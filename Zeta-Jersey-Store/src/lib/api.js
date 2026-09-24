@@ -1,4 +1,4 @@
-import { normalizeApiBase } from "./apiBase.js";
+import { normalizeApiBase, normalizeApiPath } from "./apiBase.js";
 
 const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_BASE_URL ?? "/api");
 
@@ -62,7 +62,9 @@ export async function request(
   { method = "GET", body, signal, headers = {} } = {}
 ) {
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const cleanPath = normalizeApiPath(path);
+
+    const res = await fetch(`${BASE_URL}${cleanPath}`, {
       method,
       signal,
       credentials: "include",
