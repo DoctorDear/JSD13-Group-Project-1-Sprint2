@@ -11,6 +11,7 @@ function normalizeProduct(p) {
     category: p.category || "Jerseys",
     stock: Number(p.quantity ?? p.stock ?? 0),
     price: Number(p.price ?? 0),
+    originalPrice: Number(p.originalPrice ?? 0),
     cost: Number(p.cost ?? 0),
     reorder: Number(p.reorder ?? 10),
     imageUrl: p.images?.[0] || p.imageUrl || "",
@@ -84,12 +85,27 @@ function generateMovementsFromProducts(products) {
   }));
 }
 
+const SETTINGS_KEY = "zeta_admin_settings";
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...initialSettings, ...parsed };
+    }
+  } catch {
+    // fallback
+  }
+  return initialSettings;
+}
+
 export function useAdminStore() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [movements, setMovements] = useState([]);
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] = useState(loadSettings);
   const [tasks, setTasks] = useState(initialTasks);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -179,7 +195,14 @@ export function useAdminStore() {
     if (patch.tasks) setTasks(patch.tasks);
     if (patch.customers) setCustomers(patch.customers);
     if (patch.movements) setMovements(patch.movements);
-    if (patch.settings) setSettings(patch.settings);
+    if (patch.settings) {
+      setSettings(patch.settings);
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(patch.settings));
+      } catch (err) {
+        console.error("Failed to save settings to localStorage:", err);
+      }
+    }
     if (message) setNotice(message);
     return true;
   };

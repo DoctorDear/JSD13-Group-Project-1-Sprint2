@@ -108,7 +108,7 @@ export const createProduct = async (req, res, next) => {
     const newProduct = await Product.create(product);
     return res
       .status(201)
-      .json({ message: "create new product completed ", data: product });
+      .json({ message: "create new product completed ", data: newProduct });
   } catch (err) {
     next(err);
   }
@@ -126,7 +126,7 @@ export const updateProduct = async (req, res, next) => {
     const updateProduct = await Product.findByIdAndUpdate(
       req.params.id,
       product,
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!updateProduct) {

@@ -54,10 +54,13 @@ export default function AdminApp() {
   const [topMenu, setTopMenu] = useState(null);
   const location = useLocation();
   const money = (value) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: store.settings.currency,
-    }).format(value);
+    new Intl.NumberFormat(
+      store.settings?.currency === "THB" ? "th-TH" : "en-US",
+      {
+        style: "currency",
+        currency: store.settings?.currency || "THB",
+      },
+    ).format(value);
   const pendingOrders = store.orders.filter((order) =>
     ["Pending", "Processing"].includes(order.status),
   );

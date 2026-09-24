@@ -211,6 +211,8 @@ export function ProductForm({ store }) {
       category: form.category || "Premier League",
       description: form.description || `${form.name} official jersey.`,
       price: Number(form.price),
+      originalPrice: form.originalPrice ? Number(form.originalPrice) : 0,
+      cost: form.cost ? Number(form.cost) : 0,
       quantity: Number(form.stock),
       brand: form.supplier || form.brand || "Adidas",
       images: form.imageUrl
@@ -312,7 +314,7 @@ export function ProductForm({ store }) {
             />
           </Field>
           <Field
-            label="Selling Price"
+            label="Selling Price (฿) *"
             name="price"
             type="number"
             min="0"
@@ -322,13 +324,22 @@ export function ProductForm({ store }) {
             required
           />
           <Field
-            label="Cost Price"
+            label="Original Price (฿) - ราคาตั้งต้นก่อนลด"
+            name="originalPrice"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            defaultValue={existing?.originalPrice || ""}
+          />
+          <Field
+            label="Cost Price (฿) - ราคาทุนหลังบ้าน"
             name="cost"
             type="number"
             min="0"
             step="0.01"
             placeholder="0.00"
-            defaultValue={existing?.cost}
+            defaultValue={existing?.cost || ""}
           />
           <Field
             label={existing ? "Stock" : "Initial Stock"}
