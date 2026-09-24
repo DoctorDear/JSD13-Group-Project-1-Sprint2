@@ -2,6 +2,7 @@ import {
   CreditCard,
   Heart,
   House,
+  Package,
   MessageSquareText,
   UserRound,
 } from "lucide-react";
@@ -10,6 +11,7 @@ function Sidebar({ activeMenu, onMenuChange }) {
   const menuItems = [
     { label: "Home", icon: House },
     { label: "My Account", icon: UserRound },
+    { label: "My Orders", icon: Package },
     { label: "Favorites", icon: Heart },
     { label: "My Reviews", icon: MessageSquareText },
     { label: "Payment", icon: CreditCard },

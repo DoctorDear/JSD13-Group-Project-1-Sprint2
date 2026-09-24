@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,13 +11,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
   // ซิงค์จำนวนสินค้าจาก localStorage และ props ที่ส่งมา
   useEffect(() => {
     const updateCartCount = () => {
-      // ถ้ามีการส่ง cartCount มาโดยตรงจากหน้า ProductDetail ให้ใช้ค่านั้นก่อน
-      if (cartCount > 0) {
-        setTotalItems(cartCount);
-        return;
-      }
-
-      // ถ้าไม่มี ให้ลองดึงจาก localStorage (กรณีเปิดหน้าอื่น)
+      // อ่านค่าปัจจุบันทุกครั้ง เพื่อให้ badge อัปเดตเมื่อเพิ่มสินค้าในหน้า Product Detail
       const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
       const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
       setTotalItems(count);
@@ -152,14 +146,17 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
               )}
             </button>
 
-            <button
-              type="button"
-              aria-label="profile"
-              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${isHome ? "hover:text-zeta-main hover:bg-zeta-sub/35" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-                }`}
+            <Link
+              to="/profile"
+              aria-label="Profile"
+              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                isHome
+                  ? "hover:text-zeta-main hover:bg-zeta-sub/35"
+                  : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+              }`}
             >
               <CircleUser className="w-6 h-6" />
-            </button>
+            </Link>
           </div>
         </div>
       </nav>

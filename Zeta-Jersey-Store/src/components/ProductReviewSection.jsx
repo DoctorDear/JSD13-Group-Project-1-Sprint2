@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { reviewService } from "../services/review.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const RATING_LABELS = {
   comfort: ["Comfort", "Uncomfortable", "Comfortable"],
   quality: ["Quality", "Poor", "Excellent"],
@@ -50,13 +52,73 @@ function RatingScale({ label, lowLabel, highLabel, value }) {
   );
 }
 
+function ReviewCard({ review, own = false, productId }) {
+  return (
+    <article className="grid gap-4 py-7 sm:grid-cols-[180px_1fr]">
+      <div>
+        <div className="text-lg">{renderStars(review.rating)}</div>
+        <p className="mt-2 font-semibold text-slate-900">{own ? "You" : review.reviewer.name}</p>
+        <p className="mt-1 text-sm text-zeta-muted">{formatDate(review.createdAt)}</p>
+        {review.verifiedPurchase && (
+          <span className="mt-3 inline-flex rounded-full bg-zeta-main-lighter px-2.5 py-1 text-xs font-semibold text-zeta-main">
+            Verified purchase
+          </span>
+        )}
+      </div>
+      <div>
+        {own && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <span className="rounded-full bg-zeta-main-lighter px-3 py-1 text-xs font-bold text-zeta-main">Your review</span>
+            <Link to={`/products/${productId}/review`} className="rounded-lg border border-zeta-main px-4 py-2 text-sm font-semibold text-zeta-main hover:bg-zeta-main-lighter">Edit review</Link>
+          </div>
+        )}
+        {review.title && <h3 className="font-semibold text-slate-950">{review.title}</h3>}
+        <p className="mt-2 whitespace-pre-wrap leading-7 text-slate-700">{review.body}</p>
+        {(review.tags || []).length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {review.tags.map((item) => (
+              <span key={item} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export default function ProductReviewSection({ productId }) {
+  const { booting, isAuthenticated, user } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState("");
   const [tag, setTag] = useState("");
   const [sort, setSort] = useState("newest");
+  const [ownReviewState, setOwnReviewState] = useState(null);
+  const [ownReviewError, setOwnReviewError] = useState(null);
+  const [ownAttempt, setOwnAttempt] = useState(0);
+
+  useEffect(() => {
+    if (booting || !isAuthenticated || !productId) return;
+    const controller = new AbortController();
+    reviewService.getMyProductReview(productId, { signal: controller.signal })
+      .then(({ review }) => {
+        if (!controller.signal.aborted) {
+          setOwnReviewState({ user, review });
+          setOwnReviewError(null);
+        }
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        if (err.status === 404) {
+          setOwnReviewState({ user, review: null });
+          setOwnReviewError(null);
+        } else {
+          setOwnReviewError({ user, message: err.message || "Could not load your review." });
+        }
+      });
+    return () => controller.abort();
+  }, [productId, booting, isAuthenticated, user, ownAttempt]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -69,14 +131,10 @@ export default function ProductReviewSection({ productId }) {
         if (rating) query.set("rating", rating);
         if (tag) query.set("tags", tag);
 
-        const response = await fetch(`${API_BASE_URL}/v1/products/${productId}/reviews?${query}`, {
-          signal: controller.signal,
-        });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.message || "Unable to load reviews");
+        const payload = await reviewService.getProductReviews(productId, query, { signal: controller.signal });
         setData(payload);
       } catch (err) {
-        if (err.name !== "AbortError") setError(err.message || "Unable to load reviews");
+        if (!controller.signal.aborted) setError(err.message || "Unable to load reviews");
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -106,6 +164,9 @@ export default function ProductReviewSection({ productId }) {
 
   const { summary, reviews = [] } = data;
   const detailedRatings = summary.detailedRatings || {};
+  const ownReview = isAuthenticated && ownReviewState?.user === user ? ownReviewState.review : null;
+  const ownError = isAuthenticated && ownReviewError?.user === user ? ownReviewError.message : null;
+  const publicReviews = reviews.filter((review) => String(review.id) !== String(ownReview?.id));
 
   return (
     <section className="pt-8 sm:pt-10">
@@ -124,9 +185,21 @@ export default function ProductReviewSection({ productId }) {
         )}
       </div>
 
+      {ownError && (
+        <div role="alert" className="mt-7 rounded-xl bg-red-50 p-5 text-sm text-red-700">
+          <p>{ownError}</p>
+          <button type="button" onClick={() => { setOwnReviewError(null); setOwnAttempt((attempt) => attempt + 1); }} className="mt-2 font-semibold underline">Retry</button>
+        </div>
+      )}
+      {ownReview && (
+        <div className="mt-7 rounded-2xl border border-zeta-main bg-zeta-main-lighter/30 px-5 sm:px-7">
+          <ReviewCard review={ownReview} own productId={productId} />
+        </div>
+      )}
+
       {summary.count === 0 ? (
         <div className="mt-7 rounded-2xl bg-slate-50 px-6 py-10 text-center text-sm text-zeta-muted">
-          There are no reviews yet. Be the first verified buyer to share your experience.
+          There are no published reviews yet. Be the first verified buyer to share your experience.
         </div>
       ) : (
         <>
@@ -214,36 +287,10 @@ export default function ProductReviewSection({ productId }) {
 
           <div className="divide-y divide-slate-200">
             {loading && <p className="py-6 text-sm text-zeta-muted">Updating reviews…</p>}
-            {!loading && reviews.length === 0 && (
-              <p className="py-8 text-sm text-zeta-muted">No reviews match these filters.</p>
+            {!loading && publicReviews.length === 0 && (
+              <p className="py-8 text-sm text-zeta-muted">{ownReview ? "No other reviews match these filters." : "No reviews match these filters."}</p>
             )}
-            {reviews.map((review) => (
-              <article key={review.id} className="grid gap-4 py-7 sm:grid-cols-[180px_1fr]">
-                <div>
-                  <div className="text-lg">{renderStars(review.rating)}</div>
-                  <p className="mt-2 font-semibold text-slate-900">{review.reviewer.name}</p>
-                  <p className="mt-1 text-sm text-zeta-muted">{formatDate(review.createdAt)}</p>
-                  {review.verifiedPurchase && (
-                    <span className="mt-3 inline-flex rounded-full bg-zeta-main-lighter px-2.5 py-1 text-xs font-semibold text-zeta-main">
-                      Verified purchase
-                    </span>
-                  )}
-                </div>
-                <div>
-                  {review.title && <h3 className="font-semibold text-slate-950">{review.title}</h3>}
-                  <p className="mt-2 leading-7 text-slate-700">{review.body}</p>
-                  {review.tags.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {review.tags.map((item) => (
-                        <span key={item} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </article>
-            ))}
+            {publicReviews.map((review) => <ReviewCard key={review.id} review={review} productId={productId} />)}
           </div>
         </>
       )}

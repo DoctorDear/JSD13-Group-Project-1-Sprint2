@@ -1,7 +1,7 @@
-import { Star, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 
 function ProfileHero({ onEditClick, user }) {
-  const name = user?.name || "Somchai K.";
+  const name = user?.name || "Account";
   return (
     <div className="relative overflow-hidden rounded-xl bg-zeta-sub px-6 py-7 sm:px-10">
       <div className="absolute -right-10 -top-16 size-48 rounded-full border-24 border-zeta-sub-lighter opacity-70" />
@@ -12,13 +12,7 @@ function ProfileHero({ onEditClick, user }) {
           </div>
           <div>
             <p className="text-xl font-black">{name}</p>
-            <p className="mt-1 text-sm text-zeta-sub-dark">Online store · Member since 2024</p>
-            <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-zeta-sub-dark">
-              <Star size={13} fill="currentColor" />
-              <span>4.9</span>
-              <span className="mx-1">·</span>
-              <span>1,280</span>
-            </p>
+            <p className="mt-1 text-sm text-zeta-sub-dark">{user?.email}</p>
           </div>
         </div>
         <button

@@ -3,20 +3,11 @@ import { connectDB } from "./config/db.js";
 import apiRouter from "./routes/v1/index.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { corsOptions } from "./config/cors.js";
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-];
-
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  }),
-);
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 

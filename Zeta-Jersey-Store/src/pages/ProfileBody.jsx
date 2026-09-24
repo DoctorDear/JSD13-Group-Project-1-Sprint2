@@ -1,59 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { userService } from "../services/user.js";
+import { buildProfileUpdate, toProfileView } from "../lib/profileForm.js";
 import ProfileProductSection from "../components/ProfilePages/ProfileProductSection.jsx";
 import ProfileCategories from "../components/ProfilePages/ProfileCategories.jsx";
 import ProfileHero from "../components/ProfilePages/ProfileHero.jsx";
-import ReviewsAndStats from "../components/ProfilePages/ReviewsAndStats.jsx";
+import MyReviews from "../components/ProfilePages/MyReviews.jsx";
 import Sidebar from "../components/ProfilePages/Sidebar.jsx";
 import EditProfilePage from "../components/ProfilePages/EditProfilePage.jsx";
 import ProfileDetailsPage from "../components/ProfilePages/ProfileDetailsPage.jsx";
-
-const toProfileView = (profile) => {
-  if (!profile) return null;
-
-  return {
-    ...profile,
-    name: [profile.firstName, profile.lastName].filter(Boolean).join(" "),
-    address: profile.addresses?.find((address) => address.isDefault)?.addressLine ?? "",
-    addressId: profile.addresses?.find((address) => address.isDefault)?._id,
-  };
-};
+import Navbar from "../components/Navbar.jsx";
+import OrderHistory from "../components/ProfilePages/OrderHistory.jsx";
 
 function ProfileBody() {
-  const { user: authUser, setUser: setAuthUser } = useAuth();
-  const [activeMenu, setActiveMenu] = useState("Home");
+  const { setUser: setAuthUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeMenu, setActiveMenu] = useState(() => searchParams.get("tab") === "reviews" ? "My Reviews" : "Home");
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
-  const [likedProducts, setLikedProducts] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
   const [user, setUser] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
 
     userService
-      .getProfile()
+      .getProfile({ signal: controller.signal })
       .then((data) => {
-        if (active) setUser(toProfileView(data?.user ?? data));
+        if (!controller.signal.aborted) setUser(toProfileView(data.user));
       })
-      .catch(() => {
-        if (active) setUser(toProfileView(authUser));
+      .catch((error) => {
+        if (!controller.signal.aborted) setLoadError(error.message);
       });
 
-    return () => {
-      active = false;
-    };
-  }, [authUser]);
-
-  const toggleLike = (index) => {
-    setLikedProducts((current) =>
-      current.includes(index)
-        ? current.filter((item) => item !== index)
-        : [...current, index],
-    );
-  };
+    return () => controller.abort();
+  }, [reloadKey]);
 
   const handleMenuChange = (menu) => {
     setActiveMenu(menu);
+    setSearchParams(menu === "My Reviews" ? { tab: "reviews" } : {}, { replace: true });
     setIsEditing(false);
     setIsViewingDetails(false);
   };
@@ -69,26 +57,18 @@ function ProfileBody() {
   };
 
   const handleEditSave = async (formData) => {
-    const nameParts = formData.name.trim().split(/\s+/);
-    const firstName = nameParts.shift();
-    const lastName = nameParts.join(" ") || firstName;
-    const data = await userService.updateProfile({
-      firstName,
-      lastName,
-      phone: formData.phone.trim(),
-      ...(formData.address.trim() && user.addressId
-        ? {
-            address: {
-              addressLine: formData.address.trim(),
-            },
-          }
-        : {}),
-    });
-    let updatedUser = data?.user ?? data;
+    const data = await userService.updateProfile(buildProfileUpdate(formData));
+    const updatedUser = data.user;
 
     setUser(toProfileView(updatedUser));
     setAuthUser(updatedUser);
     setIsEditing(false);
+  };
+
+  const handleRetry = () => {
+    setUser(null);
+    setLoadError("");
+    setReloadKey((key) => key + 1);
   };
 
   const handleViewAllClick = () => {
@@ -101,8 +81,19 @@ function ProfileBody() {
   };
 
   const renderContent = () => {
+    if (activeMenu === "My Orders") return <OrderHistory />;
+    if (activeMenu === "My Reviews") return <MyReviews />;
+
+    if (loadError) {
+      return (
+        <div role="alert" className="rounded-xl bg-white p-8 text-sm text-red-700">
+          <p>Could not load your profile: {loadError}</p>
+          <button type="button" className="mt-4 font-semibold underline" onClick={handleRetry}>Retry</button>
+        </div>
+      );
+    }
     if (!user) {
-      return <div className="p-8 text-sm text-zeta-muted">Loading profile...</div>;
+      return <div role="status" className="p-8 text-sm text-zeta-muted">Loading profile...</div>;
     }
 
     if (isEditing) {
@@ -134,8 +125,6 @@ function ProfileBody() {
             <ProfileProductSection
               activeProductTab={activeProductTab}
               onProductTabChange={setActiveProductTab}
-              likedProducts={likedProducts}
-              onToggleLike={toggleLike}
             />
           </>
         );
@@ -158,20 +147,7 @@ function ProfileBody() {
             <ProfileProductSection
               activeProductTab={activeProductTab}
               onProductTabChange={setActiveProductTab}
-              likedProducts={likedProducts}
-              onToggleLike={toggleLike}
             />
-          </>
-        );
-
-      case "My Reviews":
-        return (
-          <>
-            <div className="mb-5 sm:mb-6">
-              <p className="text-xs font-bold tracking-widest text-[#8a948c]">MY REVIEWS</p>
-              <h1 className="mt-1 wrap-break-word text-2xl font-black sm:text-3xl">Reviews & Stats</h1>
-            </div>
-            <ReviewsAndStats />
           </>
         );
 
@@ -198,16 +174,19 @@ function ProfileBody() {
   };
 
   return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-[#f5f7f2] text-[#18251e]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:gap-8">
-        <Sidebar activeMenu={activeMenu} onMenuChange={handleMenuChange} />
-        <section className="min-w-0 flex-1">
-          <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-9">
-            {renderContent()}
-          </div>
-        </section>
-      </div>
-    </main>
+    <>
+      <Navbar page="profile" />
+      <main className="min-h-screen w-full overflow-x-hidden bg-[#f5f7f2] text-[#18251e]">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:gap-8">
+          <Sidebar activeMenu={activeMenu} onMenuChange={handleMenuChange} />
+          <section className="min-w-0 flex-1">
+            <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-9">
+              {renderContent()}
+            </div>
+          </section>
+        </div>
+      </main>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
-const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
-const BASE_URL = RAW_BASE_URL.replace(/\/v1\/?$/, "");
+import { normalizeApiBase, normalizeApiPath } from "./apiBase.js";
+
+const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_BASE_URL ?? "/api");
 
 export class ApiError extends Error {
   constructor(message, { status = 0, fieldErrors = {}, code } = {}) {
@@ -61,9 +62,7 @@ export async function request(
   { method = "GET", body, signal, headers = {} } = {}
 ) {
   try {
-    const cleanPath = path.startsWith("/v1/") || path === "/v1"
-      ? path
-      : `/v1${path.startsWith("/") ? "" : "/"}${path}`;
+    const cleanPath = normalizeApiPath(path);
 
     const res = await fetch(`${BASE_URL}${cleanPath}`, {
       method,

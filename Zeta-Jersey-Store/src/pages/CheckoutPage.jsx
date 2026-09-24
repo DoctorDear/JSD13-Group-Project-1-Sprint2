@@ -3,9 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CheckOutItemCard from '../components/CheckOutItemCard';
+import ThaiLocationFields from '../components/ThaiLocationFields.jsx';
 import { api } from '../lib/api';
-import provinces from '../data/province.json';
-import districts from '../data/district.json';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -13,6 +12,7 @@ const CheckoutPage = () => {
   const cartItemsFromCart = location.state?.cartItems || [];
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [useSameBilling, setUseSameBilling] = useState(true);
+  const [deliveryLocation, setDeliveryLocation] = useState({ postalCode: '', province: '', district: '', subdistrict: '' });
 
   // State สำหรับเปิด-ปิด Order Summary ด้านบนบนมือถือ
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -29,9 +29,6 @@ const CheckoutPage = () => {
     lastName: '',
     apartment: '',
     address: '',
-    city: '',
-    province: '',
-    postcode: '',
     telephone: '',
     shippingMethod: 'Standard Delivery',
     // ข้อมูลบัตรเครดิต
@@ -80,20 +77,10 @@ const CheckoutPage = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setFormData((prev) => {
-      // ถ้ามีการเปลี่ยนจังหวัด ให้รีเซ็ตค่าอำเภอ (city) เป็นค่าว่างด้วย
-      if (name === 'province') {
-        return {
-          ...prev,
-          province: value,
-          city: '',
-        };
-      }
-      return {
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value,
-      };
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handlePayNow = async () => {
@@ -110,9 +97,10 @@ const CheckoutPage = () => {
           firstName: formData.firstName,
           lastName: formData.lastName,
           address: formData.address,
-          province: formData.province,
-          city: formData.city,
-          postcode: formData.postcode,
+          province: deliveryLocation.province,
+          district: deliveryLocation.district,
+          subdistrict: deliveryLocation.subdistrict,
+          postalCode: deliveryLocation.postalCode,
         },
         items: cartItems,
         summary: { total },
@@ -311,62 +299,7 @@ const CheckoutPage = () => {
                   className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Dropdown เลือกจังหวัด (Province) */}
-                  <div className="relative">
-                    <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      Province
-                    </label>
-                    <select
-                      name="province"
-                      value={formData.province}
-                      onChange={handleChange}
-                      className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
-                    >
-                      <option value="">- Select Province -</option>
-                      {provinces.map((prov) => (
-                        <option key={prov.id || prov.name_th} value={prov.name_th}>
-                          {prov.name_th}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Dropdown เลือกอำเภอ/เขต (City) กรองตามจังหวัดที่เลือก */}
-                  <div className="relative">
-                    <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      District
-                    </label>
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      disabled={!formData.province}
-                      className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer disabled:bg-gray-100"
-                    >
-                      <option value="">- Select District -</option>
-                      {districts
-                        .filter((amp) => {
-                          const matchedProv = provinces.find((p) => p.name_th === formData.province);
-                          return matchedProv ? amp.province_id === matchedProv.id : false;
-                        })
-                        .map((amp) => (
-                          <option key={amp.id || amp.name_th} value={amp.name_th}>
-                            {amp.name_th}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <input
-                    type="text"
-                    name="postcode"
-                    value={formData.postcode}
-                    onChange={handleChange}
-                    placeholder="Postcode"
-                    className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
-                  />
-                </div>
+                <ThaiLocationFields value={deliveryLocation} onChange={setDeliveryLocation} />
 
                 <input
                   type="text"

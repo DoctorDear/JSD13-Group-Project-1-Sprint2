@@ -1,37 +1,46 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
-import { api } from "../lib/api";
+import { api } from "../lib/api.js";
+import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
-
-const ProductDetail = ({ onAddToCart }) => {
+const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adding, setAdding] = useState(false);
   const { id } = useParams();
+  const location = useLocation();
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/v1/products/${id}`);
-        const data = await response.json();
+        setError(null);
+        const data = await api.get(`/products/${id}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
         setProduct(data.product);
         setVariants(data.variants || []);
       } catch (err) {
-        setError(err.message);
+        if (!controller.signal.aborted) setError(err.message);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
     if (id) fetchProduct();
+    return () => controller.abort();
   }, [id]);
+
+  useEffect(() => {
+    if (!loading && product && location.hash === "#reviews") {
+      document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading, product, location.hash]);
 
   const [selectedImg, setSelectedImg] = useState(null);
   const [selectedSize, setSelectedSize] = useState("M");
@@ -177,7 +186,6 @@ const ProductDetail = ({ onAddToCart }) => {
                     ฿
                   </span>
                   {Number(product.price ?? 0).toLocaleString()}
-                  {product.price?.toLocaleString()}
                 </div>
                 {Number(product.originalPrice) > Number(product.price) && (
                   <div className="text-lg font-normal text-zeta-muted line-through">
@@ -290,7 +298,10 @@ const ProductDetail = ({ onAddToCart }) => {
           </section>
         )}
 
-        <ProductReviewSection productId={product._id || product.id} />
+        <div id="reviews" className="scroll-mt-24">
+          <ProductReviewComposer key={product._id || product.id} productId={product._id || product.id} />
+          <ProductReviewSection key={product._id || product.id} productId={product._id || product.id} />
+        </div>
       </div>
       <SizeGuideModal
         product={product}
