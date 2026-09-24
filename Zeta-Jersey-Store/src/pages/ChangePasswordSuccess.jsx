@@ -9,6 +9,14 @@ export default function ChangePasswordSuccess() {
       image={HERO}
       imageAlt="Woman in a red and white striped jersey"
       title={<>Change password<br />successfully</>}
+      subtitle={
+        <a
+          href="http://localhost:5173"
+          className="mt-3 inline-block text-lg text-gray-900 underline underline-offset-2 font-medium hover:text-indigo-700"
+        >
+          Go back to shopping
+        </a>
+      }
     />
   );
 }

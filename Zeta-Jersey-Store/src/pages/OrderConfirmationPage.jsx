@@ -71,7 +71,7 @@ const ConfirmationPage = () => {
                                 {/* กรอบรูปภาพ: ล็อกขนาดให้เท่ากันทุกรูปด้วย w-16 h-16 / sm:w-20 sm:h-20 และ object-cover */}
                                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
                                     <img
-                                        src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150"
+                                        src="https://www.jdsports.co.th/cdn/shop/files/jd_KA6852_a.jpg?v=1787225330&width=1007"
                                         alt="Arsenal Jersey"
                                         className="w-full h-full object-cover"
                                     />
