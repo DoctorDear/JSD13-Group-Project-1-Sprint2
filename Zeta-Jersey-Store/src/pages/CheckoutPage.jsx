@@ -1,26 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. นำเข้า useNavigate
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CheckOutItemCard from '../components/CheckOutItemCard';
 import { api } from '../lib/api';
+import provinces from '../data/province.json';
+import districts from '../data/district.json';
 
 const CheckoutPage = () => {
-  const navigate = useNavigate(); // 2. ประกาศตัวแปร navigate
+  const navigate = useNavigate();
+  const location = useLocation();
+  const cartItemsFromCart = location.state?.cartItems || [];
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [useSameBilling, setUseSameBilling] = useState(true);
 
   // State สำหรับเปิด-ปิด Order Summary ด้านบนบนมือถือ
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
-  // State สำหรับเก็บข้อมูลสินค้าในตะกร้าและยอดเงินจาก Backend
-  const [cartItems, setCartItems] = useState([]);
-  const [summary, setSummary] = useState({
-    subtotal: 565,
-    discount: 113,
-    shippingFee: 15,
-    total: 467,
-  });
+  // State สำหรับเก็บข้อมูลสินค้าในตะกร้า
+  const [cartItems, setCartItems] = useState(cartItemsFromCart);
 
   // State สำหรับเก็บข้อมูลฟอร์มกรอกของผู้ใช้
   const [formData, setFormData] = useState({
@@ -31,9 +29,9 @@ const CheckoutPage = () => {
     lastName: '',
     apartment: '',
     address: '',
-    city: 'Bangkok',
-    province: 'Bangkok',
-    postcode: '10270',
+    city: '',
+    province: '',
+    postcode: '',
     telephone: '',
     shippingMethod: 'Standard Delivery',
     // ข้อมูลบัตรเครดิต
@@ -45,20 +43,15 @@ const CheckoutPage = () => {
 
   const [discountCode, setDiscountCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // ดึงข้อมูลตะกร้าสินค้าจาก Backend เมื่อโหลดหน้าเว็บ
   useEffect(() => {
     const fetchCart = async () => {
       try {
         const response = await api.get('/users/cart');
-        if (response.data) {
-          setCartItems(response.data.items || []);
-          setSummary({
-            subtotal: response.data.subtotal || 565,
-            discount: response.data.discount || 113,
-            shippingFee: response.data.shippingFee || 15,
-            total: response.data.total || 467,
-          });
+        if (response.data && response.data.items) {
+          setCartItems(response.data.items);
         }
       } catch (error) {
         console.error('Failed to fetch cart:', error);
@@ -67,59 +60,82 @@ const CheckoutPage = () => {
     fetchCart();
   }, []);
 
+  // --- ระบบคำนวณราคาอัตโนมัติจากสินค้าในตะกร้า (Real-time calculation) ---
+  const subtotal = cartItems.reduce((acc, item) => {
+    const price = Number(item.price || item.productId?.price) || 0;
+    const quantity = Number(item.quantity) || 1;
+    return acc + (price * quantity);
+  }, 0);
+
+  // คำนวณส่วนลด 20% (สามารถปรับเปลี่ยนเงื่อนไขได้ตามต้องการ)
+  const discount = Math.round(subtotal * 0.20);
+
+  // ค่าจัดส่ง (ถ้ามีสินค้าในตะกร้าคิด 15 ถ้าไม่มีเป็น 0)
+  const shippingFee = cartItems.length > 0 ? 15 : 0;
+
+  // ราคารวมสุทธิ
+  const total = subtotal - discount + shippingFee;
+
   // ฟังก์ชันจัดการการเปลี่ยนแปลงข้อมูลในฟอร์มและ Dropdown
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+
+    setFormData((prev) => {
+      // ถ้ามีการเปลี่ยนจังหวัด ให้รีเซ็ตค่าอำเภอ (city) เป็นค่าว่างด้วย
+      if (name === 'province') {
+        return {
+          ...prev,
+          province: value,
+          city: '',
+        };
+      }
+      return {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+    });
   };
 
-  // 3. ฟังก์ชันกดปุ่มสั่งซื้อ / ชำระเงิน (PAY NOW) แล้วเปลี่ยนไปหน้า OrderConfirmationPage
   const handlePayNow = async () => {
+    setErrorMessage('');
+
+    console.log("Form Data Submitted:", formData); // เปิด F12 ดูค่าที่กรอกได้ตรงนี้
+
     try {
       setLoading(true);
+
       const orderPayload = {
-        contact: {
-          email: formData.email,
-          receiveNews: formData.receiveNews,
-          telephone: formData.telephone,
-        },
+        contact: { email: formData.email, telephone: formData.telephone },
         shippingAddress: {
-          country: formData.country,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          apartment: formData.apartment,
           address: formData.address,
-          city: formData.city,
           province: formData.province,
+          city: formData.city,
           postcode: formData.postcode,
         },
-        shippingMethod: formData.shippingMethod,
-        paymentMethod: paymentMethod,
-        paymentDetails: paymentMethod === 'card' ? {
-          cardNumber: formData.cardNumber,
-          cardExp: formData.cardExp,
-          cardCvv: formData.cardCvv,
-          cardName: formData.cardName,
-          useSameBilling: useSameBilling,
-        } : null,
         items: cartItems,
-        summary: summary,
+        summary: { total },
       };
 
-      const response = await api.post('/orders', orderPayload);
-      console.log('Order Response:', response.data);
+      // --- ข้ามการเรียก API ไปก่อน เพื่อให้เทสหน้า Confirmation ได้ทันที ---
+      // const response = await api.post('/orders', orderPayload);
 
-      // สมมติว่า Backend ส่ง orderId หรือข้อมูลออเดอร์กลับมา สามารถแนบไปกับ Route ได้
-      // เช่น navigate('/order-confirmation', { state: { orderData: response.data } })
-      // หรือถ้าเป็นแบบระบุ Path ตรงๆ:
-      navigate('/order-confirmation');
+      console.log("Navigating to confirmation page...");
+
+      // สั่งเปลี่ยนหน้าไปยัง Order Confirmation ทันที
+      navigate('/order-confirmation', {
+        state: {
+          orderData: {
+            orderId: 'ORD-' + Math.floor(Math.random() * 1000000),
+            ...orderPayload
+          }
+        }
+      });
 
     } catch (error) {
       console.error('Payment failed:', error);
-      alert('Failed to process payment. Please try again.');
+      setErrorMessage('Failed to process payment. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -128,6 +144,13 @@ const CheckoutPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar page="check" />
+
+      {/* --- แสดง Error แจ้งเตือนถ้าข้อมูลไม่ครบ --- */}
+      {errorMessage && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 mt-4 text-red-700 text-sm">
+          {errorMessage}
+        </div>
+      )}
 
       {/* --- 1. Order Summary แบบดรอปดาวน์ (สำหรับมือถือ - วางไว้บนสุด) --- */}
       <div className="lg:hidden bg-[#f9f9f9] border-b border-gray-200 px-4 py-4">
@@ -147,7 +170,7 @@ const CheckoutPage = () => {
             </svg>
           </div>
           <div className="text-lg font-bold text-gray-900">
-            ${summary.total}
+            ฿{total.toLocaleString()}
           </div>
         </div>
 
@@ -157,31 +180,12 @@ const CheckoutPage = () => {
               {cartItems.length > 0 ? (
                 cartItems.map((item, index) => (
                   <CheckOutItemCard
-                    key={index}
-                    image={item.image || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"}
-                    title={item.title}
-                    size={item.size}
-                    price={`$${item.price}`}
-                    quantity={item.quantity}
+                    key={item._id || item.id || index}
+                    item={item}
                   />
                 ))
               ) : (
-                <>
-                  <CheckOutItemCard
-                    image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"
-                    title="Manchester United FC 26/27 Away Jersey Authentic"
-                    size="Middle"
-                    price="$140"
-                    quantity="1"
-                  />
-                  <CheckOutItemCard
-                    image="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc"
-                    title="Arsenal FC 26/27 Away Jersey Authentic"
-                    size="Large"
-                    price="$140"
-                    quantity="1"
-                  />
-                </>
+                <p className="text-xs text-gray-500 text-center py-2">No items in cart</p>
               )}
             </div>
 
@@ -201,19 +205,19 @@ const CheckoutPage = () => {
             <div className="space-y-2 text-sm pt-2">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span className="font-bold text-gray-900">${summary.subtotal}</span>
+                <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Discount (-20%)</span>
-                <span className="font-bold text-red-500">-${summary.discount}</span>
+                <span>Discount 20%</span>
+                <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Fee</span>
-                <span className="font-bold text-gray-900">${summary.shippingFee}</span>
+                <span className="font-bold text-gray-900">฿{shippingFee.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
                 <span>Total</span>
-                <span>${summary.total}</span>
+                <span>฿{total.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -239,9 +243,6 @@ const CheckoutPage = () => {
                     placeholder="username@gmail.com"
                     className="w-full h-12 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
                   />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600 font-bold">
-                    ✓
-                  </span>
                 </div>
                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                   <input
@@ -271,14 +272,7 @@ const CheckoutPage = () => {
                     className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
                   >
                     <option value="Thailand">Thailand</option>
-                    <option value="United States">United States</option>
-                    <option value="United Kingdom">United Kingdom</option>
                   </select>
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -318,26 +312,7 @@ const CheckoutPage = () => {
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="relative">
-                    <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      City
-                    </label>
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
-                    >
-                      <option value="Bangkok">Bangkok</option>
-                      <option value="Samut Prakan">Samut Prakan</option>
-                    </select>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
-                  </div>
-
+                  {/* Dropdown เลือกจังหวัด (Province) */}
                   <div className="relative">
                     <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
                       Province
@@ -348,35 +323,49 @@ const CheckoutPage = () => {
                       onChange={handleChange}
                       className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
                     >
-                      <option value="Bangkok">Bangkok</option>
-                      <option value="Samut Prakan">Samut Prakan</option>
+                      <option value="">- Select Province -</option>
+                      {provinces.map((prov) => (
+                        <option key={prov.id || prov.name_th} value={prov.name_th}>
+                          {prov.name_th}
+                        </option>
+                      ))}
                     </select>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
                   </div>
 
+                  {/* Dropdown เลือกอำเภอ/เขต (City) กรองตามจังหวัดที่เลือก */}
                   <div className="relative">
                     <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                      Postcode
+                      District
                     </label>
                     <select
-                      name="postcode"
-                      value={formData.postcode}
+                      name="city"
+                      value={formData.city}
                       onChange={handleChange}
-                      className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
+                      disabled={!formData.province}
+                      className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer disabled:bg-gray-100"
                     >
-                      <option value="10270">10270</option>
-                      <option value="10540">10540</option>
+                      <option value="">- Select District -</option>
+                      {districts
+                        .filter((amp) => {
+                          const matchedProv = provinces.find((p) => p.name_th === formData.province);
+                          return matchedProv ? amp.province_id === matchedProv.id : false;
+                        })
+                        .map((amp) => (
+                          <option key={amp.id || amp.name_th} value={amp.name_th}>
+                            {amp.name_th}
+                          </option>
+                        ))}
                     </select>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
                   </div>
+
+                  <input
+                    type="text"
+                    name="postcode"
+                    value={formData.postcode}
+                    onChange={handleChange}
+                    placeholder="Postcode"
+                    className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
+                  />
                 </div>
 
                 <input
@@ -393,23 +382,16 @@ const CheckoutPage = () => {
             {/* 3. Shipping Method */}
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping method</h2>
-              <div className="relative">
-                <select
-                  name="shippingMethod"
-                  value={formData.shippingMethod}
-                  onChange={handleChange}
-                  className="w-full h-14 px-4 rounded-xl border border-indigo-900 text-sm bg-indigo-50/30 font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
-                >
-                  <option value="Standard Delivery">📦 Standard Delivery</option>
-                  <option value="Express Delivery">🚀 Express Delivery</option>
-                  <option value="Free Delivery">✨ Free Delivery</option>
-                </select>
-                <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-700">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </span>
-              </div>
+              <select
+                name="shippingMethod"
+                value={formData.shippingMethod}
+                onChange={handleChange}
+                className="w-full h-14 px-4 rounded-xl border border-indigo-900 text-sm bg-indigo-50/30 font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-900"
+              >
+                <option value="Standard Delivery">📦 Standard Delivery</option>
+                <option value="Express Delivery">🚀 Express Delivery</option>
+                <option value="Free Delivery">✨ Free Delivery</option>
+              </select>
             </div>
 
             {/* 4. Payment Section */}
@@ -418,32 +400,38 @@ const CheckoutPage = () => {
               <p className="text-xs text-gray-500 mb-3">All transactions are secure and encrypted.</p>
 
               <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+
+                {/* 1. Credit Card Option */}
                 <div
                   onClick={() => setPaymentMethod('card')}
-                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors ${paymentMethod === 'card' ? 'bg-blue-50/20' : 'bg-white'}`}
+                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors border-b border-gray-100 ${paymentMethod === 'card' ? 'bg-blue-50/20' : 'bg-white'}`}
                 >
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-                    <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-4 h-4 text-blue-600" />
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'card'}
+                      onChange={() => setPaymentMethod('card')}
+                      className="w-4 h-4 text-blue-600"
+                    />
                     Credit Card
                   </label>
-                  <div className="flex gap-1 text-[10px] font-bold text-gray-600">
-                    <span className="bg-white px-2 py-0.5 rounded border">VISA</span>
-                    <span className="bg-white px-2 py-0.5 rounded border">MC</span>
+                  <div className="flex gap-1">
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 border rounded text-gray-700">VISA</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 border rounded text-gray-700">MC</span>
                   </div>
                 </div>
 
                 {paymentMethod === 'card' && (
-                  <div className="p-4 pt-0 space-y-3 bg-white">
-                    <div className="pt-2">
-                      <input
-                        type="text"
-                        name="cardNumber"
-                        value={formData.cardNumber}
-                        onChange={handleChange}
-                        placeholder="Card Number"
-                        className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
-                      />
-                    </div>
+                  <div className="p-4 space-y-3 bg-white border-b border-gray-100">
+                    <input
+                      type="text"
+                      name="cardNumber"
+                      value={formData.cardNumber}
+                      onChange={handleChange}
+                      placeholder="Card Number"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
+                    />
                     <div className="grid grid-cols-2 gap-3">
                       <input
                         type="text"
@@ -470,32 +458,56 @@ const CheckoutPage = () => {
                       placeholder="Name on card"
                       className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
                     />
+
+                    <label className="flex items-center gap-2 text-xs text-gray-700 pt-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useSameBilling}
+                        onChange={(e) => setUseSameBilling(e.target.checked)}
+                        className="w-4 h-4 rounded text-indigo-900 focus:ring-indigo-900"
+                      />
+                      Use shipping address as billing address
+                    </label>
                   </div>
                 )}
 
-                <hr className="border-gray-200" />
-
+                {/* 2. QR Promptpay Option */}
                 <div
                   onClick={() => setPaymentMethod('promptpay')}
-                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors ${paymentMethod === 'promptpay' ? 'bg-blue-50/20' : 'bg-white'}`}
+                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors border-b border-gray-100 ${paymentMethod === 'promptpay' ? 'bg-blue-50/20' : 'bg-white'}`}
                 >
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-                    <input type="radio" name="payment" checked={paymentMethod === 'promptpay'} onChange={() => setPaymentMethod('promptpay')} className="w-4 h-4 text-blue-600" />
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'promptpay'}
+                      onChange={() => setPaymentMethod('promptpay')}
+                      className="w-4 h-4 text-blue-600"
+                    />
                     QR Promptpay
                   </label>
+                  <div className="flex gap-1 items-center">
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-teal-700 text-white rounded">PromptPay</span>
+                  </div>
                 </div>
 
-                <hr className="border-gray-200" />
-
+                {/* 3. Cash on Delivery (COD) Option */}
                 <div
                   onClick={() => setPaymentMethod('cod')}
                   className={`p-4 flex justify-between items-center cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'bg-blue-50/20' : 'bg-white'}`}
                 >
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-                    <input type="radio" name="payment" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-4 h-4 text-blue-600" />
-                    Cash on delivery (COD)
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => setPaymentMethod('cod')}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    Cash on Delivery (COD)
                   </label>
                 </div>
+
               </div>
             </div>
 
@@ -507,55 +519,35 @@ const CheckoutPage = () => {
                 {cartItems.length > 0 ? (
                   cartItems.map((item, index) => (
                     <CheckOutItemCard
-                      key={index}
-                      image={item.image || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"}
-                      title={item.title}
-                      size={item.size}
-                      price={`$${item.price}`}
-                      quantity={item.quantity}
+                      key={item._id || item.id || index}
+                      item={item}
                     />
                   ))
                 ) : (
-                  <>
-                    <CheckOutItemCard
-                      image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"
-                      title="Manchester United FC 26/27 Away Jersey Authentic"
-                      size="Middle"
-                      price="$140"
-                      quantity="1"
-                    />
-                    <CheckOutItemCard
-                      image="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc"
-                      title="Arsenal FC 26/27 Away Jersey Authentic"
-                      size="Large"
-                      price="$140"
-                      quantity="1"
-                    />
-                  </>
+                  <p className="text-xs text-gray-500">No items in cart</p>
                 )}
               </div>
 
               <div className="space-y-3 text-sm pt-2">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span className="font-bold text-gray-900">${summary.subtotal}</span>
+                  <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Discount (-20%)</span>
-                  <span className="font-bold text-red-500">-${summary.discount}</span>
+                  <span>Discount</span>
+                  <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Fee</span>
-                  <span className="font-bold text-gray-900">${summary.shippingFee}</span>
+                  <span className="font-bold text-gray-900">฿{shippingFee.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
                   <span>Total</span>
-                  <span>${summary.total}</span>
+                  <span>฿{total.toLocaleString()}</span>
                 </div>
               </div>
             </div>
 
-            {/* ปุ่ม Pay Now สำหรับมือถือ */}
             <div className="lg:hidden pt-2">
               <button
                 onClick={handlePayNow}
@@ -579,31 +571,12 @@ const CheckoutPage = () => {
               {cartItems.length > 0 ? (
                 cartItems.map((item, index) => (
                   <CheckOutItemCard
-                    key={index}
-                    image={item.image || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"}
-                    title={item.title}
-                    size={item.size}
-                    price={`$${item.price}`}
-                    quantity={item.quantity}
+                    key={item._id || item.id || index}
+                    item={item}
                   />
                 ))
               ) : (
-                <>
-                  <CheckOutItemCard
-                    image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLFRSFhdZNhSokzQnjUuuuQAbfGyIuKrb0L5ijVy81eg&s=10"
-                    title="Manchester United FC 26/27 Away Jersey Authentic"
-                    size="Middle"
-                    price="$140"
-                    quantity="1"
-                  />
-                  <CheckOutItemCard
-                    image="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRdfu0aymMzr5SvSIoayrjTaMS0OaeZkMSctddIupmWBOtcyiz02UOECRwjarr9uhwkY4PeDdm9X-1BAG-pkv9JhaCgSvaHteIhdXTlkiIfYpQ3n-T-cDaZ&usqp=CAc"
-                    title="Arsenal FC 26/27 Away Jersey Authentic"
-                    size="Large"
-                    price="$140"
-                    quantity="1"
-                  />
-                </>
+                <p className="text-xs text-gray-500">No items in cart</p>
               )}
             </div>
 
@@ -623,19 +596,19 @@ const CheckoutPage = () => {
             <div className="pt-4 space-y-3 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span className="font-bold text-gray-900">${summary.subtotal}</span>
+                <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Discount (-20%)</span>
-                <span className="font-bold text-red-500">-${summary.discount}</span>
+                <span>Discount</span>
+                <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Fee</span>
-                <span className="font-bold text-gray-900">${summary.shippingFee}</span>
+                <span className="font-bold text-gray-900">฿{shippingFee.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
                 <span>Total</span>
-                <span className="text-gray-900">${summary.total}</span>
+                <span className="text-gray-900">฿{total.toLocaleString()}</span>
               </div>
             </div>
 
@@ -643,7 +616,7 @@ const CheckoutPage = () => {
               <button
                 onClick={handlePayNow}
                 disabled={loading}
-                className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {loading ? 'PROCESSING...' : 'PAY NOW'}
               </button>

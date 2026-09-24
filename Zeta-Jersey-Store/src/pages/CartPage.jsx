@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
-import { api } from '../lib/api'; // 1. นำเข้า api helper แทน axios ธรรมดา
 import CartItemCard from '../components/CartItemCard';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useNavigate } from 'react-router-dom';
 
 const CartPage = () => {
+    const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [discountCode, setDiscountCode] = useState('');
 
-    // ฟังก์ชันดึงข้อมูลตะกร้าจาก Backend
-    const fetchCart = async () => {
+    // 1. ดึงข้อมูลตะกร้าจาก localStorage เมื่อเข้าหน้า CartPage
+    const fetchCart = () => {
         try {
-            const response = await api.get('/users/cart');
-            if (response.data.success) {
-                setCartItems(response.data.cart || []);
-            }
+            const savedCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+            console.log("LOADED CART FROM LOCALSTORAGE:", savedCart);
+            setCartItems(Array.isArray(savedCart) ? savedCart : []);
         } catch (error) {
-            console.error('Error fetching cart:', error);
+            console.error('Error reading cart from localStorage:', error);
+            setCartItems([]);
         } finally {
             setLoading(false);
         }
@@ -27,40 +28,49 @@ const CartPage = () => {
         fetchCart();
     }, []);
 
+    // 2. ฟังก์ชันอัปเดตจำนวนสินค้า (quantity) และบันทึกลง localStorage ทันที
     const handleUpdateQuantity = (id, newQuantity) => {
-        setCartItems(prev =>
-            prev.map(item => (item._id === id ? { ...item, quantity: newQuantity } : item))
+        if (newQuantity < 1) return; // ป้องกันจำนวนน้อยกว่า 1
+
+        const updatedItems = cartItems.map(item =>
+            (item._id === id || item.id === id) ? { ...item, quantity: newQuantity } : item
         );
+
+        setCartItems(updatedItems);
+        localStorage.setItem('cartItems', JSON.stringify(updatedItems));
     };
 
-    // ฟังก์ชันลบสินค้าออกจากตะกร้า
-    const handleRemoveItem = async (itemId) => {
-        try {
-            await api.delete(`/users/cart/${itemId}`);
-            fetchCart();
-        } catch (error) {
-            console.error('Error removing item:', error);
-            alert('ไม่สามารถลบสินค้าได้');
-        }
+    // 3. ฟังก์ชันลบสินค้าออกจากตะกร้าและอัปเดต localStorage
+    const handleRemoveItem = (id) => {
+        const updatedItems = cartItems.filter(item => item._id !== id && item.id !== id);
+
+        setCartItems(updatedItems);
+        localStorage.setItem('cartItems', JSON.stringify(updatedItems));
     };
 
     // ฟังก์ชันสร้างคำสั่งซื้อเมื่อกด Go to Checkout
-    const handleCheckout = async () => {
-        try {
-            const response = await api.post('/users/orders', {}); // ปรับ Endpoint ตาม Backend ของคุณ
-            if (response.data.success) {
-                alert('สร้างคำสั่งซื้อสำเร็จ!');
-                setCartItems([]);
+    const handleGoToCheckout = () => {
+        const checkoutData = {
+            cartItems,
+            summary: {
+                subtotal,
+                discount,
+                shippingFee: deliveryFee,
+                total
             }
-        } catch (error) {
-            alert(error.response?.data?.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ');
-        }
+        };
+
+        // บันทึกสำรองไว้กันรีเฟรชหาย
+        localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+
+        // ส่งผ่าน navigate ไปหน้า checkout
+        navigate('/checkout', { state: checkoutData });
     };
 
     // คำนวณราคารวม
     const subtotal = cartItems.reduce((acc, item) => {
         const price = item.price || item.productId?.price || 0;
-        return acc + price * item.quantity;
+        return acc + price * (item.quantity || 1);
     }, 0);
 
     const discount = subtotal * 0.20;
@@ -68,7 +78,7 @@ const CartPage = () => {
     const total = subtotal - discount + deliveryFee;
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center">กำลังโหลดข้อมูล...</div>;
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
 
     return (
@@ -87,7 +97,7 @@ const CartPage = () => {
                             <div className="divide-y divide-gray-100">
                                 {cartItems.map((item, index) => (
                                     <CartItemCard
-                                        key={item._id || index}
+                                        key={item._id || item.id || index}
                                         item={item}
                                         onUpdateQuantity={handleUpdateQuantity}
                                         onRemoveItem={handleRemoveItem}
@@ -103,19 +113,19 @@ const CartPage = () => {
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between text-gray-500">
                                 <span>Subtotal</span>
-                                <span className="font-bold text-gray-900">฿{subtotal}</span>
+                                <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-gray-500">
                                 <span>Discount (-20%)</span>
-                                <span className="font-bold text-red-500">-฿{discount}</span>
+                                <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-gray-500">
                                 <span>Delivery Fee</span>
-                                <span className="font-bold text-gray-900">฿{deliveryFee}</span>
+                                <span className="font-bold text-gray-900">฿{deliveryFee.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t border-gray-100">
                                 <span>Total</span>
-                                <span>฿{total}</span>
+                                <span>฿{total.toLocaleString()}</span>
                             </div>
                         </div>
 
@@ -133,7 +143,7 @@ const CartPage = () => {
                         </div>
 
                         <button
-                            onClick={handleCheckout}
+                            onClick={handleGoToCheckout}
                             className="w-full h-12 mt-4 bg-indigo-900 hover:bg-indigo-800 text-white font-semibold rounded-full transition-colors shadow-sm"
                         >
                             Go to Checkout

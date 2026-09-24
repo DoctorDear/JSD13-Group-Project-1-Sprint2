@@ -1,27 +1,26 @@
 import { Heart, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom"; // 1. เพิ่ม useNavigate
+import { Link, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
-import { api } from "../lib/api"; // 2. นำเข้า api สำหรับยิง request
+import { api } from "../lib/api";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
-const ProductDetail = () => {
+const ProductDetail = ({ onAddToCart }) => {
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [adding, setAdding] = useState(false); // สถานะตอนกดปุ่มเพิ่มลงตะกร้า
+  const [adding, setAdding] = useState(false);
   const { id } = useParams();
-  const navigate = useNavigate(); // เรียกใช้ navigate
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/v1/products/${id}`);
+        const response = await fetch(`${API_BASE_URL}/v1/products/${id}`);
         const data = await response.json();
         setProduct(data.product);
         setVariants(data.variants || []);
@@ -38,23 +37,47 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
-  // ฟังก์ชันเพิ่มสินค้าลงตะกร้า
-  const handleAddToCart = async () => {
+  // ฟังก์ชันเพิ่มสินค้าลงตะกร้า (บันทึกลง localStorage ทันทีโดยไม่ต้องเช็ค Login)
+  // ฟังก์ชันเพิ่มสินค้าลงตะกร้าแบบเบ็ดเสร็จในตัว (ไม่พึ่งพาฟังก์ชันนอก)
+  const handleAddToCart = () => {
     try {
       setAdding(true);
-      const payload = {
-        productId: product._id || product.id,
-        size: selectedSize,
-        quantity: 1,
-        price: product.price
-      };
-      // ยิง API ไปที่ Backend (ระบบ api.js จะแนบ Token ให้อัตโนมัติ)
-      await api.post("/users/cart", payload);
-      // เพิ่มสำเร็จ พาไปหน้า Cart
-      navigate("/cart");
+
+      const rawCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+      const existingCart = Array.isArray(rawCart) ? rawCart.filter(item => item && typeof item === 'object') : [];
+
+      const currentProductId = product?._id || product?.id;
+
+      const itemIndex = existingCart.findIndex(
+        (item) => (item.id === currentProductId) && (item.size === selectedSize)
+      );
+
+      if (itemIndex > -1) {
+        existingCart[itemIndex].quantity = (existingCart[itemIndex].quantity || 1) + 1;
+      } else {
+        const newItem = {
+          id: currentProductId,
+          name: product?.name || "Unknown Product",
+          price: product?.price || 0,
+          image: product?.images?.[0] || "",
+          size: selectedSize || "Free Size",
+          quantity: 1,
+          edition: product?.edition || "",
+        };
+        existingCart.push(newItem);
+      }
+
+      localStorage.setItem("cartItems", JSON.stringify(existingCart));
+
+      // 🛑 ตัดปัญหาเรื่องฟังก์ชันนอกพัง โดยการบังคับรีโหลดหน้าเว็บเบาๆ หรือยิง Event แจ้ง Navbar ทันที
+      window.dispatchEvent(new Event("storage"));
+
+      // ✅ เปลี่ยนจาก alert น่ารำคาญ เป็นการแจ้งเตือนสั้นๆ หรือปล่อยผ่านให้ตะกร้าขยับเลย
+      alert("Added to cart successfully!");
+
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert(err.response?.data?.message || "กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า");
+      alert("ไม่สามารถเพิ่มสินค้าลงตะกร้าได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setAdding(false);
     }
@@ -153,7 +176,7 @@ const ProductDetail = () => {
                   <span className="mr-1 align-baseline font-[Arial] text-[0.9em] font-normal leading-none">
                     ฿
                   </span>
-                  {product.price.toLocaleString()}
+                  {product.price?.toLocaleString()}
                 </div>
                 {product.originalPrice && (
                   <div className="text-lg font-normal text-zeta-muted line-through">
@@ -181,7 +204,7 @@ const ProductDetail = () => {
                     {variants.map((item) => (
                       <button
                         key={item._id}
-                        onClick={() => setProduct(item)}
+                        onClick={() => setProduct(prev => ({ ...prev, ...item }))}
                         className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${product._id === item._id
                           ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
                           : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
@@ -213,11 +236,14 @@ const ProductDetail = () => {
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                  {product?.sizes.map((size) => (
+                  {product?.sizes?.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`h-12 rounded-xl border text-sm font-bold transition-all ${selectedSize === size ? "bg-zeta-main text-white" : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"}`}
+                      className={`h-12 rounded-xl border text-sm font-bold transition-all ${selectedSize === size
+                        ? "bg-zeta-main text-white"
+                        : "border-zeta-muted hover:border-zeta-main/50 hover:bg-zeta-main/10"
+                        }`}
                     >
                       {size}
                     </button>
@@ -250,7 +276,8 @@ const ProductDetail = () => {
             {productAttributes.map(([label, value], index) => (
               <div
                 key={label}
-                className={`px-1 sm:px-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""}`}
+                className={`px-1 sm:px-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""
+                  }`}
               >
                 <p className="text-sm text-zeta-muted">{label}</p>
                 <p className="mt-1 text-xl font-bold uppercase tracking-[0.12em] text-zeta-main">

@@ -1,0 +1,52 @@
+@baseUrl = http://localhost:3001/api/v1/auth
+@firstName = Ess
+@lastName = Asawa
+@email = ess.asawa@gmail.com
+@password = Pass1234!
+
+### Login success
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "dear.zeta2@example.com",
+  "password": "newpassword456"
+}
+
+### Register success
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "firstName": "{{firstName}}",
+    "lastName": "{{lastName}}",
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Me
+GET {{baseUrl}}/me
+
+### Check user session
+GET {{baseUrl}}
+
+### Logout user
+POST {{baseUrl}}/logout
+
+### Read all users
+GET {{baseUrl}}/products
+
+### Read all users
+GET http://localhost:3001/abc
+
+### Create a new user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+    "username": "Neeti",
+    "role": "admin",
+    "email": "neeti2@example.com",
+    "password": "pass123"
+
+}
