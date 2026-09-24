@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema(
     description: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
     originalPrice: { type: Number, default: 0 },
+    cost: { type: Number, default: 0 },
     quantity: { type: Number, required: true, min: 0 },
     date: { type: Date, default: Date.now },
     tag: [{ type: String, trim: true }],

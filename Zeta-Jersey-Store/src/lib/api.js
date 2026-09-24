@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const BASE_URL = RAW_BASE_URL.replace(/\/v1\/?$/, "");
 
 export class ApiError extends Error {
   constructor(message, { status = 0, fieldErrors = {}, code } = {}) {
@@ -60,7 +61,11 @@ export async function request(
   { method = "GET", body, signal, headers = {} } = {}
 ) {
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const cleanPath = path.startsWith("/v1/") || path === "/v1"
+      ? path
+      : `/v1${path.startsWith("/") ? "" : "/"}${path}`;
+
+    const res = await fetch(`${BASE_URL}${cleanPath}`, {
       method,
       signal,
       credentials: "include",
