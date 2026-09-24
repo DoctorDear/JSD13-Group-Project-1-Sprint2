@@ -36,16 +36,16 @@ export default function Register() {
 
   return (
     <AuthLayout image={HERO} imageAlt="Young footballer sitting on the pitch" showBackButton>
-      <AuthTitle>Register</AuthTitle>
+      <AuthTitle className="pl-[3px]">Register</AuthTitle>
 
-      <p className="mt-3 text-lg text-gray-900">
+      <p className="mt-2.5 pl-[3px] text-lg text-gray-900">
         Already have account?{" "}
         <Link to="/auth/login" className="underline underline-offset-2 font-medium hover:text-indigo-700">
           Log in
         </Link>
       </p>
 
-      <form onSubmit={f.handleSubmit} noValidate className="mt-6 space-y-5">
+      <form onSubmit={f.handleSubmit} noValidate className="mt-[22px] space-y-5 pl-[3px]">
         <FormError message={f.formError} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -97,7 +97,7 @@ export default function Register() {
           />
 
           {f.values.password && (
-            <div className="mt-2 flex gap-1.5" aria-hidden="true">
+            <div className="mt-1.5 flex gap-1.5" aria-hidden="true">
               {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
@@ -111,7 +111,7 @@ export default function Register() {
         </div>
 
         <div>
-          <label className="flex items-center gap-3 pt-2 cursor-pointer select-none">
+          <label className="flex items-center gap-3 cursor-pointer select-none">
             <input
               type="checkbox"
               name="agreed"
@@ -123,7 +123,7 @@ export default function Register() {
             <span className="text-lg text-gray-900">I'm agree to the Term &amp; Condition</span>
           </label>
           {f.errorFor("agreed") && (
-            <p className="mt-1.5 text-sm font-medium text-red-600">{f.errorFor("agreed")}</p>
+            <p className="mt-1 text-sm font-medium text-red-600">{f.errorFor("agreed")}</p>
           )}
         </div>
 
@@ -131,7 +131,7 @@ export default function Register() {
           {f.submitting ? "Creating account…" : "Create account"}
         </AuthButton>
 
-        <div className="grid grid-cols-2 gap-4 pt-2">
+        <div className="grid grid-cols-2 gap-4">
           <SocialButton icon={<GoogleIcon />} label="Google" />
           <SocialButton icon={<AppleIcon />} label="Apple" />
         </div>
