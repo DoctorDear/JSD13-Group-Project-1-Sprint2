@@ -1,5 +1,7 @@
 # Sprint 2: "Zeta (ζ)" E-Commerce Application (MERN Stack)
 
+เอกสาร Wishlist: [Backend API](server/doc/WISHLIST.md) · [Frontend](Zeta-Jersey-Store/doc/WISHLIST.md)
+
 ## 🎯 Sprint Goal
 ใน Sprint นี้ ทีมมีเป้าหมายในการสรุป Mockup ดีไซน์ (Figma) ให้เป็น Final Version เพื่อให้ทุกคนเห็นภาพรวมและเข้าใจโครงสร้าง UI ร่วมกันก่อน จากนั้นจึงทำการแตกส่วนประกอบ (Component Breakdown) แล้วเริ่มลงมือเขียน React Components และ Form Validation เป็นลำดับถัดไป
 
