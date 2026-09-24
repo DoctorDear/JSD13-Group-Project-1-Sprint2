@@ -20,6 +20,22 @@ body {
   font-family: 'Poppins', 'Google Sans', sans-serif;
 }
 
+@keyframes wishlist-heart-pop {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(0.7); }
+  70% { transform: scale(1.25); }
+}
+
+.wishlist-heart-pop {
+  animation: wishlist-heart-pop 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishlist-heart-pop {
+    animation-duration: 1ms;
+  }
+}
+
 /* react-thaizip design tokens */
 @custom-variant dark (&:is(.dark *));
 :root {

@@ -273,7 +273,7 @@ const ProductDetail = () => {
                 </button>
                 <WishlistButton
                   productId={product._id || product.id}
-                  className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5 disabled:opacity-50"
+                  className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5"
                 />
               </div>
             </div>

@@ -31,7 +31,7 @@ const ProductCard = ({ product }) => {
         </span>
         <WishlistButton
           productId={product._id || product.id}
-          className="absolute top-7 right-7 m-1 rounded-full bg-white p-2 text-zeta-main disabled:opacity-50"
+          className="absolute top-7 right-7 m-1 rounded-full bg-white p-2 text-zeta-main"
         />
       </figure>
       <div className="card-body flex flex-1 flex-col">

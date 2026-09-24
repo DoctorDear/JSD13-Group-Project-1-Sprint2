@@ -9,15 +9,19 @@ export default function WishlistButton({ productId, className = "", size = 20 })
   const { isAuthenticated, booting } = useAuth();
   const { items, loading, busyId, toggle } = useWishlist();
   const [feedback, setFeedback] = useState("");
+  const [animating, setAnimating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const saved = wishlistHasProduct(items, productId);
   const validId = isWishlistProductId(productId);
-  const disabled = booting || !validId || (isAuthenticated && (loading || busyId !== null));
+  const disabled = booting || !validId || (isAuthenticated && (loading || busyId === productId));
+  const waitingForOtherProduct = isAuthenticated && busyId !== null && busyId !== productId;
 
   const handleClick = async (event) => {
     event.stopPropagation();
+    if (waitingForOtherProduct) return;
     setFeedback("");
+    setAnimating(true);
     if (!isAuthenticated) {
       navigate("/auth/login", { state: { from: location } });
       return;
@@ -33,13 +37,19 @@ export default function WishlistButton({ productId, className = "", size = 20 })
         type="button"
         onClick={handleClick}
         disabled={disabled}
+        aria-disabled={waitingForOtherProduct || disabled}
         aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         aria-pressed={saved}
         aria-busy={busyId === productId}
         title={!validId ? "Wishlist is available for catalog products" : undefined}
         className={className}
       >
-        <Heart size={size} fill={saved ? "currentColor" : "none"} />
+        <Heart
+          size={size}
+          fill={saved ? "currentColor" : "none"}
+          className={animating ? "wishlist-heart-pop" : ""}
+          onAnimationEnd={() => setAnimating(false)}
+        />
       </button>
       {feedback && (
         <div role="alert" className="fixed bottom-4 right-4 z-100 rounded-xl bg-red-700 px-4 py-3 text-sm text-white shadow-lg">
