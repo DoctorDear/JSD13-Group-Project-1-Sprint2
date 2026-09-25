@@ -32,9 +32,9 @@ const orderSchema = new mongoose.Schema(
       postalCode: String,
     },
     payment: {
-      method: { type: String, default: "PromptPay" },
-      status: { type: String, default: "completed" }, // Simulated
-      paidAt: { type: Date, default: Date.now },
+      method: { type: String, default: "Cash on Delivery" },
+      status: { type: String, default: "pending" },
+      paidAt: { type: Date, default: null },
       transactionId: { type: String, default: "" },
     },
     totalAmount: { type: Number, required: true },

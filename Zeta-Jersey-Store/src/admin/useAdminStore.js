@@ -16,6 +16,8 @@ function normalizeProduct(p) {
     reorder: Number(p.reorder ?? 10),
     imageUrl: p.images?.[0] || p.imageUrl || "",
     description: p.description || "",
+    date: p.date || "",
+    tag: p.tag || [],
     brand: p.brand || "Adidas",
     raw: p, // เก็บข้อมูลดิบจาก backend ไว้เผื่อใช้
   };

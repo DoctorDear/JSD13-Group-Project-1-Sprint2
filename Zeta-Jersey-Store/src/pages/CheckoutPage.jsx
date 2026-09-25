@@ -5,13 +5,12 @@ import Footer from '../components/Footer';
 import CheckOutItemCard from '../components/CheckOutItemCard';
 import ThaiLocationFields from '../components/ThaiLocationFields.jsx';
 import { api } from '../lib/api';
+import { orderService } from '../services/order.js';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const cartItemsFromCart = location.state?.cartItems || [];
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [useSameBilling, setUseSameBilling] = useState(true);
   const [deliveryLocation, setDeliveryLocation] = useState({ postalCode: '', province: '', district: '', subdistrict: '' });
 
   // State สำหรับเปิด-ปิด Order Summary ด้านบนบนมือถือ
@@ -31,11 +30,6 @@ const CheckoutPage = () => {
     address: '',
     telephone: '',
     shippingMethod: 'Standard Delivery',
-    // ข้อมูลบัตรเครดิต
-    cardNumber: '',
-    cardExp: '',
-    cardCvv: '',
-    cardName: '',
   });
 
   const [discountCode, setDiscountCode] = useState('');
@@ -47,11 +41,11 @@ const CheckoutPage = () => {
     const fetchCart = async () => {
       try {
         const response = await api.get('/users/cart');
-        if (response.data && response.data.items) {
-          setCartItems(response.data.items);
+        if (response.cart) {
+          setCartItems(response.cart);
         }
       } catch (error) {
-        console.error('Failed to fetch cart:', error);
+        setErrorMessage(error.message || 'Failed to load cart.');
       }
     };
     fetchCart();
@@ -65,10 +59,10 @@ const CheckoutPage = () => {
   }, 0);
 
   // คำนวณส่วนลด 20% (สามารถปรับเปลี่ยนเงื่อนไขได้ตามต้องการ)
-  const discount = Math.round(subtotal * 0.20);
+  const discount = 0;
 
   // ค่าจัดส่ง (ถ้ามีสินค้าในตะกร้าคิด 15 ถ้าไม่มีเป็น 0)
-  const shippingFee = cartItems.length > 0 ? 15 : 0;
+  const shippingFee = 0;
 
   // ราคารวมสุทธิ
   const total = subtotal - discount + shippingFee;
@@ -86,44 +80,32 @@ const CheckoutPage = () => {
   const handlePayNow = async () => {
     setErrorMessage('');
 
-    console.log("Form Data Submitted:", formData); // เปิด F12 ดูค่าที่กรอกได้ตรงนี้
+    if (!cartItems.length) return setErrorMessage('Your cart is empty.');
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.address.trim() || !formData.telephone.trim() || !deliveryLocation.province || !deliveryLocation.postalCode) {
+      return setErrorMessage('Please complete your name, address, province, postal code, and telephone.');
+    }
 
     try {
       setLoading(true);
 
-      const orderPayload = {
-        contact: { email: formData.email, telephone: formData.telephone },
-        shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          address: formData.address,
-          province: deliveryLocation.province,
-          district: deliveryLocation.district,
-          subdistrict: deliveryLocation.subdistrict,
-          postalCode: deliveryLocation.postalCode,
-        },
-        items: cartItems,
-        summary: { total },
-      };
-
-      // --- ข้ามการเรียก API ไปก่อน เพื่อให้เทสหน้า Confirmation ได้ทันที ---
-      // const response = await api.post('/orders', orderPayload);
-
-      console.log("Navigating to confirmation page...");
-
-      // สั่งเปลี่ยนหน้าไปยัง Order Confirmation ทันที
+      const response = await orderService.create({
+        recipientName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        phone: formData.telephone.trim(),
+        addressLine: [formData.address.trim(), formData.apartment.trim()].filter(Boolean).join(', '),
+        province: deliveryLocation.province,
+        district: deliveryLocation.district,
+        postalCode: deliveryLocation.postalCode,
+      });
+      window.dispatchEvent(new Event('cart-updated'));
       navigate('/order-confirmation', {
         state: {
-          orderData: {
-            orderId: 'ORD-' + Math.floor(Math.random() * 1000000),
-            ...orderPayload
-          }
+          orderData: { ...response.data, orderId: response.data.orderNumber }
         }
       });
 
     } catch (error) {
       console.error('Payment failed:', error);
-      setErrorMessage('Failed to process payment. Please try again.');
+      setErrorMessage(error.message || 'Failed to create order. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -196,7 +178,7 @@ const CheckoutPage = () => {
                 <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Discount 20%</span>
+                <span>Discount</span>
                 <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
@@ -327,122 +309,7 @@ const CheckoutPage = () => {
               </select>
             </div>
 
-            {/* 4. Payment Section */}
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Payment</h2>
-              <p className="text-xs text-gray-500 mb-3">All transactions are secure and encrypted.</p>
-
-              <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
-
-                {/* 1. Credit Card Option */}
-                <div
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors border-b border-gray-100 ${paymentMethod === 'card' ? 'bg-blue-50/20' : 'bg-white'}`}
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'card'}
-                      onChange={() => setPaymentMethod('card')}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    Credit Card
-                  </label>
-                  <div className="flex gap-1">
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 border rounded text-gray-700">VISA</span>
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-gray-100 border rounded text-gray-700">MC</span>
-                  </div>
-                </div>
-
-                {paymentMethod === 'card' && (
-                  <div className="p-4 space-y-3 bg-white border-b border-gray-100">
-                    <input
-                      type="text"
-                      name="cardNumber"
-                      value={formData.cardNumber}
-                      onChange={handleChange}
-                      placeholder="Card Number"
-                      className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
-                    />
-                    <div className="grid grid-cols-2 gap-3">
-                      <input
-                        type="text"
-                        name="cardExp"
-                        value={formData.cardExp}
-                        onChange={handleChange}
-                        placeholder="Expiration date (MM/YY)"
-                        className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        name="cardCvv"
-                        value={formData.cardCvv}
-                        onChange={handleChange}
-                        placeholder="CVV"
-                        className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      name="cardName"
-                      value={formData.cardName}
-                      onChange={handleChange}
-                      placeholder="Name on card"
-                      className="w-full h-11 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none"
-                    />
-
-                    <label className="flex items-center gap-2 text-xs text-gray-700 pt-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={useSameBilling}
-                        onChange={(e) => setUseSameBilling(e.target.checked)}
-                        className="w-4 h-4 rounded text-indigo-900 focus:ring-indigo-900"
-                      />
-                      Use shipping address as billing address
-                    </label>
-                  </div>
-                )}
-
-                {/* 2. QR Promptpay Option */}
-                <div
-                  onClick={() => setPaymentMethod('promptpay')}
-                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors border-b border-gray-100 ${paymentMethod === 'promptpay' ? 'bg-blue-50/20' : 'bg-white'}`}
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'promptpay'}
-                      onChange={() => setPaymentMethod('promptpay')}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    QR Promptpay
-                  </label>
-                  <div className="flex gap-1 items-center">
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-teal-700 text-white rounded">PromptPay</span>
-                  </div>
-                </div>
-
-                {/* 3. Cash on Delivery (COD) Option */}
-                <div
-                  onClick={() => setPaymentMethod('cod')}
-                  className={`p-4 flex justify-between items-center cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'bg-blue-50/20' : 'bg-white'}`}
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'cod'}
-                      onChange={() => setPaymentMethod('cod')}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    Cash on Delivery (COD)
-                  </label>
-                </div>
-
-              </div>
-            </div>
+            <div className="rounded-xl border border-gray-200 p-4 text-sm text-gray-700">Payment is collected on delivery. Placing this order does not charge a card.</div>
 
             {/* --- 2. Order Summary ตัวเต็มด้านล่างเพจ (สำหรับมือถือ) --- */}
             <div className="lg:hidden space-y-4 pt-6 border-t border-gray-200">
@@ -487,7 +354,7 @@ const CheckoutPage = () => {
                 disabled={loading}
                 className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
               >
-                {loading ? 'PROCESSING...' : 'PAY NOW'}
+                {loading ? 'PROCESSING...' : 'PLACE ORDER'}
               </button>
             </div>
 
@@ -551,7 +418,7 @@ const CheckoutPage = () => {
                 disabled={loading}
                 className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'PROCESSING...' : 'PAY NOW'}
+                {loading ? 'PROCESSING...' : 'PLACE ORDER'}
               </button>
             </div>
 

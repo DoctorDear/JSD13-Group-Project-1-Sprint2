@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { cartService } from "../services/cart.js";
 
 const Navbar = ({ page = "home", cartCount = 0 }) => {
   const isHome = page === "home";
@@ -10,18 +11,24 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
 
   // ซิงค์จำนวนสินค้าจาก localStorage และ props ที่ส่งมา
   useEffect(() => {
-    const updateCartCount = () => {
-      // อ่านค่าปัจจุบันทุกครั้ง เพื่อให้ badge อัปเดตเมื่อเพิ่มสินค้าในหน้า Product Detail
-      const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
-      const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-      setTotalItems(count);
+    const updateCartCount = async () => {
+      try {
+        const { cart = [] } = await cartService.get();
+        setTotalItems(cart.reduce((sum, item) => sum + item.quantity, 0));
+      } catch {
+        setTotalItems(0);
+      }
     };
 
     updateCartCount();
 
     // ฟัง event เผื่อมีการอัปเดตตะกร้าจากแท็บอื่นหรือหน้าอื่น
     window.addEventListener("storage", updateCartCount);
-    return () => window.removeEventListener("storage", updateCartCount);
+    window.addEventListener("cart-updated", updateCartCount);
+    return () => {
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("cart-updated", updateCartCount);
+    };
   }, [cartCount]);
 
   return (

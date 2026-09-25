@@ -40,6 +40,7 @@ export const getOrderById = async (req, res) => {
 
 // 2. ฟังก์ชันสร้างออเดอร์ใหม่ (Checkout)
 export const createOrder = async (req, res) => {
+  const reserved = [];
   try {
     const userId = req.user.userId;
     const { shippingAddress } = req.body;
@@ -78,7 +79,7 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      if (product.stock < item.quantity) {
+      if (product.quantity < item.quantity) {
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for product: ${product.name}`,
@@ -98,12 +99,18 @@ export const createOrder = async (req, res) => {
     }
 
     for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity },
-      });
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.productId, quantity: { $gte: item.quantity } },
+        { $inc: { quantity: -item.quantity } },
+      );
+      if (!updated) {
+        for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${item.name}` });
+      }
+      reserved.push(item);
     }
 
-    const orderNumber = `ZT-${Date.now()}`;
+    const orderNumber = `ZT-${new mongoose.Types.ObjectId().toString().toUpperCase()}`;
 
     const newOrder = await Order.create({
       userId,
@@ -122,6 +129,7 @@ export const createOrder = async (req, res) => {
       data: newOrder,
     });
   } catch (error) {
+    for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
     return res.status(500).json({
       success: false,
       message: "Server Error",

@@ -1,13 +1,11 @@
 const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
     // ไอดีของรายการสินค้าในตะกร้า
-    const itemId = item._id || item.id;
-
     // ดึงข้อมูลสินค้าที่ถูก Populate อยู่ข้างใน productId
     const product = item.productId || {};
 
-    const itemImage = product.image || product.imageUrl || item.image || '';
+    const itemImage = product.images?.[0] || product.image || product.imageUrl || item.image || '';
     const itemName = product.name || item.name || 'สินค้า';
-    const itemPrice = product.price ?? item.price ?? 0;
+    const itemPrice = item.price ?? product.price ?? 0;
 
     return (
         <div className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">

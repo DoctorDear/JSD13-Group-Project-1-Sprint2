@@ -16,7 +16,7 @@ import OrderHistory from "../components/ProfilePages/OrderHistory.jsx";
 function ProfileBody() {
   const { setUser: setAuthUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeMenu, setActiveMenu] = useState(() => searchParams.get("tab") === "reviews" ? "My Reviews" : "Home");
+  const [activeMenu, setActiveMenu] = useState(() => searchParams.get("tab") === "reviews" ? "My Reviews" : searchParams.get("tab") === "orders" ? "My Orders" : "Home");
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
@@ -41,7 +41,7 @@ function ProfileBody() {
 
   const handleMenuChange = (menu) => {
     setActiveMenu(menu);
-    setSearchParams(menu === "My Reviews" ? { tab: "reviews" } : {}, { replace: true });
+    setSearchParams(menu === "My Reviews" ? { tab: "reviews" } : menu === "My Orders" ? { tab: "orders" } : {}, { replace: true });
     setIsEditing(false);
     setIsViewingDetails(false);
   };

@@ -13,6 +13,7 @@ import {
 } from "./AdminUI";
 import { matches, stockStatus } from "./data";
 import { adminService } from "../services/adminService";
+import { validateProductForm } from "../lib/productForm.js";
 
 export function Inventory({ store, money }) {
   const [query, setQuery] = useState("");
@@ -159,6 +160,7 @@ export function ProductForm({ store }) {
   const navigate = useNavigate();
   const existing = store.products.find((p) => p.id === id);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   if (id && !existing && store.loading) {
@@ -190,6 +192,12 @@ export function ProductForm({ store }) {
 
     const form = Object.fromEntries(new FormData(e.currentTarget));
     for (const key of Object.keys(form)) form[key] = form[key].trim();
+    const validationErrors = validateProductForm(form);
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length) {
+      setSubmitting(false);
+      return;
+    }
 
     if (!form.name || !form.sku) {
       setSubmitting(false);
@@ -214,6 +222,8 @@ export function ProductForm({ store }) {
       originalPrice: form.originalPrice ? Number(form.originalPrice) : 0,
       cost: form.cost ? Number(form.cost) : 0,
       quantity: Number(form.stock),
+      date: form.date,
+      tag: form.tag.split(',').map((tag) => tag.trim()).filter(Boolean),
       brand: form.supplier || form.brand || "Adidas",
       images: form.imageUrl
         ? [form.imageUrl]
@@ -249,6 +259,7 @@ export function ProductForm({ store }) {
       <form
         className="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm sm:p-7"
         onSubmit={save}
+        noValidate
         key={id || "new"}
       >
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -261,6 +272,7 @@ export function ProductForm({ store }) {
             required
             maxLength={120}
           />
+          {fieldErrors.name && <p role="alert" className="text-error">{fieldErrors.name}</p>}
           <Field
             label="SKU"
             name="sku"
@@ -313,6 +325,7 @@ export function ProductForm({ store }) {
               rows={4}
             />
           </Field>
+          {fieldErrors.description && <p role="alert" className="text-error">{fieldErrors.description}</p>}
           <Field
             label="Selling Price (฿) *"
             name="price"
@@ -323,6 +336,7 @@ export function ProductForm({ store }) {
             defaultValue={existing?.price}
             required
           />
+          {fieldErrors.price && <p role="alert" className="text-error">{fieldErrors.price}</p>}
           <Field
             label="Original Price (฿) - ราคาตั้งต้นก่อนลด"
             name="originalPrice"
@@ -350,6 +364,11 @@ export function ProductForm({ store }) {
             defaultValue={existing?.stock ?? 0}
             required
           />
+          {fieldErrors.stock && <p role="alert" className="text-error">{fieldErrors.stock}</p>}
+          <Field label="Date" name="date" type="date" defaultValue={existing?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10)} required />
+          {fieldErrors.date && <p role="alert" className="text-error">{fieldErrors.date}</p>}
+          <Field label="Tags (comma separated)" name="tag" defaultValue={existing?.tag?.join(', ') || ''} required />
+          {fieldErrors.tag && <p role="alert" className="text-error">{fieldErrors.tag}</p>}
           <Field
             label="Reorder Level"
             name="reorder"
