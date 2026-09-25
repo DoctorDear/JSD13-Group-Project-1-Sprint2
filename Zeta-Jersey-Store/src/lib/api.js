@@ -80,7 +80,7 @@ export async function request(
 
     if (!res.ok) {
       if (res.status === 401) emitUnauthorized();
-      throw new ApiError(payload?.message || defaultMessage(res.status), {
+      throw new ApiError(payload?.message || payload?.error || defaultMessage(res.status), {
         status: res.status,
         code: payload?.code,
         fieldErrors: normaliseFieldErrors(payload),

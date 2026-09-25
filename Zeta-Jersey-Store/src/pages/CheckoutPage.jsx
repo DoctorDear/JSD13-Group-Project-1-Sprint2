@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -11,7 +11,14 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const cartItemsFromCart = location.state?.cartItems || [];
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [paymentOptions, setPaymentOptions] = useState({ card: false, promptpay: false });
+  const [paymentOptionsLoading, setPaymentOptionsLoading] = useState(true);
   const [deliveryLocation, setDeliveryLocation] = useState({ postalCode: '', province: '', district: '', subdistrict: '' });
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('new');
+  const [saveAddress, setSaveAddress] = useState(false);
+  const addressTouched = useRef(false);
 
   // State สำหรับเปิด-ปิด Order Summary ด้านบนบนมือถือ
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -35,9 +42,25 @@ const CheckoutPage = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const inputClass = (field) => `w-full h-14 px-4 rounded-xl border text-sm focus:outline-none focus:ring-2 ${fieldErrors[field] ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-900'}`;
 
   // ดึงข้อมูลตะกร้าสินค้าจาก Backend เมื่อโหลดหน้าเว็บ
   useEffect(() => {
+    orderService.getPaymentOptions()
+      .then((options) => {
+        setPaymentOptions(options);
+        setPaymentMethod((current) => current || (options.card ? 'card' : 'cod'));
+      })
+      .catch(() => setPaymentMethod((current) => current || 'cod'))
+      .finally(() => setPaymentOptionsLoading(false));
+    api.get('/users/profile').then(({ user }) => {
+      const addresses = user?.addresses || [];
+      setSavedAddresses(addresses);
+      setFormData((prev) => ({ ...prev, email: prev.email || user?.email || '' }));
+      const preferred = addresses.find((address) => address.isDefault) || addresses[0];
+      if (preferred && !addressTouched.current) applySavedAddress(preferred);
+    }).catch(() => {});
     const fetchCart = async () => {
       try {
         const response = await api.get('/users/cart');
@@ -70,42 +93,101 @@ const CheckoutPage = () => {
   // ฟังก์ชันจัดการการเปลี่ยนแปลงข้อมูลในฟอร์มและ Dropdown
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (['firstName', 'lastName', 'address', 'apartment', 'telephone'].includes(name)) {
+      addressTouched.current = true;
+      setSelectedAddressId('new');
+    }
 
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+    setErrorMessage('');
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const applySavedAddress = (address) => {
+    const [firstName = '', ...lastNameParts] = (address.recipientName || '').trim().split(/\s+/);
+    setSelectedAddressId(address._id);
+    setSaveAddress(false);
+    setFormData((prev) => ({
+      ...prev,
+      firstName,
+      lastName: lastNameParts.join(' '),
+      address: address.addressLine || '',
+      apartment: '',
+      telephone: address.phone || '',
+    }));
+    setDeliveryLocation({
+      province: address.province || '',
+      district: address.district || '',
+      subdistrict: address.subdistrict || '',
+      postalCode: address.postalCode || '',
+    });
+    setFieldErrors({});
+  };
+
+  const handleAddressSelection = (event) => {
+    addressTouched.current = true;
+    const address = savedAddresses.find((item) => item._id === event.target.value);
+    if (address) return applySavedAddress(address);
+    setSelectedAddressId('new');
+    setFormData((prev) => ({ ...prev, firstName: '', lastName: '', address: '', apartment: '', telephone: '' }));
+    setDeliveryLocation({ postalCode: '', province: '', district: '', subdistrict: '' });
+    setFieldErrors({});
   };
 
   const handlePayNow = async () => {
     setErrorMessage('');
 
+    if (paymentOptionsLoading || !paymentMethod) return;
     if (!cartItems.length) return setErrorMessage('Your cart is empty.');
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.address.trim() || !formData.telephone.trim() || !deliveryLocation.province || !deliveryLocation.postalCode) {
-      return setErrorMessage('Please complete your name, address, province, postal code, and telephone.');
+    const errors = {
+      firstName: formData.firstName.trim() ? '' : 'Enter your first name.',
+      lastName: formData.lastName.trim() ? '' : 'Enter your last name.',
+      address: formData.address.trim() ? '' : 'Enter your street address.',
+      telephone: formData.telephone.trim() ? '' : 'Enter your telephone number.',
+      location: deliveryLocation.province && deliveryLocation.postalCode ? '' : 'Choose your province and postal code.',
+    };
+    setFieldErrors(errors);
+    if (Object.values(errors).some(Boolean)) {
+      setErrorMessage('Please complete the highlighted fields.');
+      return;
     }
 
     try {
       setLoading(true);
 
-      const response = await orderService.create({
+      const shippingAddress = {
         recipientName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
         phone: formData.telephone.trim(),
         addressLine: [formData.address.trim(), formData.apartment.trim()].filter(Boolean).join(', '),
+        subdistrict: deliveryLocation.subdistrict,
         province: deliveryLocation.province,
         district: deliveryLocation.district,
         postalCode: deliveryLocation.postalCode,
-      });
+      };
+      if (saveAddress && selectedAddressId === 'new') {
+        const result = await api.post('/users/address', {
+          ...shippingAddress,
+          isDefault: savedAddresses.length === 0,
+        });
+        setSavedAddresses(result.addresses || []);
+        setSaveAddress(false);
+      }
+      if (paymentMethod !== 'cod') {
+        const checkout = await orderService.createCheckoutSession(shippingAddress, paymentMethod);
+        if (!checkout?.url) throw new Error('Stripe checkout link was not returned. Please try again.');
+        window.location.assign(checkout.url);
+        return;
+      }
+      const response = await orderService.create(shippingAddress, paymentMethod);
       window.dispatchEvent(new Event('cart-updated'));
-      navigate('/order-confirmation', {
-        state: {
-          orderData: { ...response.data, orderId: response.data.orderNumber }
-        }
-      });
+      navigate(`/order-confirmation?orderId=${response.data._id}`);
 
     } catch (error) {
       console.error('Payment failed:', error);
-      setErrorMessage(error.message || 'Failed to create order. Please try again.');
+      setErrorMessage(error.status ? `${error.message} (HTTP ${error.status})` : error.message || 'Failed to create order. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -231,6 +313,19 @@ const CheckoutPage = () => {
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Delivery</h2>
               <div className="space-y-3">
+                {savedAddresses.length > 0 && (
+                  <div>
+                    <label htmlFor="saved-address" className="mb-1 block text-sm font-medium text-gray-900">Shipping address</label>
+                    <select id="saved-address" value={selectedAddressId} onChange={handleAddressSelection} className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900">
+                      {savedAddresses.map((address) => (
+                        <option key={address._id} value={address._id}>
+                          {address.isDefault ? 'Default: ' : ''}{address.recipientName} — {address.addressLine}, {address.province} {address.postalCode}
+                        </option>
+                      ))}
+                      <option value="new">Use a new address</option>
+                    </select>
+                  </div>
+                )}
                 <div className="relative">
                   <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
                     Country/Region
@@ -246,24 +341,42 @@ const CheckoutPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="First name"
-                    className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
-                  />
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    placeholder="Last name"
-                    className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      placeholder="First name"
+                      aria-invalid={Boolean(fieldErrors.firstName)}
+                      className={inputClass('firstName')}
+                    />
+                    {fieldErrors.firstName && <p className="mt-1 text-xs text-red-600" role="alert">{fieldErrors.firstName}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      placeholder="Last name"
+                      aria-invalid={Boolean(fieldErrors.lastName)}
+                      className={inputClass('lastName')}
+                    />
+                    {fieldErrors.lastName && <p className="mt-1 text-xs text-red-600" role="alert">{fieldErrors.lastName}</p>}
+                  </div>
                 </div>
 
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Address"
+                  aria-invalid={Boolean(fieldErrors.address)}
+                  className={inputClass('address')}
+                />
+                {fieldErrors.address && <p className="-mt-2 text-xs text-red-600" role="alert">{fieldErrors.address}</p>}
                 <input
                   type="text"
                   name="apartment"
@@ -272,16 +385,17 @@ const CheckoutPage = () => {
                   placeholder="Apartment, suite, etc (optional)"
                   className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
                 />
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="Address"
-                  className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
-                />
 
-                <ThaiLocationFields value={deliveryLocation} onChange={setDeliveryLocation} />
+                <ThaiLocationFields
+                  value={deliveryLocation}
+                  onChange={(value) => {
+                    addressTouched.current = true;
+                    setSelectedAddressId('new');
+                    setDeliveryLocation(value);
+                    if (value.province && value.postalCode) setFieldErrors((prev) => ({ ...prev, location: '' }));
+                  }}
+                  error={fieldErrors.location}
+                />
 
                 <input
                   type="text"
@@ -289,8 +403,16 @@ const CheckoutPage = () => {
                   value={formData.telephone}
                   onChange={handleChange}
                   placeholder="Telephone"
-                  className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
+                  aria-invalid={Boolean(fieldErrors.telephone)}
+                  className={inputClass('telephone')}
                 />
+                {fieldErrors.telephone && <p className="-mt-2 text-xs text-red-600" role="alert">{fieldErrors.telephone}</p>}
+                {selectedAddressId === 'new' && (
+                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" checked={saveAddress} onChange={(event) => setSaveAddress(event.target.checked)} className="w-4 h-4 rounded text-indigo-900 focus:ring-indigo-900" />
+                    Save this address to my account
+                  </label>
+                )}
               </div>
             </div>
 
@@ -309,7 +431,28 @@ const CheckoutPage = () => {
               </select>
             </div>
 
-            <div className="rounded-xl border border-gray-200 p-4 text-sm text-gray-700">Payment is collected on delivery. Placing this order does not charge a card.</div>
+            <section aria-labelledby="payment-title">
+              <h2 id="payment-title" className="mb-4 text-xl font-bold text-gray-900">Payment</h2>
+              <p className="mb-3 text-xs text-gray-500">Card and PromptPay open Stripe test checkout. Cash on Delivery is paid on delivery.</p>
+              <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                {[
+                  { id: 'card', label: 'Credit Card', detail: paymentOptions.card ? 'Pay securely with Stripe test checkout' : 'Unavailable until Stripe test keys are configured', badges: 'VISA · MC', disabled: !paymentOptions.card },
+                  { id: 'promptpay', label: 'QR PromptPay', detail: paymentOptions.promptpay ? 'Pay with Stripe test checkout' : 'Unavailable for this Stripe test account', badges: 'PromptPay', disabled: !paymentOptions.promptpay },
+                  { id: 'cod', label: 'Cash on Delivery', detail: 'Pay when your order is delivered', badges: '' },
+                ].map((method, index) => (
+                  <label key={method.id} className={`flex items-center justify-between gap-4 p-4 ${method.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${index < 2 ? 'border-b border-gray-100' : ''} ${paymentMethod === method.id ? 'bg-blue-50/40' : ''}`}>
+                    <span className="flex items-center gap-3">
+                      <input type="radio" name="paymentMethod" value={method.id} checked={paymentMethod === method.id} disabled={method.disabled} onChange={() => setPaymentMethod(method.id)} />
+                      <span>
+                        <span className="block text-sm font-medium text-gray-900">{method.label}</span>
+                        <span className="block text-xs text-gray-500">{method.detail}</span>
+                      </span>
+                    </span>
+                    {method.badges && <span className="shrink-0 text-xs font-semibold text-gray-500">{method.badges}</span>}
+                  </label>
+                ))}
+              </div>
+            </section>
 
             {/* --- 2. Order Summary ตัวเต็มด้านล่างเพจ (สำหรับมือถือ) --- */}
             <div className="lg:hidden space-y-4 pt-6 border-t border-gray-200">
@@ -349,12 +492,13 @@ const CheckoutPage = () => {
             </div>
 
             <div className="lg:hidden pt-2">
+              {errorMessage && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{errorMessage}</p>}
               <button
                 onClick={handlePayNow}
-                disabled={loading}
+                disabled={loading || paymentOptionsLoading}
                 className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
               >
-                {loading ? 'PROCESSING...' : 'PLACE ORDER'}
+                {loading || paymentOptionsLoading ? 'PROCESSING...' : 'PLACE ORDER'}
               </button>
             </div>
 
@@ -413,12 +557,13 @@ const CheckoutPage = () => {
             </div>
 
             <div className="pt-2">
+              {errorMessage && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{errorMessage}</p>}
               <button
                 onClick={handlePayNow}
-                disabled={loading}
+                disabled={loading || paymentOptionsLoading}
                 className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'PROCESSING...' : 'PLACE ORDER'}
+                {loading || paymentOptionsLoading ? 'PROCESSING...' : 'PLACE ORDER'}
               </button>
             </div>
 
