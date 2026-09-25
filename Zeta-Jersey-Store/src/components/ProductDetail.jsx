@@ -4,6 +4,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
 import { api } from "../lib/api.js";
 import { cartService } from "../services/cart.js";
+import { useAuth } from '../contexts/AuthContext.jsx';
 import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
@@ -16,6 +17,7 @@ const ProductDetail = () => {
   const [adding, setAdding] = useState(false);
   const { id } = useParams();
   const location = useLocation();
+  const { isAuthenticated, booting } = useAuth();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -47,12 +49,10 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
-  // ฟังก์ชันเพิ่มสินค้าลงตะกร้า (บันทึกลง localStorage ทันทีโดยไม่ต้องเช็ค Login)
-  // ฟังก์ชันเพิ่มสินค้าลงตะกร้าแบบเบ็ดเสร็จในตัว (ไม่พึ่งพาฟังก์ชันนอก)
   const handleAddToCart = async () => {
     try {
       setAdding(true);
-      await cartService.add({ productId: product._id, size: selectedSize, quantity: 1 });
+      await cartService.add({ productId: product._id, product, size: selectedSize, quantity: 1 }, { guest: !isAuthenticated });
       window.dispatchEvent(new Event("cart-updated"));
       alert("Added to cart successfully!");
 
@@ -236,7 +236,7 @@ const ProductDetail = () => {
               <div className="flex w-full gap-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={adding}
+                  disabled={adding || booting}
                   className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90 disabled:opacity-60"
                 >
                   <ShoppingBag size={19} />

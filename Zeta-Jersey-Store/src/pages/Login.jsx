@@ -32,7 +32,11 @@ export default function Login() {
     { email: state?.email || "", password: "" },
     schema,
     async (values, { signal }) => {
-      await login(values, { signal });
+      const result = await login(values, { signal });
+      if (result.cartSyncFailed) {
+        navigate('/cart');
+        return;
+      }
       navigate("/auth/login-success", { state: { from: state?.from?.pathname || "/" } });
     }
   );

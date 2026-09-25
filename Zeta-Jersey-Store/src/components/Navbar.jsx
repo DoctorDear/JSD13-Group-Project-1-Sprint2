@@ -3,17 +3,20 @@ import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { cartService } from "../services/cart.js";
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 const Navbar = ({ page = "home", cartCount = 0 }) => {
   const isHome = page === "home";
   const navigate = useNavigate();
+  const { isAuthenticated, booting } = useAuth();
   const [totalItems, setTotalItems] = useState(cartCount);
 
   // ซิงค์จำนวนสินค้าจาก localStorage และ props ที่ส่งมา
   useEffect(() => {
+    if (booting) return;
     const updateCartCount = async () => {
       try {
-        const { cart = [] } = await cartService.get();
+        const { cart = [] } = await cartService.get({ guest: !isAuthenticated });
         setTotalItems(cart.reduce((sum, item) => sum + item.quantity, 0));
       } catch {
         setTotalItems(0);
@@ -29,7 +32,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
       window.removeEventListener("storage", updateCartCount);
       window.removeEventListener("cart-updated", updateCartCount);
     };
-  }, [cartCount]);
+  }, [cartCount, isAuthenticated, booting]);
 
   return (
     <>

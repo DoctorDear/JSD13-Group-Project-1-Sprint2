@@ -4,18 +4,27 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { cartService } from '../services/cart.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 const CartPage = () => {
     const navigate = useNavigate();
+    const { isAuthenticated, booting } = useAuth();
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [discountCode, setDiscountCode] = useState('');
     const [error, setError] = useState('');
 
-    // 1. ดึงข้อมูลตะกร้าจาก localStorage เมื่อเข้าหน้า CartPage
     useEffect(() => {
+        if (booting) return;
         let active = true;
-        cartService.get().then((response) => {
+        const fetchCart = async () => {
+            if (isAuthenticated) {
+                try { await cartService.mergeGuest(); }
+                catch { if (active) setError('Some saved items could not be added. Refresh the cart to try again.'); }
+            }
+            return cartService.get({ guest: !isAuthenticated });
+        };
+        fetchCart().then((response) => {
             if (active) setCartItems(response.cart || []);
         }).catch((err) => {
             if (active) setError(err.message);
@@ -23,13 +32,13 @@ const CartPage = () => {
             if (active) setLoading(false);
         });
         return () => { active = false; };
-    }, []);
+    }, [booting, isAuthenticated]);
 
     // 2. ฟังก์ชันอัปเดตจำนวนสินค้า (quantity) และบันทึกลง localStorage ทันที
     const handleUpdateQuantity = async (id, newQuantity) => {
         if (newQuantity < 1) return; // ป้องกันจำนวนน้อยกว่า 1
         try {
-            const response = await cartService.update(id, newQuantity);
+            const response = await cartService.update(id, newQuantity, { guest: !isAuthenticated });
             setCartItems(response.cart || []);
             setError('');
             window.dispatchEvent(new Event('cart-updated'));
@@ -39,7 +48,7 @@ const CartPage = () => {
     // 3. ฟังก์ชันลบสินค้าออกจากตะกร้าและอัปเดต localStorage
     const handleRemoveItem = async (id) => {
         try {
-            const response = await cartService.remove(id);
+            const response = await cartService.remove(id, { guest: !isAuthenticated });
             setCartItems(response.cart || []);
             setError('');
             window.dispatchEvent(new Event('cart-updated'));
@@ -48,6 +57,10 @@ const CartPage = () => {
 
     // ฟังก์ชันสร้างคำสั่งซื้อเมื่อกด Go to Checkout
     const handleGoToCheckout = () => {
+        if (!isAuthenticated) {
+            navigate('/auth/login', { state: { from: { pathname: '/checkout' } } });
+            return;
+        }
         const checkoutData = {
             cartItems,
             summary: {
@@ -143,7 +156,7 @@ const CartPage = () => {
                             disabled={!cartItems.length}
                             className="w-full h-12 mt-4 bg-indigo-900 hover:bg-indigo-800 text-white font-semibold rounded-full transition-colors shadow-sm"
                         >
-                            Go to Checkout
+                            {isAuthenticated ? 'Go to Checkout' : 'Log in to checkout'}
                         </button>
                     </div>
                 </div>
