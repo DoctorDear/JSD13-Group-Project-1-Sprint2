@@ -2,9 +2,9 @@ const CheckOutItemCard = ({ item, image, title, size, price, quantity }) => {
     // รองรับทั้งแบบรับ prop เดี่ยวๆ และแบบรับก้อน item={item}
     const targetItem = item || { image, title, size, price, quantity };
 
-    // เช็คชื่อฟิลด์รูปภาพและชื่อสินค้าเผื่อกรณีที่ API ตั้งชื่อฟิลด์ต่างกัน
-    const imgSrc = targetItem.image || targetItem.imageUrl || targetItem.img || '';
-    const itemTitle = targetItem.title || targetItem.name || targetItem.productName || 'Product Name';
+    const product = targetItem.productId || {};
+    const imgSrc = product.images?.[0] || product.image || product.imageUrl || targetItem.image || targetItem.imageUrl || targetItem.img || '';
+    const itemTitle = product.name || targetItem.title || targetItem.name || targetItem.productName || 'Product Name';
     const itemSize = targetItem.size || targetItem.selectedSize || '-';
     const itemPrice = targetItem.productId?.price ?? targetItem.price ?? targetItem.unitPrice ?? 0;
     const itemQty = targetItem.quantity || targetItem.qty || 1;
