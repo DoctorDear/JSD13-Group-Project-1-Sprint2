@@ -82,7 +82,7 @@ export const createOrder = async (req, res) => {
 
       const product = await Product.findById(prodId);
 
-      if (!product) {
+      if (!product || product.isActive === false) {
         return res.status(404).json({
           success: false,
           message: `Product not found`,

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import SuccessLayout from "../components/SuccessLayout";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/authContext.js";
 import { loginReturnPath } from "../lib/loginReturnPath.js";
 
 const HERO =

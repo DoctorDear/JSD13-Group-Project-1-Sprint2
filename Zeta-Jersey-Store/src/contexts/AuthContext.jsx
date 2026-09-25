@@ -1,12 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { authService } from "../services/auth";
 import { onUnauthorized } from "../lib/api";
 import { authUserFromResponse } from "./authUser";
 import { cartService } from '../services/cart.js';
-
-
-
-export const AuthContext = createContext(null);
+import { AuthContext } from './authContext.js';
 
 
 
@@ -62,10 +59,4 @@ export function AuthProvider({ children }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
-  return ctx;
 }

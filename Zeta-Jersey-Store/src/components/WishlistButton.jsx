@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/authContext.js";
 import { useWishlist } from "../contexts/wishlistContext.js";
 import { isWishlistProductId, wishlistHasProduct } from "../lib/wishlistModel.js";
 

@@ -25,7 +25,7 @@ import {
   Home,
 } from "lucide-react";
 import logo from "../assets/logo/Zeta_Default_Logo_Crop.png";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/authContext.js";
 import { useAdminStore } from "./useAdminStore";
 import Overview from "./Overview";
 import { Inventory, ProductForm } from "./Inventory";

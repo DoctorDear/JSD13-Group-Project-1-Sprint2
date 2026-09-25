@@ -3,7 +3,7 @@ import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cartService } from "../services/cart.js";
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../contexts/authContext.js';
 import UserMenu from './UserMenu.jsx';
 
 function ProductSearch({ isHome, location, navigate }) {

@@ -6,7 +6,7 @@ const CheckOutItemCard = ({ item, image, title, size, price, quantity }) => {
     const imgSrc = targetItem.image || targetItem.imageUrl || targetItem.img || '';
     const itemTitle = targetItem.title || targetItem.name || targetItem.productName || 'Product Name';
     const itemSize = targetItem.size || targetItem.selectedSize || '-';
-    const itemPrice = targetItem.price || targetItem.unitPrice || 0;
+    const itemPrice = targetItem.productId?.price ?? targetItem.price ?? targetItem.unitPrice ?? 0;
     const itemQty = targetItem.quantity || targetItem.qty || 1;
 
     return (

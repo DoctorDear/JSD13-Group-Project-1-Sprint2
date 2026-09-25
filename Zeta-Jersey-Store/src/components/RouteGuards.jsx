@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/authContext.js";
 import { loginReturnPath } from "../lib/loginReturnPath.js";
 
 function Splash() {
