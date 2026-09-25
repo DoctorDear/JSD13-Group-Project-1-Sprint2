@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Avatar from "./Avatar";
-import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { CircleUser, LayoutDashboard, LogOut, Settings, UserRound } from "lucide-react";
 
-export default function UserMenu() {
+export default function UserMenu({ isHome }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -36,16 +36,12 @@ export default function UserMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-label="Profile menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full p-1 pr-2 text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/70"
+        className={`cursor-pointer rounded-xl p-2 text-white transition hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-white/70 ${isHome ? "hover:text-zeta-main hover:bg-zeta-sub/35" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"}`}
       >
-        <Avatar user={user} />
-        <span className="hidden max-w-32 text-left sm:block">
-          <strong className="block truncate text-sm">{[user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email}</strong>
-          <small className="block text-xs text-white/70">My account</small>
-        </span>
-        <ChevronDown className={`hidden size-4 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
+        <CircleUser className="h-6 w-6" />
       </button>
 
       {open && (
@@ -61,6 +57,17 @@ export default function UserMenu() {
             </div>
           </div>
 
+          {user?.role === "admin" && (
+            <Link
+              to="/admin"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-50"
+            >
+              <LayoutDashboard size={18} />
+              Admin dashboard
+            </Link>
+          )}
           <Link
             to="/profile"
             role="menuitem"

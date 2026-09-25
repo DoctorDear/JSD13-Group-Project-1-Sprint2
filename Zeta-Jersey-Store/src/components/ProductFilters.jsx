@@ -50,6 +50,7 @@ function CheckboxOption({ label, selected, onClick }) {
   return (
     <button
       type="button"
+      aria-pressed={selected}
       onClick={onClick}
       className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
     >
@@ -65,15 +66,15 @@ function CheckboxOption({ label, selected, onClick }) {
   );
 }
 
-function SingleSelectPanel({ label, items, selected, onChange }) {
+function MultiSelectPanel({ label, items, selected, onChange, allLabel = `All ${label.toLowerCase()}` }) {
   return (
     <div className="pt-5">
       <div className="mb-2 flex items-center justify-between pr-8">
         <p className="text-sm font-bold text-gray-900">{label}</p>
-        {selected && (
+        {selected.length > 0 && (
           <button
             type="button"
-            onClick={() => onChange("")}
+            onClick={() => onChange([])}
             className="text-xs font-semibold text-zeta-main hover:underline"
           >
             Clear
@@ -81,13 +82,16 @@ function SingleSelectPanel({ label, items, selected, onChange }) {
         )}
       </div>
       <div className="max-h-64 overflow-y-auto">
-        <CheckboxOption label={`All ${label.toLowerCase()}`} selected={!selected} onClick={() => onChange("")} />
+        <CheckboxOption label={allLabel} selected={selected.length === 0} onClick={() => onChange([])} />
         {items.map((item) => (
           <CheckboxOption
-            key={item}
-            label={item}
-            selected={selected === item}
-            onClick={() => onChange(item)}
+            key={typeof item === "string" ? item : item.value}
+            label={typeof item === "string" ? item : item.label}
+            selected={selected.includes(typeof item === "string" ? item : item.value)}
+            onClick={() => {
+              const value = typeof item === "string" ? item : item.value;
+              onChange(selected.includes(value) ? selected.filter((choice) => choice !== value) : [...selected, value]);
+            }}
           />
         ))}
       </div>
@@ -157,12 +161,12 @@ export default function ProductFilters({ options, values, onChange, onClear, pri
         <FilterDropdown
           id="team"
           label="Team"
-          active={Boolean(values.team)}
+          active={values.team.length > 0}
           open={openFilter === "team"}
           onToggle={toggleFilter}
           onClose={() => setOpenFilter(null)}
         >
-          <SingleSelectPanel
+          <MultiSelectPanel
             label="Teams"
             items={options.teams}
             selected={values.team}
@@ -173,12 +177,12 @@ export default function ProductFilters({ options, values, onChange, onClear, pri
         <FilterDropdown
           id="league"
           label="League"
-          active={Boolean(values.league)}
+          active={values.league.length > 0}
           open={openFilter === "league"}
           onToggle={toggleFilter}
           onClose={() => setOpenFilter(null)}
         >
-          <SingleSelectPanel
+          <MultiSelectPanel
             label="Leagues"
             items={options.leagues}
             selected={values.league}
@@ -189,12 +193,12 @@ export default function ProductFilters({ options, values, onChange, onClear, pri
         <FilterDropdown
           id="collection"
           label="Collection"
-          active={Boolean(values.collection)}
+          active={values.collection.length > 0}
           open={openFilter === "collection"}
           onToggle={toggleFilter}
           onClose={() => setOpenFilter(null)}
         >
-          <SingleSelectPanel
+          <MultiSelectPanel
             label="Collections"
             items={options.collections}
             selected={values.collection}
@@ -205,12 +209,12 @@ export default function ProductFilters({ options, values, onChange, onClear, pri
         <FilterDropdown
           id="edition"
           label="Edition"
-          active={Boolean(values.edition)}
+          active={values.edition.length > 0}
           open={openFilter === "edition"}
           onToggle={toggleFilter}
           onClose={() => setOpenFilter(null)}
         >
-          <SingleSelectPanel
+          <MultiSelectPanel
             label="Editions"
             items={options.editions}
             selected={values.edition}
@@ -285,41 +289,35 @@ export default function ProductFilters({ options, values, onChange, onClear, pri
         <FilterDropdown
           id="availability"
           label="Availability"
-          active={values.availableOnly}
+          active={values.availability.length > 0}
           open={openFilter === "availability"}
           onToggle={toggleFilter}
           onClose={() => setOpenFilter(null)}
         >
-          <div className="pt-5">
-            <CheckboxOption
-              label="In stock only"
-              selected={values.availableOnly}
-              onClick={() => onChange.availableOnly(!values.availableOnly)}
-            />
-          </div>
+          <MultiSelectPanel
+            label="Availability"
+            allLabel="Any availability"
+            items={[{ value: "yes", label: "In stock" }, { value: "no", label: "Out of stock" }]}
+            selected={values.availability}
+            onChange={onChange.availability}
+          />
         </FilterDropdown>
 
         <FilterDropdown
           id="sale"
           label="On sale"
-          active={Boolean(values.onSale)}
+          active={values.onSale.length > 0}
           open={openFilter === "sale"}
           onToggle={toggleFilter}
           onClose={() => setOpenFilter(null)}
         >
-          <div className="pt-5">
-            <p className="mb-2 text-sm font-bold text-gray-900">On sale</p>
-            <CheckboxOption
-              label="Yes"
-              selected={values.onSale === "yes"}
-              onClick={() => onChange.onSale("yes")}
-            />
-            <CheckboxOption
-              label="No"
-              selected={values.onSale === "no"}
-              onClick={() => onChange.onSale("no")}
-            />
-          </div>
+          <MultiSelectPanel
+            label="On sale"
+            allLabel="Any sale status"
+            items={[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }]}
+            selected={values.onSale}
+            onChange={onChange.onSale}
+          />
         </FilterDropdown>
 
         <button
