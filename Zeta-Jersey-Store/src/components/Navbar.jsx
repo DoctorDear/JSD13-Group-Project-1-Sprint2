@@ -4,6 +4,7 @@ import { Heart, ShoppingCart, CircleUser } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { cartService } from "../services/cart.js";
 import { useAuth } from '../contexts/AuthContext.jsx';
+import UserMenu from './UserMenu.jsx';
 
 const Navbar = ({ page = "home", cartCount = 0 }) => {
   const isHome = page === "home";
@@ -156,17 +157,19 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
               )}
             </button>
 
-            <Link
-              to="/profile"
-              aria-label="Profile"
-              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
-                isHome
-                  ? "hover:text-zeta-main hover:bg-zeta-sub/35"
-                  : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-              }`}
-            >
-              <CircleUser className="w-6 h-6" />
-            </Link>
+            {isAuthenticated ? <UserMenu /> : (
+              <Link
+                to="/auth/login"
+                aria-label="Sign in"
+                className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                  isHome
+                    ? "hover:text-zeta-main hover:bg-zeta-sub/35"
+                    : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+                }`}
+              >
+                <CircleUser className="w-6 h-6" />
+              </Link>
+            )}
           </div>
         </div>
       </nav>

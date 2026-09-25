@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Avatar from "./Avatar";
+import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 
 export default function UserMenu() {
   const { user, logout } = useAuth();
@@ -23,8 +24,11 @@ export default function UserMenu() {
 
   const handleLogout = async () => {
     setOpen(false);
-    await logout();
-    navigate("/login", { replace: true });
+    try {
+      await logout();
+    } finally {
+      navigate("/auth/login", { replace: true });
+    }
   };
 
   return (
@@ -34,47 +38,45 @@ export default function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full p-1 pr-3 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-lime-400"
+        className="flex items-center gap-2 rounded-full p-1 pr-2 text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/70"
       >
         <Avatar user={user} />
-        <span className="hidden text-sm font-medium text-white sm:block">
-          {user?.firstName || user?.email}
+        <span className="hidden max-w-32 text-left sm:block">
+          <strong className="block truncate text-sm">{[user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email}</strong>
+          <small className="block text-xs text-white/70">My account</small>
         </span>
-        <svg
-          className={`h-4 w-4 fill-white transition-transform ${open ? "rotate-180" : ""}`}
-          viewBox="0 0 20 20"
-          aria-hidden="true"
-        >
-          <path d="M5.3 7.3l4.7 4.7 4.7-4.7 1.4 1.4-6.1 6.1-6.1-6.1z" />
-        </svg>
+        <ChevronDown className={`hidden size-4 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5"
+          className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl bg-white text-gray-900 shadow-2xl ring-1 ring-black/5"
         >
-          <div className="border-b border-gray-100 px-4 py-3">
-            <p className="truncate font-semibold text-gray-900">
-              {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Account"}
-            </p>
-            <p className="truncate text-sm text-gray-500">{user?.email}</p>
+          <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-4">
+            <Avatar user={user} />
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{[user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Account"}</p>
+              <p className="truncate text-sm text-gray-500">{user?.email}</p>
+            </div>
           </div>
 
           <Link
             to="/profile"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
+            className="flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-50"
           >
+            <UserRound size={18} />
             Profile
           </Link>
           <Link
             to="/settings"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
+            className="flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-50"
           >
+            <Settings size={18} />
             Settings
           </Link>
 
@@ -82,9 +84,10 @@ export default function UserMenu() {
             type="button"
             role="menuitem"
             onClick={handleLogout}
-            className="w-full border-t border-gray-100 px-4 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+            className="flex w-full items-center gap-3 border-t border-gray-100 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
           >
-            Log out
+            <LogOut size={18} />
+            Sign out
           </button>
         </div>
       )}

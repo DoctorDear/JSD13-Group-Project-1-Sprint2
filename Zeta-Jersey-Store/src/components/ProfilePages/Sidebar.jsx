@@ -5,9 +5,10 @@ import {
   Package,
   MessageSquareText,
   UserRound,
+  LogOut,
 } from "lucide-react";
 
-function Sidebar({ activeMenu, onMenuChange }) {
+function Sidebar({ activeMenu, onMenuChange, onSignOut }) {
   const menuItems = [
     { label: "Home", icon: House },
     { label: "My Account", icon: UserRound },
@@ -36,6 +37,9 @@ function Sidebar({ activeMenu, onMenuChange }) {
               <span>{label}</span>
             </button>
           ))}
+          <button type="button" onClick={onSignOut} className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50">
+            <LogOut size={15} /> Sign out
+          </button>
         </div>
       </div>
 
@@ -60,6 +64,10 @@ function Sidebar({ activeMenu, onMenuChange }) {
             </button>
           ))}
         </nav>
+        <button type="button" onClick={onSignOut} className="mt-6 flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50">
+          <span className="grid size-7 place-items-center rounded-sm bg-red-50"><LogOut size={16} strokeWidth={2.5} /></span>
+          Sign out
+        </button>
       </aside>
     </>
   );
