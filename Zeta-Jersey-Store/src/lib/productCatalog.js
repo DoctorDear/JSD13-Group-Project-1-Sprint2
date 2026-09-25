@@ -96,7 +96,7 @@ export function filterProducts(products, filters) {
     edition,
     minPrice,
     maxPrice,
-    availableOnly,
+    availability,
     onSale,
   } = filters;
   const query = normalise(search);
@@ -118,19 +118,18 @@ export function filterProducts(products, filters) {
     );
     const productPrice = Number(product.price) || 0;
     const hasEdition =
-      !edition || getProductEditions(product).some((item) => item === edition);
+      edition.length === 0 || getProductEditions(product).some((item) => edition.includes(item));
 
     return (
       (!query || productText.includes(query)) &&
-      (!team || getProductTeam(product) === team) &&
-      (!league || getProductLeague(product) === league) &&
-      (!collection || getProductCollection(product) === collection) &&
+      (team.length === 0 || team.includes(getProductTeam(product))) &&
+      (league.length === 0 || league.includes(getProductLeague(product))) &&
+      (collection.length === 0 || collection.includes(getProductCollection(product))) &&
       hasEdition &&
       productPrice >= minimum &&
       productPrice <= maximum &&
-      (!availableOnly || isProductAvailable(product)) &&
-      (!onSale ||
-        (onSale === "yes" ? isProductOnSale(product) : !isProductOnSale(product)))
+      (availability.length === 0 || availability.includes(isProductAvailable(product) ? "yes" : "no")) &&
+      (onSale.length === 0 || onSale.includes(isProductOnSale(product) ? "yes" : "no"))
     );
   });
 }

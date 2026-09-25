@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { userService } from "../services/user.js";
 import { buildProfileUpdate, toProfileView } from "../lib/profileForm.js";
@@ -15,7 +15,8 @@ import OrderHistory from "../components/ProfilePages/OrderHistory.jsx";
 import WishlistSection from "../components/ProfilePages/WishlistSection.jsx";
 
 function ProfileBody() {
-  const { setUser: setAuthUser } = useAuth();
+  const { setUser: setAuthUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedMenu, setSelectedMenu] = useState("Home");
   const tab = searchParams.get("tab");
@@ -87,6 +88,14 @@ function ProfileBody() {
 
   const handleBackFromDetails = () => {
     setIsViewingDetails(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate("/auth/login", { replace: true });
+    }
   };
 
   const renderContent = () => {
@@ -174,7 +183,7 @@ function ProfileBody() {
       <Navbar page="profile" />
       <main className="min-h-screen w-full overflow-x-hidden bg-[#f5f7f2] text-[#18251e]">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:gap-8">
-          <Sidebar activeMenu={activeMenu} onMenuChange={handleMenuChange} />
+          <Sidebar activeMenu={activeMenu} onMenuChange={handleMenuChange} onSignOut={handleSignOut} />
           <section className="min-w-0 flex-1">
             <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-9">
               {renderContent()}

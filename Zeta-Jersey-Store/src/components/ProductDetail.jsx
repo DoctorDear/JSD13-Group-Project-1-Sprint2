@@ -1,5 +1,5 @@
 import { Ruler, ShoppingBag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
 import { api } from "../lib/api.js";
@@ -40,9 +40,13 @@ const ProductDetail = () => {
     return () => controller.abort();
   }, [id]);
 
-  useEffect(() => {
-    if (!loading && product && location.hash === "#reviews") {
+  useLayoutEffect(() => {
+    if (loading || !product) return;
+
+    if (location.hash === "#reviews") {
       document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo(0, 0);
     }
   }, [loading, product, location.hash]);
 

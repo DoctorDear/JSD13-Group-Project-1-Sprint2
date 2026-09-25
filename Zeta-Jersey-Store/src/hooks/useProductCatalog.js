@@ -17,24 +17,29 @@ export default function useProductCatalog() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState(() => searchParams.get("search") || "");
-  const [team, setTeam] = useState(() => searchParams.get("team") || "");
-  const [league, setLeague] = useState(
-    () => searchParams.get("league") || searchParams.get("category") || "",
-  );
-  const [collection, setCollection] = useState(() => searchParams.get("collection") || "");
-  const [edition, setEdition] = useState(() => searchParams.get("edition") || "");
+  const search = searchParams.get("search") || "";
+  const [team, setTeam] = useState(() => searchParams.getAll("team").filter(Boolean));
+  const [league, setLeague] = useState(() => {
+    const values = searchParams.getAll("league").filter(Boolean);
+    return values.length ? values : searchParams.get("category") ? [searchParams.get("category")] : [];
+  });
+  const [collection, setCollection] = useState(() => searchParams.getAll("collection").filter(Boolean));
+  const [edition, setEdition] = useState(() => searchParams.getAll("edition").filter(Boolean));
   const [minPrice, setMinPrice] = useState(() => searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(() => searchParams.get("maxPrice") || "");
-  const [availableOnly, setAvailableOnly] = useState(
-    () => searchParams.get("available") === "true",
-  );
-  const [onSale, setOnSale] = useState(() => {
-    const value = searchParams.get("onSale");
-    return value === "true" ? "yes" : value === "false" ? "no" : value || "";
-  });
+  const readChoiceValues = (key) => searchParams.getAll(key)
+    .map((value) => value === "true" ? "yes" : value === "false" ? "no" : value)
+    .filter((value) => value === "yes" || value === "no");
+  const [availability, setAvailability] = useState(() => readChoiceValues("available"));
+  const [onSale, setOnSale] = useState(() => readChoiceValues("onSale"));
   const [sort, setSort] = useState(() => searchParams.get("sort") || "featured");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    // A new URL search starts at the first page of results.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [search]);
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -72,14 +77,14 @@ export default function useProductCatalog() {
   useEffect(() => {
     const nextParams = new URLSearchParams();
     if (search.trim()) nextParams.set("search", search.trim());
-    if (team) nextParams.set("team", team);
-    if (league) nextParams.set("league", league);
-    if (collection) nextParams.set("collection", collection);
-    if (edition) nextParams.set("edition", edition);
+    team.forEach((value) => nextParams.append("team", value));
+    league.forEach((value) => nextParams.append("league", value));
+    collection.forEach((value) => nextParams.append("collection", value));
+    edition.forEach((value) => nextParams.append("edition", value));
     if (minPrice) nextParams.set("minPrice", minPrice);
     if (maxPrice) nextParams.set("maxPrice", maxPrice);
-    if (availableOnly) nextParams.set("available", "true");
-    if (onSale) nextParams.set("onSale", onSale);
+    availability.forEach((value) => nextParams.append("available", value));
+    onSale.forEach((value) => nextParams.append("onSale", value));
     if (sort !== "featured") nextParams.set("sort", sort);
 
     setSearchParams(nextParams, { replace: true });
@@ -91,7 +96,7 @@ export default function useProductCatalog() {
     edition,
     minPrice,
     maxPrice,
-    availableOnly,
+    availability,
     onSale,
     sort,
     setSearchParams,
@@ -106,7 +111,7 @@ export default function useProductCatalog() {
       edition,
       minPrice,
       maxPrice,
-      availableOnly,
+      availability,
       onSale,
       sort,
     }),
@@ -118,7 +123,7 @@ export default function useProductCatalog() {
       edition,
       minPrice,
       maxPrice,
-      availableOnly,
+      availability,
       onSale,
       sort,
     ],
@@ -146,38 +151,50 @@ export default function useProductCatalog() {
   };
 
   const actions = {
-    search: updateFilter(setSearch),
+    search: (value) => {
+      setPage(1);
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        if (value.trim()) next.set("search", value.trim());
+        else next.delete("search");
+        return next;
+      }, { replace: true });
+    },
     team: updateFilter(setTeam),
     league: updateFilter(setLeague),
     collection: updateFilter(setCollection),
     edition: updateFilter(setEdition),
     minPrice: updateFilter(setMinPrice),
     maxPrice: updateFilter(setMaxPrice),
-    availableOnly: updateFilter(setAvailableOnly),
+    availability: updateFilter(setAvailability),
     onSale: updateFilter(setOnSale),
     sort: updateFilter(setSort),
   };
 
   const clearFilters = () => {
     setPage(1);
-    setSearch("");
-    setTeam("");
-    setLeague("");
-    setCollection("");
-    setEdition("");
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("search");
+      return next;
+    }, { replace: true });
+    setTeam([]);
+    setLeague([]);
+    setCollection([]);
+    setEdition([]);
     setMinPrice("");
     setMaxPrice("");
-    setAvailableOnly(false);
-    setOnSale("");
+    setAvailability([]);
+    setOnSale([]);
     setSort("featured");
   };
 
   const activeFilters = [
     search && { label: `Search: ${search}`, clear: () => actions.search("") },
-    team && { label: team, clear: () => actions.team("") },
-    league && { label: league, clear: () => actions.league("") },
-    collection && { label: collection, clear: () => actions.collection("") },
-    edition && { label: edition, clear: () => actions.edition("") },
+    ...team.map((value) => ({ label: `Team: ${value}`, clear: () => actions.team(team.filter((item) => item !== value)) })),
+    ...league.map((value) => ({ label: `League: ${value}`, clear: () => actions.league(league.filter((item) => item !== value)) })),
+    ...collection.map((value) => ({ label: `Collection: ${value}`, clear: () => actions.collection(collection.filter((item) => item !== value)) })),
+    ...edition.map((value) => ({ label: `Edition: ${value}`, clear: () => actions.edition(edition.filter((item) => item !== value)) })),
     minPrice && {
       label: `From ${formatProductPrice(minPrice)}`,
       clear: () => actions.minPrice(""),
@@ -186,14 +203,14 @@ export default function useProductCatalog() {
       label: `Up to ${formatProductPrice(maxPrice)}`,
       clear: () => actions.maxPrice(""),
     },
-    availableOnly && {
-      label: "In stock",
-      clear: () => actions.availableOnly(false),
-    },
-    onSale && {
-      label: `On sale: ${onSale === "yes" ? "Yes" : "No"}`,
-      clear: () => actions.onSale(""),
-    },
+    ...availability.map((value) => ({
+      label: `Availability: ${value === "yes" ? "In stock" : "Out of stock"}`,
+      clear: () => actions.availability(availability.filter((item) => item !== value)),
+    })),
+    ...onSale.map((value) => ({
+      label: `On sale: ${value === "yes" ? "Yes" : "No"}`,
+      clear: () => actions.onSale(onSale.filter((item) => item !== value)),
+    })),
   ].filter(Boolean);
 
   return {

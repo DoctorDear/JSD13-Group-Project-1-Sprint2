@@ -1,13 +1,55 @@
 import { useState, useEffect } from "react";
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, CircleUser } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cartService } from "../services/cart.js";
 import { useAuth } from '../contexts/AuthContext.jsx';
+import UserMenu from './UserMenu.jsx';
+
+function ProductSearch({ isHome, location, navigate }) {
+  const [searchInput, setSearchInput] = useState(() =>
+    location.pathname === "/products" ? new URLSearchParams(location.search).get("search") || "" : ""
+  );
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const params = new URLSearchParams(location.pathname === "/products" ? location.search : "");
+    const query = searchInput.trim();
+    if (query) params.set("search", query);
+    else params.delete("search");
+    navigate(`/products${params.size ? `?${params}` : ""}`);
+  };
+
+  return (
+    <form
+      role="search"
+      onSubmit={handleSearch}
+      className={`input rounded-full h-10 w-40 text-white flex items-center focus-within:outline-none focus-within:ring-1 focus-within:ring-white/30 ${isHome ? "bg-zeta-sub/30 border border-white/20" : "bg-[#FFFFFF]/30 border border-white/20"}`}
+    >
+      <button type="submit" aria-label="Search products" className="cursor-pointer">
+        <svg className="h-[1.5em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+          <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.0" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </g>
+        </svg>
+      </button>
+      <input
+        type="text"
+        aria-label="Search products"
+        value={searchInput}
+        onChange={(event) => setSearchInput(event.target.value)}
+        placeholder="Search"
+        className="placeholder:text-white bg-transparent outline-none w-full"
+      />
+    </form>
+  );
+}
 
 const Navbar = ({ page = "home", cartCount = 0 }) => {
   const isHome = page === "home";
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, booting } = useAuth();
   const [totalItems, setTotalItems] = useState(cartCount);
 
@@ -99,33 +141,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
         {/* right: search & action icons */}
         <div className="flex items-center space-x-4 h-10">
           {/* Search Bar */}
-          <label
-            className={`input rounded-full h-10 w-40 text-white flex items-center focus-within:outline-none focus-within:ring-1 focus-within:ring-white/30 ${isHome ? "bg-zeta-sub/30 border border-white/20" : "bg-[#FFFFFF]/30 border border-white/20"
-              }`}
-          >
-            <svg
-              className="h-[1.5em]"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-            >
-              <g
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                strokeWidth="2.0"
-                fill="none"
-                stroke="currentColor"
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
-              </g>
-            </svg>
-            <input
-              type="text"
-              required
-              placeholder="Search"
-              className="placeholder:text-white bg-transparent outline-none w-full"
-            />
-          </label>
+          <ProductSearch key={`${location.pathname}${location.search}`} isHome={isHome} location={location} navigate={navigate} />
 
           {/* Action Icons: Wishlist, Cart, Profile */}
           <div className="flex items-center gap-1.5 text-white">
@@ -156,17 +172,19 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
               )}
             </button>
 
-            <Link
-              to="/profile"
-              aria-label="Profile"
-              className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
-                isHome
-                  ? "hover:text-zeta-main hover:bg-zeta-sub/35"
-                  : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-              }`}
-            >
-              <CircleUser className="w-6 h-6" />
-            </Link>
+            {isAuthenticated ? <UserMenu isHome={isHome} /> : (
+              <Link
+                to="/auth/login"
+                aria-label="Sign in"
+                className={`p-2 rounded-xl transition cursor-pointer hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.2),inset_1px_1px_1px_rgba(255,255,255,0.2)] ${
+                  isHome
+                    ? "hover:text-zeta-main hover:bg-zeta-sub/35"
+                    : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+                }`}
+              >
+                <CircleUser className="w-6 h-6" />
+              </Link>
+            )}
           </div>
         </div>
       </nav>
