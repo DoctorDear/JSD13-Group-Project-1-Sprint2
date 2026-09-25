@@ -3,7 +3,7 @@ import AuthLayout, { AuthTitle, AuthButton } from "../components/AuthLayout";
 import Field from "../components/Field";
 import FormError from "../components/FormError";
 import useForm from "../hooks/useForm";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/authContext.js";
 import { rules } from "../lib/validation";
 import { loginReturnPath } from "../lib/loginReturnPath.js";
 

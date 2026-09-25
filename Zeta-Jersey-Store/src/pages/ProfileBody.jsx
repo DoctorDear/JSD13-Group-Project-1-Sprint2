@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/authContext.js";
 import { userService } from "../services/user.js";
 import { buildProfileUpdate, toProfileView } from "../lib/profileForm.js";
 import ProfileProductSection from "../components/ProfilePages/ProfileProductSection.jsx";

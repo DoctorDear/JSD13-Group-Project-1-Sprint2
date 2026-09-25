@@ -1,5 +1,5 @@
 import ProductCard from "./ProductCard";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../contexts/cartContext.js";
 
 const Suggestion = () => {
   const { products } = useCart();

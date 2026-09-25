@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { cartService } from '../services/cart.js';
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../contexts/authContext.js';
 
 const CartPage = () => {
     const navigate = useNavigate();

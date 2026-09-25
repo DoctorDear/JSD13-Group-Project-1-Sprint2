@@ -45,6 +45,27 @@ const CheckoutPage = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const inputClass = (field) => `w-full h-14 px-4 rounded-xl border text-sm focus:outline-none focus:ring-2 ${fieldErrors[field] ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-900'}`;
 
+  const applySavedAddress = (address) => {
+    const [firstName = '', ...lastNameParts] = (address.recipientName || '').trim().split(/\s+/);
+    setSelectedAddressId(address._id);
+    setSaveAddress(false);
+    setFormData((prev) => ({
+      ...prev,
+      firstName,
+      lastName: lastNameParts.join(' '),
+      address: address.addressLine || '',
+      apartment: '',
+      telephone: address.phone || '',
+    }));
+    setDeliveryLocation({
+      province: address.province || '',
+      district: address.district || '',
+      subdistrict: address.subdistrict || '',
+      postalCode: address.postalCode || '',
+    });
+    setFieldErrors({});
+  };
+
   // ดึงข้อมูลตะกร้าสินค้าจาก Backend เมื่อโหลดหน้าเว็บ
   useEffect(() => {
     orderService.getPaymentOptions()
@@ -76,7 +97,7 @@ const CheckoutPage = () => {
 
   // --- ระบบคำนวณราคาอัตโนมัติจากสินค้าในตะกร้า (Real-time calculation) ---
   const subtotal = cartItems.reduce((acc, item) => {
-    const price = Number(item.price || item.productId?.price) || 0;
+    const price = Number(item.productId?.price ?? item.price) || 0;
     const quantity = Number(item.quantity) || 1;
     return acc + (price * quantity);
   }, 0);
@@ -104,27 +125,6 @@ const CheckoutPage = () => {
     }));
     setErrorMessage('');
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const applySavedAddress = (address) => {
-    const [firstName = '', ...lastNameParts] = (address.recipientName || '').trim().split(/\s+/);
-    setSelectedAddressId(address._id);
-    setSaveAddress(false);
-    setFormData((prev) => ({
-      ...prev,
-      firstName,
-      lastName: lastNameParts.join(' '),
-      address: address.addressLine || '',
-      apartment: '',
-      telephone: address.phone || '',
-    }));
-    setDeliveryLocation({
-      province: address.province || '',
-      district: address.district || '',
-      subdistrict: address.subdistrict || '',
-      postalCode: address.postalCode || '',
-    });
-    setFieldErrors({});
   };
 
   const handleAddressSelection = (event) => {

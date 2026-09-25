@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import AuthLayout, { AuthTitle } from "../components/AuthLayout";
 
 const HERO =

@@ -157,7 +157,8 @@ export function useAdminStore() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => { void fetchData(); }, 0);
+    return () => clearTimeout(timer);
   }, [fetchData]);
 
   // ซ่อน Notice อัตโนมัติใน 4.5 วินาที

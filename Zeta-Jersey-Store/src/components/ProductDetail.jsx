@@ -4,7 +4,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
 import { api } from "../lib/api.js";
 import { cartService } from "../services/cart.js";
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../contexts/authContext.js';
 import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";

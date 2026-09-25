@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/authContext.js";
 import { ProtectedRoute, GuestRoute, AdminRoute } from "./components/RouteGuards";
 
 import LandingPage from "./pages/LandingPage";

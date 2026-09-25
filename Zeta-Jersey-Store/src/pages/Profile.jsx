@@ -1,4 +1,4 @@
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/authContext.js";
 import PageHeader from "../components/PageHeader";
 import Avatar from "../components/Avatar";
 

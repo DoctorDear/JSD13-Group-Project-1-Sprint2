@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Subscribe = () => {
     return (
         <div className="bg-[#262b32] text-white p-6 rounded-3xl mx-4 my-6 text-center">

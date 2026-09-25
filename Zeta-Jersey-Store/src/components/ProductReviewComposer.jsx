@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/authContext.js";
 import { reviewService } from "../services/review.js";
 
 export default function ProductReviewComposer({ productId }) {

@@ -1,6 +1,8 @@
 import { normalizeApiBase, normalizeApiPath } from "./apiBase.js";
 
-const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_BASE_URL ?? "/api");
+export const API_BASE_URL = normalizeApiBase(
+  import.meta.env.VITE_API_BASE_URL ?? "/api",
+);
 
 export class ApiError extends Error {
   constructor(message, { status = 0, fieldErrors = {}, code } = {}) {
@@ -64,7 +66,7 @@ export async function request(
   try {
     const cleanPath = normalizeApiPath(path);
 
-    const res = await fetch(`${BASE_URL}${cleanPath}`, {
+    const res = await fetch(`${API_BASE_URL}${cleanPath}`, {
       method,
       signal,
       credentials: "include",

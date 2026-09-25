@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/authContext.js";
 import Avatar from "./Avatar";
 import { CircleUser, LayoutDashboard, LogOut, Settings, UserRound } from "lucide-react";
 

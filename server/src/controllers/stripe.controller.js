@@ -115,7 +115,7 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
     for (const cartItem of user.cart) {
       const product = await Product.findById(cartItem.productId);
       const quantity = Number(cartItem.quantity);
-      if (!product || !Number.isInteger(quantity) || quantity < 1 || !Number.isSafeInteger(Math.round(product.price * 100)) || product.price <= 0 || product.quantity < quantity) {
+      if (!product || product.isActive === false || !Number.isInteger(quantity) || quantity < 1 || !Number.isSafeInteger(Math.round(product.price * 100)) || product.price <= 0 || product.quantity < quantity) {
         return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
       }
       items.push({ productId: product._id, cartItemId: cartItem._id, sku: product.sku, name: product.name, size: cartItem.size || product.size, price: product.price, quantity, customName: cartItem.customName || "", customNumber: cartItem.customNumber ?? null });
