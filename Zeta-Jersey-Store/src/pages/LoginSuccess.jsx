@@ -19,9 +19,9 @@ export default function LoginSuccess() {
       title={<>Log in<br />successfully</>}
       subtitle={
         <>
-          {user?.firstName && <>Welcome back, <span className="font-semibold">{user.firstName}</span>.<br /></>}
-          <Link to={target} className="mt-3 inline-block font-medium underline underline-offset-2 hover:text-indigo-700">
-            Continue shopping
+          {user?.firstName && <p>Welcome back, <span className="font-semibold">{user.firstName}</span>.</p>}
+          <Link to={target} className="mt-3 inline-block text-lg text-gray-900 underline underline-offset-2 font-medium hover:text-indigo-700">
+            {target === '/checkout' ? 'Continue to checkout' : 'Go back to shopping'}
           </Link>
         </>
       }

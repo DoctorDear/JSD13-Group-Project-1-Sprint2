@@ -29,7 +29,7 @@ function ThaiLocationFields({ value, onChange, error }) {
           value={selectedAddress}
           onValueChange={handleSelect}
           texts={{ placeholder: "Search by postcode, province, district, or sub-district" }}
-          inputClassName="h-11 border-zeta-main-lighter px-4"
+          inputClassName={`h-11 px-4 ${error ? 'border-red-500 ring-1 ring-red-500' : 'border-zeta-main-lighter'}`}
         />
       </div>
       <ThaiAddressCascadeSelect
@@ -38,7 +38,7 @@ function ThaiLocationFields({ value, onChange, error }) {
         onValueChange={handleSelect}
         aria-invalid={Boolean(error)}
         labelClassName="text-xs font-bold text-[#4a5551]"
-        triggerClassName="h-11 border-zeta-main-lighter px-4"
+        triggerClassName={`h-11 px-4 ${error ? 'border-red-500 ring-1 ring-red-500' : 'border-zeta-main-lighter'}`}
       />
       {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
     </div>

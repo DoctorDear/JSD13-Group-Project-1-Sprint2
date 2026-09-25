@@ -4,10 +4,12 @@ import apiRouter from "./routes/v1/index.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { corsOptions } from "./config/cors.js";
+import { stripeWebhook, reconcileStripeOrders } from "./controllers/stripe.controller.js";
 
 const app = express();
 
 app.use(cors(corsOptions));
+app.post("/api/v1/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -30,6 +32,7 @@ async function start() {
     app.listen(PORT, () => {
       console.log(`Server running on PORT: ${PORT} 🟢`);
     });
+    setInterval(() => reconcileStripeOrders().catch((error) => console.error("Stripe reconciliation failed:", error)), 5 * 60 * 1000).unref();
   } catch (err) {
     console.error("Failed to start server ❌", err.message);
     process.exit(1);

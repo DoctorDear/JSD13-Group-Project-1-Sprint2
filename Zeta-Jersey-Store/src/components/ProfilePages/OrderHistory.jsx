@@ -86,7 +86,9 @@ export default function OrderHistory() {
                   <h2 className="break-all font-bold">{order.orderNumber}</h2>
                   <p className="mt-1 text-xs text-zeta-muted">{date.format(new Date(order.createdAt))}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusColors[order.orderStatus] || "bg-gray-100 text-gray-700"}`}>{order.orderStatus}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusColors[order.orderStatus] || "bg-gray-100 text-gray-700"}`}>
+                  {order.orderStatus === "processing" && order.payment?.status === "paid" ? "Paid" : order.orderStatus}
+                </span>
               </div>
               <p className="mt-4 text-lg font-black">{money.format(order.totalAmount)}</p>
               <details className="mt-4 border-t border-zeta-main-lighter pt-4">

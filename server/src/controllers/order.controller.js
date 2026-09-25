@@ -2,12 +2,13 @@ import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
 import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
+import { syncStripeOrder } from "./stripe.controller.js";
 
 // 1. ฟังก์ชันดูรายละเอียดออเดอร์เดี่ยว
 export const getOrderById = async (req, res) => {
   try {
     const orderId = req.params.id;
-    const order = await Order.findById(orderId);
+    let order = await Order.findById(orderId).populate("items.productId", "images");
 
     if (!order) {
       return res.status(404).json({
@@ -26,6 +27,12 @@ export const getOrderById = async (req, res) => {
       });
     }
 
+    try {
+      if (await syncStripeOrder(order)) order = await Order.findById(orderId).populate("items.productId", "images");
+    } catch (error) {
+      console.error("Could not refresh Stripe order status:", orderId, error);
+    }
+
     return res.status(200).json({
       success: true,
       data: order,
@@ -40,9 +47,13 @@ export const getOrderById = async (req, res) => {
 
 // 2. ฟังก์ชันสร้างออเดอร์ใหม่ (Checkout)
 export const createOrder = async (req, res) => {
+  const reserved = [];
   try {
     const userId = req.user.userId;
-    const { shippingAddress } = req.body;
+    const { shippingAddress, paymentMethod = "cod" } = req.body;
+    if (paymentMethod !== "cod") {
+      return res.status(400).json({ success: false, message: "Use Stripe checkout for online payment" });
+    }
     const user = await User.findById(userId).populate("cart.productId");
 
     if (!user || !user.cart || user.cart.length === 0) {
@@ -78,7 +89,7 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      if (product.stock < item.quantity) {
+      if (product.quantity < item.quantity) {
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for product: ${product.name}`,
@@ -98,12 +109,18 @@ export const createOrder = async (req, res) => {
     }
 
     for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity },
-      });
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.productId, quantity: { $gte: item.quantity } },
+        { $inc: { quantity: -item.quantity } },
+      );
+      if (!updated) {
+        for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${item.name}` });
+      }
+      reserved.push(item);
     }
 
-    const orderNumber = `ZT-${Date.now()}`;
+    const orderNumber = `ZT-${new mongoose.Types.ObjectId().toString().toUpperCase()}`;
 
     const newOrder = await Order.create({
       userId,
@@ -111,6 +128,7 @@ export const createOrder = async (req, res) => {
       items: orderItems,
       totalAmount,
       shippingAddress,
+      payment: { method: "Cash on Delivery", status: "pending" },
     });
 
     user.cart = [];
@@ -122,6 +140,7 @@ export const createOrder = async (req, res) => {
       data: newOrder,
     });
   } catch (error) {
+    for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
     return res.status(500).json({
       success: false,
       message: "Server Error",

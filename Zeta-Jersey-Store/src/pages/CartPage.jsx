@@ -3,53 +3,64 @@ import CartItemCard from '../components/CartItemCard';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import { cartService } from '../services/cart.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 const CartPage = () => {
     const navigate = useNavigate();
+    const { isAuthenticated, booting } = useAuth();
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [discountCode, setDiscountCode] = useState('');
-
-    // 1. ดึงข้อมูลตะกร้าจาก localStorage เมื่อเข้าหน้า CartPage
-    const fetchCart = () => {
-        try {
-            const savedCart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            console.log("LOADED CART FROM LOCALSTORAGE:", savedCart);
-            setCartItems(Array.isArray(savedCart) ? savedCart : []);
-        } catch (error) {
-            console.error('Error reading cart from localStorage:', error);
-            setCartItems([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        fetchCart();
-    }, []);
+        if (booting) return;
+        let active = true;
+        const fetchCart = async () => {
+            if (isAuthenticated) {
+                try { await cartService.mergeGuest(); }
+                catch { if (active) setError('Some saved items could not be added. Refresh the cart to try again.'); }
+            }
+            return cartService.get({ guest: !isAuthenticated });
+        };
+        fetchCart().then((response) => {
+            if (active) setCartItems(response.cart || []);
+        }).catch((err) => {
+            if (active) setError(err.message);
+        }).finally(() => {
+            if (active) setLoading(false);
+        });
+        return () => { active = false; };
+    }, [booting, isAuthenticated]);
 
     // 2. ฟังก์ชันอัปเดตจำนวนสินค้า (quantity) และบันทึกลง localStorage ทันที
-    const handleUpdateQuantity = (id, newQuantity) => {
+    const handleUpdateQuantity = async (id, newQuantity) => {
         if (newQuantity < 1) return; // ป้องกันจำนวนน้อยกว่า 1
-
-        const updatedItems = cartItems.map(item =>
-            (item._id === id || item.id === id) ? { ...item, quantity: newQuantity } : item
-        );
-
-        setCartItems(updatedItems);
-        localStorage.setItem('cartItems', JSON.stringify(updatedItems));
+        try {
+            const response = await cartService.update(id, newQuantity, { guest: !isAuthenticated });
+            setCartItems(response.cart || []);
+            setError('');
+            window.dispatchEvent(new Event('cart-updated'));
+        } catch (err) { setError(err.message); }
     };
 
     // 3. ฟังก์ชันลบสินค้าออกจากตะกร้าและอัปเดต localStorage
-    const handleRemoveItem = (id) => {
-        const updatedItems = cartItems.filter(item => item._id !== id && item.id !== id);
-
-        setCartItems(updatedItems);
-        localStorage.setItem('cartItems', JSON.stringify(updatedItems));
+    const handleRemoveItem = async (id) => {
+        try {
+            const response = await cartService.remove(id, { guest: !isAuthenticated });
+            setCartItems(response.cart || []);
+            setError('');
+            window.dispatchEvent(new Event('cart-updated'));
+        } catch (err) { setError(err.message); }
     };
 
     // ฟังก์ชันสร้างคำสั่งซื้อเมื่อกด Go to Checkout
     const handleGoToCheckout = () => {
+        if (!isAuthenticated) {
+            navigate('/auth/login', { state: { from: { pathname: '/checkout' } } });
+            return;
+        }
         const checkoutData = {
             cartItems,
             summary: {
@@ -59,9 +70,6 @@ const CartPage = () => {
                 total
             }
         };
-
-        // บันทึกสำรองไว้กันรีเฟรชหาย
-        localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
 
         // ส่งผ่าน navigate ไปหน้า checkout
         navigate('/checkout', { state: checkoutData });
@@ -73,8 +81,8 @@ const CartPage = () => {
         return acc + price * (item.quantity || 1);
     }, 0);
 
-    const discount = subtotal * 0.20;
-    const deliveryFee = 15;
+    const discount = 0;
+    const deliveryFee = 0;
     const total = subtotal - discount + deliveryFee;
 
     if (loading) {
@@ -88,6 +96,7 @@ const CartPage = () => {
                 <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900 mb-6 tracking-wide">
                     YOUR CART
                 </h1>
+                {error && <p role="alert" className="mb-4 text-red-700">{error}</p>}
 
                 <div className="lg:grid lg:grid-cols-3 lg:gap-8 items-start">
                     <div className="lg:col-span-2 bg-white border border-gray-200 rounded-3xl p-6 shadow-sm mb-6 lg:mb-0">
@@ -116,7 +125,7 @@ const CartPage = () => {
                                 <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-gray-500">
-                                <span>Discount (-20%)</span>
+                                <span>Discount</span>
                                 <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-gray-500">
@@ -144,9 +153,10 @@ const CartPage = () => {
 
                         <button
                             onClick={handleGoToCheckout}
+                            disabled={!cartItems.length}
                             className="w-full h-12 mt-4 bg-indigo-900 hover:bg-indigo-800 text-white font-semibold rounded-full transition-colors shadow-sm"
                         >
-                            Go to Checkout
+                            {isAuthenticated ? 'Go to Checkout' : 'Log in to checkout'}
                         </button>
                     </div>
                 </div>

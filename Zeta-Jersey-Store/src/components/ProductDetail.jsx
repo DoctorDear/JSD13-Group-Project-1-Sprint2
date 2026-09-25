@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
 import { api } from "../lib/api.js";
+import { cartService } from "../services/cart.js";
+import { useAuth } from '../contexts/AuthContext.jsx';
 import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
@@ -16,6 +18,7 @@ const ProductDetail = () => {
   const [adding, setAdding] = useState(false);
   const { id } = useParams();
   const location = useLocation();
+  const { isAuthenticated, booting } = useAuth();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -47,47 +50,16 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
-  // ฟังก์ชันเพิ่มสินค้าลงตะกร้า (บันทึกลง localStorage ทันทีโดยไม่ต้องเช็ค Login)
-  // ฟังก์ชันเพิ่มสินค้าลงตะกร้าแบบเบ็ดเสร็จในตัว (ไม่พึ่งพาฟังก์ชันนอก)
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     try {
       setAdding(true);
-
-      const rawCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-      const existingCart = Array.isArray(rawCart) ? rawCart.filter(item => item && typeof item === 'object') : [];
-
-      const currentProductId = product?._id || product?.id;
-
-      const itemIndex = existingCart.findIndex(
-        (item) => (item.id === currentProductId) && (item.size === selectedSize)
-      );
-
-      if (itemIndex > -1) {
-        existingCart[itemIndex].quantity = (existingCart[itemIndex].quantity || 1) + 1;
-      } else {
-        const newItem = {
-          id: currentProductId,
-          name: product?.name || "Unknown Product",
-          price: product?.price || 0,
-          image: product?.images?.[0] || "",
-          size: selectedSize || "Free Size",
-          quantity: 1,
-          edition: product?.edition || "",
-        };
-        existingCart.push(newItem);
-      }
-
-      localStorage.setItem("cartItems", JSON.stringify(existingCart));
-
-      // 🛑 ตัดปัญหาเรื่องฟังก์ชันนอกพัง โดยการบังคับรีโหลดหน้าเว็บเบาๆ หรือยิง Event แจ้ง Navbar ทันที
-      window.dispatchEvent(new Event("storage"));
-
-      // ✅ เปลี่ยนจาก alert น่ารำคาญ เป็นการแจ้งเตือนสั้นๆ หรือปล่อยผ่านให้ตะกร้าขยับเลย
+      await cartService.add({ productId: product._id, product, size: selectedSize, quantity: 1 }, { guest: !isAuthenticated });
+      window.dispatchEvent(new Event("cart-updated"));
       alert("Added to cart successfully!");
 
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert("ไม่สามารถเพิ่มสินค้าลงตะกร้าได้ กรุณาลองใหม่อีกครั้ง");
+      alert(err.message || "ไม่สามารถเพิ่มสินค้าลงตะกร้าได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setAdding(false);
     }
@@ -265,7 +237,7 @@ const ProductDetail = () => {
               <div className="flex w-full gap-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={adding}
+                  disabled={adding || booting}
                   className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90 disabled:opacity-60"
                 >
                   <ShoppingBag size={19} />

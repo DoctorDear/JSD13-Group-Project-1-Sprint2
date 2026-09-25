@@ -19,7 +19,7 @@ function ProfileBody() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedMenu, setSelectedMenu] = useState("Home");
   const tab = searchParams.get("tab");
-  const activeMenu = tab === "reviews" ? "My Reviews" : tab === "favorites" ? "Favorites" : selectedMenu;
+  const activeMenu = tab === "reviews" ? "My Reviews" : tab === "orders" ? "My Orders" : tab === "favorites" ? "Favorites" : selectedMenu;
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
@@ -44,6 +44,7 @@ function ProfileBody() {
 
   const handleMenuChange = (menu) => {
     if (menu === "My Reviews") setSearchParams({ tab: "reviews" }, { replace: true });
+    else if (menu === "My Orders") setSearchParams({ tab: "orders" }, { replace: true });
     else if (menu === "Favorites") setSearchParams({ tab: "favorites" }, { replace: true });
     else {
       setSelectedMenu(menu);

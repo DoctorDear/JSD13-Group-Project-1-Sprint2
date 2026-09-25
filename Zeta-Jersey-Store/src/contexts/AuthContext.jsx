@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { authService } from "../services/auth";
 import { onUnauthorized } from "../lib/api";
 import { authUserFromResponse } from "./authUser";
+import { cartService } from '../services/cart.js';
 
 
 
@@ -19,7 +20,9 @@ export function AuthProvider({ children }) {
     (async () => {
       try {
         const me = await authService.me();
-        if (alive) setUser(authUserFromResponse(me));
+        const restoredUser = authUserFromResponse(me);
+        if (restoredUser) await cartService.mergeGuest().catch(() => {});
+        if (alive) setUser(restoredUser);
       } catch {
         if (alive) setUser(null);
       } finally {
@@ -37,7 +40,10 @@ export function AuthProvider({ children }) {
     const nextUser = authUserFromResponse(data);
     if (!nextUser) throw new Error("Login returned an invalid user response");
     setUser(nextUser);
-    return nextUser;
+    let cartSyncFailed = false;
+    try { await cartService.mergeGuest(); }
+    catch { cartSyncFailed = true; }
+    return { ...nextUser, cartSyncFailed };
   }, []);
 
   const register = useCallback(async (payload, opts) => {

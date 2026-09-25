@@ -55,7 +55,6 @@ export default function App() {
       <Route path="/products" element={<AllProductsPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
-      <Route path="/checkout" element={<Suspense fallback={loadingPage}><CheckoutPage /></Suspense>} />
       <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
 
       {/* Guests only — full-bleed auth pages, no navbar */}
@@ -86,6 +85,7 @@ export default function App() {
 
       {/* Authenticated pages */}
       <Route element={<ProtectedRoute />}>
+        <Route path="/checkout" element={<Suspense fallback={loadingPage}><CheckoutPage /></Suspense>} />
         <Route path="/products/:id/review" element={<SubmitReviewPage />} />
         <Route path="/profile" element={<Suspense fallback={loadingPage}><ProfileBody /></Suspense>} />
         <Route path="/settings" element={<Settings />} />

@@ -86,8 +86,14 @@ export const getCart = async (req, res) => {
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { productId, size, customName, customNumber, quantity, price } =
+    const { productId, size, customName, customNumber, quantity } =
       req.body;
+    const count = Number(quantity);
+    if (!productId || !size || !Number.isInteger(count) || count < 1) {
+      return res.status(400).json({ success: false, message: "Valid product, size, and quantity are required" });
+    }
+    const product = await Product.findById(productId);
+    if (!product || !product.isActive) return res.status(404).json({ success: false, message: "Product not found" });
 
     const user = await User.findById(userId);
     if (!user) {
@@ -107,7 +113,7 @@ export const addToCart = async (req, res) => {
 
     if (existingItemIndex > -1) {
       // หากพบสินค้าและไซส์ซ้ำกัน ให้บวกทบจำนวนเข้าไป
-      user.cart[existingItemIndex].quantity += Number(quantity);
+      user.cart[existingItemIndex].quantity += count;
     } else {
       // หากไม่ซ้ำ ให้ push เพิ่มรายการใหม่เข้าไปใน array
       user.cart.push({
@@ -115,8 +121,8 @@ export const addToCart = async (req, res) => {
         size,
         customName,
         customNumber,
-        quantity: Number(quantity),
-        price: Number(price),
+        quantity: count,
+        price: product.price,
       });
     }
 
@@ -140,7 +146,7 @@ export const updateCartItemQuantity = async (req, res) => {
     const { itemId } = req.params;
     const { quantity } = req.body;
 
-    if (quantity < 1) {
+    if (!Number.isInteger(Number(quantity)) || Number(quantity) < 1) {
       return res
         .status(400)
         .json({ success: false, message: "Quantity must be at least 1" });

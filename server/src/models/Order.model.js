@@ -6,10 +6,13 @@ const orderItemSchema = new mongoose.Schema({
     ref: "Product",
     required: true,
   },
+  cartItemId: { type: mongoose.Schema.Types.ObjectId },
   sku: { type: String, required: true },
   name: { type: String, required: true },
   edition: { type: String, default: null },
   size: { type: String, required: true },
+  customName: { type: String, default: "" },
+  customNumber: { type: Number, default: null },
   price: { type: Number, required: true },
   quantity: { type: Number, required: true },
 });
@@ -27,15 +30,20 @@ const orderSchema = new mongoose.Schema(
       recipientName: String,
       phone: String,
       addressLine: String,
+      subdistrict: String,
       province: String,
       district: String,
       postalCode: String,
     },
     payment: {
-      method: { type: String, default: "PromptPay" },
-      status: { type: String, default: "completed" }, // Simulated
-      paidAt: { type: Date, default: Date.now },
+      method: { type: String, default: "Cash on Delivery" },
+      status: { type: String, default: "pending" },
+      paidAt: { type: Date, default: null },
       transactionId: { type: String, default: "" },
+      stripeSessionId: { type: String },
+      reservationState: { type: String, enum: ["held", "committed", "released"], default: "committed" },
+      reservationExpiresAt: { type: Date, default: null },
+      cartCleared: { type: Boolean, default: false },
     },
     totalAmount: { type: Number, required: true },
     orderStatus: {
@@ -46,5 +54,7 @@ const orderSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+orderSchema.index({ "payment.stripeSessionId": 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("Order", orderSchema);
