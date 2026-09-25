@@ -11,7 +11,7 @@
     "start": "node src/server.js",
     "seed:reviews": "node --env-file=.env src/scripts/seed-review-demo.js",
     "seed:admin": "node --env-file=.env src/scripts/seed-admin.js",
-    "test": "node --test src/**/*.test.js"
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",

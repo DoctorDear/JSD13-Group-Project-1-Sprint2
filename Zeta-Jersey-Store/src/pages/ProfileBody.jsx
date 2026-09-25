@@ -12,11 +12,14 @@ import EditProfilePage from "../components/ProfilePages/EditProfilePage.jsx";
 import ProfileDetailsPage from "../components/ProfilePages/ProfileDetailsPage.jsx";
 import Navbar from "../components/Navbar.jsx";
 import OrderHistory from "../components/ProfilePages/OrderHistory.jsx";
+import WishlistSection from "../components/ProfilePages/WishlistSection.jsx";
 
 function ProfileBody() {
   const { setUser: setAuthUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeMenu, setActiveMenu] = useState(() => searchParams.get("tab") === "reviews" ? "My Reviews" : searchParams.get("tab") === "orders" ? "My Orders" : "Home");
+  const [selectedMenu, setSelectedMenu] = useState("Home");
+  const tab = searchParams.get("tab");
+  const activeMenu = tab === "reviews" ? "My Reviews" : tab === "orders" ? "My Orders" : tab === "favorites" ? "Favorites" : selectedMenu;
   const [activeProductTab, setActiveProductTab] = useState("Best Sellers");
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
@@ -40,8 +43,13 @@ function ProfileBody() {
   }, [reloadKey]);
 
   const handleMenuChange = (menu) => {
-    setActiveMenu(menu);
-    setSearchParams(menu === "My Reviews" ? { tab: "reviews" } : menu === "My Orders" ? { tab: "orders" } : {}, { replace: true });
+    if (menu === "My Reviews") setSearchParams({ tab: "reviews" }, { replace: true });
+    else if (menu === "My Orders") setSearchParams({ tab: "orders" }, { replace: true });
+    else if (menu === "Favorites") setSearchParams({ tab: "favorites" }, { replace: true });
+    else {
+      setSelectedMenu(menu);
+      setSearchParams({}, { replace: true });
+    }
     setIsEditing(false);
     setIsViewingDetails(false);
   };
@@ -49,7 +57,8 @@ function ProfileBody() {
   const handleEditClick = () => {
     setIsEditing(true);
     setIsViewingDetails(false);
-    setActiveMenu("My Account");
+    setSelectedMenu("My Account");
+    setSearchParams({}, { replace: true });
   };
 
   const handleEditCancel = () => {
@@ -83,6 +92,7 @@ function ProfileBody() {
   const renderContent = () => {
     if (activeMenu === "My Orders") return <OrderHistory />;
     if (activeMenu === "My Reviews") return <MyReviews />;
+    if (activeMenu === "Favorites") return <WishlistSection />;
 
     if (loadError) {
       return (
@@ -134,20 +144,6 @@ function ProfileBody() {
           <>
             <ProfileHero user={user} onEditClick={handleEditClick} />
             <ProfileCategories user={user} onViewAll={handleViewAllClick} />
-          </>
-        );
-
-      case "Favorites":
-        return (
-          <>
-            <div className="mb-5 sm:mb-6">
-              <p className="text-xs font-bold tracking-widest text-[#8a948c]">FAVORITES</p>
-              <h1 className="mt-1 wrap-break-word text-2xl font-black sm:text-3xl">My Favorites</h1>
-            </div>
-            <ProfileProductSection
-              activeProductTab={activeProductTab}
-              onProductTabChange={setActiveProductTab}
-            />
           </>
         );
 

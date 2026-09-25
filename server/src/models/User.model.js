@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     addresses: [addressSchema],
     cart: [cartItemSchema],
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   },
   { timestamps: true },
 );
