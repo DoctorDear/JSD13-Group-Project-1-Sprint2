@@ -87,14 +87,14 @@ export const getCart = async (req, res) => {
 const normalizeCartPersonalization = ({ customName, customNumber }) => {
   const name = customName === undefined || customName === null ? "" : customName;
   if (typeof name !== "string") return null;
-  const normalizedName = name.trim().toUpperCase();
+  const providedName = name;
 
   let number = customNumber;
   if (number === undefined || number === null || number === "") number = null;
   if (number !== null && (typeof number !== "string" || !/^\d{1,2}$/.test(number))) return null;
-  if (Boolean(normalizedName) !== Boolean(number)) return null;
+  if (Boolean(providedName) !== Boolean(number)) return null;
 
-  return { customName: normalizedName, customNumber: number };
+  return { customName: providedName, customNumber: number };
 };
 
 // 2. POST /api/v1/users/cart - เพิ่มสินค้าลงตะกร้า (ถ้าซ้ำไซส์เดิมให้บวกทบจำนวน)
@@ -138,7 +138,7 @@ export const addToCart = async (req, res) => {
         };
     if (!priced) return res.status(400).json({ success: false, message: "Invalid personalization choices" });
     const line = {
-      ...personalization,
+      customName: priced.customName,
       customNumber: personalization.customNumber,
       sleeveBadge: priced.sleeveBadge,
       namePrice: priced.namePrice,

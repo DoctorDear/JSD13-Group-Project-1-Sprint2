@@ -261,6 +261,23 @@ test("cart rejects an incomplete name and number print selection", async (contex
   assert.equal(user.cart.length, 0);
 });
 
+test("cart rejects surrounding whitespace and Unicode names before normalization", async (context) => {
+  const user = { cart: [], save: async () => {}, populate: async () => {} };
+  context.mock.method(User, "findById", async () => user);
+  context.mock.method(Product, "findById", async () => personalizedProduct());
+  context.mock.method(PersonalizationTemplate, "findOne", async () => activeTemplate());
+
+  for (const customName of [" ALEX ", "ß", "ﬀ"]) {
+    const response = createResponse();
+    await addToCart({
+      user: { userId: "customer" },
+      body: { productId: "jersey", size: "M", quantity: 1, customName, customNumber: "7" },
+    }, response);
+    assert.equal(response.statusCode, 400, `rejected ${JSON.stringify(customName)}`);
+  }
+  assert.equal(user.cart.length, 0);
+});
+
 test("cart supports badge-only personalization from the matching template", async (context) => {
   const user = { cart: [], save: async () => {}, populate: async () => {} };
   context.mock.method(User, "findById", async () => user);
