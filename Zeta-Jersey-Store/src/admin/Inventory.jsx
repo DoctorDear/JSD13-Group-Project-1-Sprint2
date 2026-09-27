@@ -89,7 +89,7 @@ export function Inventory({ store, money }) {
         </select>
       </SearchBox>
       <div className="overflow-x-auto rounded-2xl border border-base-300 bg-base-100 shadow-sm">
-        <table className="table">
+        <table className="table w-full min-w-[1120px]">
           <thead>
             <tr>
               {[
@@ -119,11 +119,11 @@ export function Inventory({ store, money }) {
                 <td className="text-base-content/55">{p.category}</td>
                 <td>{p.stock}</td>
                 <td className="font-medium">{money(p.price)}</td>
-                <td>
+                <td className="min-w-28 whitespace-nowrap">
                   <Badge>{stockStatus(p)}</Badge>
                 </td>
-                <td>
-                  <div className="flex items-center gap-2">
+                <td className="min-w-48">
+                  <div className="flex w-max items-center gap-2 whitespace-nowrap">
                     <Badge>{p.isActive ? "Visible" : "Hidden"}</Badge>
                     <button
                       type="button"
