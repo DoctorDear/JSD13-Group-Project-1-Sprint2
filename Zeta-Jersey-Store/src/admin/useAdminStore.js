@@ -15,6 +15,9 @@ function normalizeProduct(p) {
     cost: Number(p.cost ?? 0),
     reorder: Number(p.reorder ?? 10),
     imageUrl: p.images?.[0] || p.imageUrl || "",
+    backImageUrl: p.backImageUrl || "",
+    personalizationEnabled: p.personalizationEnabled === true,
+    personalizationGroupId: p.personalizationGroupId || "",
     description: p.description || "",
     date: p.date || "",
     tag: p.tag || [],
@@ -105,6 +108,7 @@ function loadSettings() {
 export function useAdminStore() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [movements, setMovements] = useState([]);
   const [settings, setSettings] = useState(loadSettings);
@@ -119,9 +123,10 @@ export function useAdminStore() {
     setError(null);
     try {
       // ดึงสินค้าและออเดอร์พร้อมกันแบบขนาน (Parallel) จาก Backend จริง
-      const [productsRes, ordersRes] = await Promise.allSettled([
+      const [productsRes, ordersRes, templatesRes] = await Promise.allSettled([
         adminService.getProducts(),
         adminService.getOrders(),
+        adminService.getPersonalizationTemplates(),
       ]);
 
       if (productsRes.status === "fulfilled") {
@@ -148,6 +153,12 @@ export function useAdminStore() {
         setCustomers(extractCustomers(normOrders));
       } else {
         console.error("Failed to load orders from MongoDB:", ordersRes.reason);
+      }
+
+      if (templatesRes.status === "fulfilled") {
+        setTemplates(templatesRes.value.templates || []);
+      } else {
+        console.error("Failed to load personalization templates:", templatesRes.reason);
       }
     } catch (err) {
       setError(err.message || "Failed to load dashboard data");
@@ -213,6 +224,7 @@ export function useAdminStore() {
   return {
     products,
     orders,
+    templates,
     customers,
     movements,
     settings,

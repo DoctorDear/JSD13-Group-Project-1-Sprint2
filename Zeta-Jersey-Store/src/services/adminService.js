@@ -15,6 +15,14 @@ export const adminService = {
   deleteProduct: (id, options) =>
     api.del(`/products/${id}`, options),
 
+  getPersonalizationTemplates: (options) => api.get("/personalization-templates", options),
+
+  createPersonalizationTemplate: (payload, options) =>
+    api.post("/personalization-templates", payload, options),
+
+  updatePersonalizationTemplate: (groupId, payload, options) =>
+    api.patch("/personalization-templates", { groupId, ...payload }, options),
+
   // Orders APIs
   getOrders: (options) => api.get("/orders", options),
 

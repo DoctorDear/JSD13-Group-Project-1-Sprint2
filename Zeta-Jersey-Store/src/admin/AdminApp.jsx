@@ -23,6 +23,7 @@ import {
   Bell,
   ChevronDown,
   Home,
+  Shirt,
 } from "lucide-react";
 import logo from "../assets/logo/Zeta_Default_Logo_Crop.png";
 import { useAuth } from "../contexts/authContext.js";
@@ -33,6 +34,7 @@ import Customers from "./Customers";
 import StockMovement from "./StockMovement";
 import Settings from "./Settings";
 import { Orders, Tasks } from "./Operations";
+import PersonalizationTemplates from "./PersonalizationTemplates";
 
 const navClass = ({ isActive }) =>
   `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isActive ? "bg-primary/10 font-semibold text-primary" : "text-base-content/65 hover:bg-base-100 hover:text-primary"}`;
@@ -149,6 +151,10 @@ export default function AdminApp() {
           <NavLink className={navClass} to="/admin/customers">
             <Users size={18} />
             Customers
+          </NavLink>
+          <NavLink className={navClass} to="/admin/personalization-templates">
+            <Shirt size={18} />
+            Personalization Templates
           </NavLink>
           <NavLink className={navClass} to="/admin/tasks">
             <ClipboardList size={18} />
@@ -414,6 +420,10 @@ export default function AdminApp() {
             <Route
               path="stock-movement"
               element={<StockMovement store={store} />}
+            />
+            <Route
+              path="personalization-templates"
+              element={<PersonalizationTemplates store={store} />}
             />
             <Route
               path="customers"
