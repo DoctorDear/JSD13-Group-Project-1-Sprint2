@@ -1,4 +1,4 @@
-const GROUP_ID_PATTERN = /^[A-Z0-9]+(?:-[A-Z0-9]+)*$/;
+const GROUP_ID_PATTERN = /^[A-Z0-9]+(?:[-/][A-Z0-9]+)*$/;
 const FONT_IDS = new Set(["barlow-condensed-900"]);
 const BADGE_IDS = new Set(["none", "premier-league", "premier-league-racism"]);
 const PERSONALIZATION_TEMPLATE_FIELDS = [
@@ -53,7 +53,7 @@ const isFiniteField = (value) => value !== "" && value !== null && value !== und
 export function validatePersonalizationTemplate(template = {}) {
   const errors = {};
   const groupId = String(template.groupId || "").trim();
-  if (!GROUP_ID_PATTERN.test(groupId)) errors.groupId = "Use letters, numbers, and hyphens for the group ID.";
+  if (!GROUP_ID_PATTERN.test(groupId)) errors.groupId = "Use letters, numbers, hyphens, and slashes for the group ID.";
   if (!template.backImageUrl?.trim()) errors.backImageUrl = "Enter a back image URL.";
 
   const checkBox = (name, value) => {

@@ -7,8 +7,8 @@ import { useAuth } from "../contexts/authContext.js";
 import UserMenu from "./UserMenu.jsx";
 import GuestUserMenu from "./GuestUserMenu.jsx";
 import CartHoverMenu from "./CartHoverMenu.jsx";
-import productData from "../data/products.json";
 import { api } from "../lib/api.js";
+import { getDesktopNavigationItems } from "../lib/navigation.js";
 
 function ProductSearch({ isHome, location, navigate, mobile = false }) {
   const [searchInput, setSearchInput] = useState(() =>
@@ -38,6 +38,8 @@ function ProductSearch({ isHome, location, navigate, mobile = false }) {
             setSuggestions(items.slice(0, 3));
           } else {
             // Local fallback filter if API returns empty
+            const { default: productData } = await import("../data/products.json");
+            if (!active) return;
             const lower = query.toLowerCase();
             const localMatches = (productData || []).filter((p) =>
               p.name?.toLowerCase().includes(lower) ||
@@ -53,6 +55,8 @@ function ProductSearch({ isHome, location, navigate, mobile = false }) {
         }
       } catch {
         if (active) {
+          const { default: productData } = await import("../data/products.json");
+          if (!active) return;
           const lower = query.toLowerCase();
           const localMatches = (productData || []).filter((p) =>
             p.name?.toLowerCase().includes(lower) ||
@@ -429,50 +433,18 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
             isHome ? "bg-zeta-sub/30 border border-white/10" : "bg-[#FFFFFF]/10 border border-white/10"
           }`}
         >
-          <Link
-            to={isHome ? "#new-arrivals" : "/products?sort=newest"}
-            onClick={handleScrollToSection("new-arrivals")}
-            className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
-              isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-            }`}
-          >
-            New Arrivals
-          </Link>
-          <Link
-            to={isHome ? "#best-seller" : "/products?sort=best-selling"}
-            onClick={handleScrollToSection("best-seller")}
-            className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
-              isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-            }`}
-          >
-            Best Seller
-          </Link>
-          <Link
-            to={isHome ? "#leagues" : "/#leagues"}
-            onClick={handleScrollToSection("leagues")}
-            className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
-              isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-            }`}
-          >
-            League
-          </Link>
-          <Link
-            to={isHome ? "#collections" : "/#collections"}
-            onClick={handleScrollToSection("collections")}
-            className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
-              isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-            }`}
-          >
-            Collections
-          </Link>
-          <Link
-            to="/products?onSale=true"
-            className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
-              isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
-            }`}
-          >
-            On Sale
-          </Link>
+          {getDesktopNavigationItems(isHome).map(({ label, to, section }) => (
+            <Link
+              key={label}
+              to={to}
+              onClick={section ? handleScrollToSection(section) : undefined}
+              className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
+                isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
         {/* right: search & action icons */}

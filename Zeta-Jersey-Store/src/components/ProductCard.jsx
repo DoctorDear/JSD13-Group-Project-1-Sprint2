@@ -4,14 +4,17 @@ import { useState } from "react";
 import WishlistButton from "./WishlistButton.jsx";
 import { useAuth } from "../contexts/authContext.js";
 import { cartService } from "../services/cart.js";
+import { getCardImage } from "../lib/cardImage.js";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [imageFailed, setImageFailed] = useState(false);
+  const [originalFallback, setOriginalFallback] = useState(false);
   const [adding, setAdding] = useState(false);
   const { isAuthenticated, booting } = useAuth();
   const imageSrc = product.imageUrl || product?.images?.[0];
+  const cardImage = getCardImage(imageSrc, originalFallback);
   const productId = product._id || product.id;
 
   const handleAddToCart = async (event) => {
@@ -42,9 +45,13 @@ const ProductCard = ({ product }) => {
         {imageSrc && !imageFailed ? (
           <img
             className="h-full w-full rounded-xl object-cover"
-            src={imageSrc}
+            {...cardImage}
             alt={product.name}
-            onError={() => setImageFailed(true)}
+            loading="lazy"
+            decoding="async"
+            width="290"
+            height="290"
+            onError={() => cardImage.src !== imageSrc ? setOriginalFallback(true) : setImageFailed(true)}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center rounded-xl bg-zeta-main-lighter text-sm text-zeta-muted">

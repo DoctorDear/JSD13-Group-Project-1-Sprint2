@@ -12,6 +12,8 @@ const Collections = () => {
           <img
             src="https://i.pinimg.com/736x/fa/82/d6/fa82d62965395f81bfec38c968f0f260.jpg"
             alt="Special Away Jersey Collection"
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent z-10" />
@@ -36,6 +38,8 @@ const Collections = () => {
             <img
               src="https://i.pinimg.com/736x/46/95/19/46951998341ad8e1a6f300ccbe0298b5.jpg"
               alt="Green Jersey Collection"
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
@@ -73,6 +77,8 @@ const Collections = () => {
             <img
               src="https://i.pinimg.com/736x/9c/33/a9/9c33a9c2b5b9d13e95c1f3c3ae0eec77.jpg"
               alt="Retro Jersey Collection"
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { getR2Config } from "../config/r2.js";
 import { buildPublicImageUrl, putImageObject } from "../services/r2Storage.js";
+import { uploadImageThumbnails } from "../services/imageThumbnails.js";
 
 const IMAGE_PURPOSES = new Set(["product", "product-back", "template-back"]);
 const IMAGE_FORMATS = {
@@ -48,6 +49,7 @@ export async function uploadImage(req, res) {
       contentType: imageFormat.contentType,
       contentLength: req.file.size,
     });
+    if (req.body.purpose === "product") await uploadImageThumbnails(key, req.file.buffer);
 
     return res.status(201).json({
       key,

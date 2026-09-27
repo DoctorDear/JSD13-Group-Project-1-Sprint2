@@ -16,6 +16,10 @@ const Footer = () => {
               className="w-40 object-contain mb-6"
               src={logo}
               alt="green-jersey-logo"
+              width="160"
+              height="58"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 

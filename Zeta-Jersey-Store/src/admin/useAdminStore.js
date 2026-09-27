@@ -7,6 +7,7 @@ function normalizeProduct(p) {
   return {
     id: p._id || p.id,
     sku: p.sku || "",
+    groupId: p.groupId || "",
     name: p.name || "",
     category: p.category || "Jerseys",
     stock: Number(p.quantity ?? p.stock ?? 0),

@@ -4,6 +4,7 @@ import { buildPersonalizationTemplatePayload, validatePersonalizationTemplate } 
 import { adminService } from "../services/adminService.js";
 import { PageHeading } from "./AdminUI";
 import { ImageUrlUploadField } from "./ImageUploadField.jsx";
+import { getTemplateProductGroups, getTemplateProductImages } from "../lib/templateProductChoices.js";
 
 const BADGE_OPTIONS = [
   { id: "none", label: "No badge" },
@@ -155,6 +156,9 @@ export default function PersonalizationTemplates({ store }) {
 
   const selectedTemplate = store.templates.find((template) => template.groupId === selectedGroupId) || store.templates[0];
   const draft = draftState || copyTemplate(selectedTemplate);
+  const productGroups = getTemplateProductGroups(store.products);
+  const productImages = getTemplateProductImages(store.products, draft.groupId);
+  const existingGroupTemplate = isNew && store.templates.find((template) => template.groupId === draft.groupId.trim());
 
   const setField = (key, value) => setDraft((current) => ({ ...(current || copyTemplate(selectedTemplate)), [key]: value }));
   const setNested = (section, key, value) => setDraft((current) => {
@@ -175,6 +179,7 @@ export default function PersonalizationTemplates({ store }) {
     event.preventDefault();
     const draftForValidation = { ...draft, groupId: draft.groupId.trim() };
     const nextErrors = validatePersonalizationTemplate(draftForValidation);
+    if (existingGroupTemplate) nextErrors.groupId = "This group already has a template. Open it to edit instead.";
     setErrors(nextErrors);
     setError("");
     if (Object.keys(nextErrors).length) return;
@@ -237,6 +242,18 @@ export default function PersonalizationTemplates({ store }) {
             <div className="grid gap-4 sm:grid-cols-[1fr_auto] items-center pb-4 border-b border-base-200">
               <label className="flex flex-col gap-1.5 text-sm w-full">
                 <span className="font-medium text-base-content/85">Group ID</span>
+                {isNew && <select
+                  className="select select-bordered w-full"
+                  aria-label="Choose product group"
+                  disabled={saving || imageUploading}
+                  value={productGroups.some((group) => group.id === draft.groupId) ? draft.groupId : ""}
+                  onChange={(event) => { setField("groupId", event.target.value); setErrors({}); }}
+                >
+                  <option value="">Choose a product group or enter an ID below</option>
+                  {productGroups.map((group) => <option key={group.id} value={group.id}>
+                    {group.id} · {group.names.join(" / ")}{store.templates.some((template) => template.groupId === group.id) ? " (template exists)" : ""}
+                  </option>)}
+                </select>}
                 <input
                   className="input input-bordered w-full font-mono text-sm"
                   value={draft.groupId}
@@ -256,6 +273,37 @@ export default function PersonalizationTemplates({ store }) {
                 <span className="font-medium text-sm">Active for personalization</span>
               </label>
             </div>
+
+            {existingGroupTemplate && <div className="rounded-xl border border-base-300 p-3 text-sm space-y-2">
+              <p>This group already has a template.</p>
+              <button type="button" className="btn btn-sm btn-outline" disabled={saving || imageUploading} onClick={() => {
+                setSelectedGroupId(existingGroupTemplate.groupId);
+                setDraft(copyTemplate(existingGroupTemplate));
+                setIsNew(false);
+                setErrors({});
+                setError("");
+              }}>Open existing template</button>
+            </div>}
+
+            <section className="space-y-3" aria-label="Choose back image from products">
+              <h2 className="font-medium text-sm">Choose back image from products</h2>
+              <p className="text-xs text-base-content/65">Select the back view from this group's product images to preview it in the template.</p>
+              {productImages.length ? <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                {productImages.map(({ url, productName, isBack }, index) => <button
+                  key={url}
+                  type="button"
+                  aria-label={`Use image ${index + 1} from ${productName}`}
+                  aria-pressed={draft.backImageUrl === url}
+                  disabled={saving || imageUploading}
+                  onClick={() => setField("backImageUrl", url)}
+                  className={`rounded-xl border-2 p-2 text-left space-y-1 disabled:opacity-50 ${draft.backImageUrl === url ? "border-primary bg-primary/5" : "border-base-300 hover:border-primary/50"}`}
+                >
+                  <img src={url} alt={`${productName}${isBack ? " back view" : ` image ${index + 1}`}`} loading="lazy" className="h-28 w-full object-contain rounded-lg bg-base-200" />
+                  <span className="block text-xs truncate" title={productName}>{productName}</span>
+                  <span className="block text-xs font-medium">{draft.backImageUrl === url ? "Selected" : isBack ? "Product back image" : "Use this image"}</span>
+                </button>)}
+              </div> : <p className="text-sm text-base-content/60">{draft.groupId ? "No product images for this group. Enter a URL or upload an image below." : "Choose a product group to see its images."}</p>}
+            </section>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>

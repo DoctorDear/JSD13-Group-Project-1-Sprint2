@@ -8,7 +8,7 @@ export default function CartFeedback({ feedback, onDismiss, isHome = false }) {
   return (
     <div
       role={isSuccess ? "status" : "alert"}
-      className={`w-full rounded-xl border p-4 text-sm shadow-[0_8px_28px_-12px_rgba(34,24,90,0.22)] transition-[opacity,transform,margin,padding] duration-300 ease-out ${
+      className={`relative overflow-hidden w-full rounded-xl border p-4 text-sm shadow-[0_8px_28px_-12px_rgba(34,24,90,0.22)] transition-[opacity,transform,margin,padding] duration-300 ease-out ${
         feedback.exiting ? "-translate-y-2 scale-95 opacity-0 -mb-20" : "translate-y-0 scale-100 opacity-100"
       } ${
         isHome
@@ -29,6 +29,15 @@ export default function CartFeedback({ feedback, onDismiss, isHome = false }) {
         <button type="button" onClick={onDismiss} className={`shrink-0 font-medium ${isHome ? "text-white/80 hover:text-white" : "text-zeta-main hover:text-[#241878]"}`}>
           Dismiss
         </button>
+      </div>
+      <div aria-hidden="true" className={`absolute bottom-0 inset-x-0 h-1 ${isHome ? "bg-white/10" : "bg-gray-100"}`}>
+        <div
+          className={`h-full origin-left ${isSuccess ? (isHome ? "bg-zeta-sub" : "bg-green-600") : (isHome ? "bg-red-300" : "bg-red-600")}`}
+          style={{
+            animation: `cart-feedback-countdown ${feedback.durationMs || 5000}ms linear forwards`,
+            animationPlayState: feedback.exiting ? "paused" : "running",
+          }}
+        />
       </div>
     </div>
   );

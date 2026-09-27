@@ -11,9 +11,9 @@ export default function CartFeedbackHost() {
       const id = crypto.randomUUID();
       setMessages((current) => [
         ...current,
-        { ...event.detail, id, exiting: false },
+        { ...event.detail, id, exiting: false, durationMs: 5000 },
       ]);
-      if (event.detail.type === "success") {
+      {
         const timer = window.setTimeout(() => {
           setMessages((current) => current.map((message) =>
             message.id === id ? { ...message, exiting: true } : message,

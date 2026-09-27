@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigationType, useSearchParams } from "react-router-dom";
-import productData from "../data/products.json";
 import {
   buildProductFilterOptions,
   filterProducts,
@@ -80,6 +79,7 @@ export default function useProductCatalog() {
       }
       setProducts(remoteProducts);
     } catch {
+      const { default: productData } = await import("../data/products.json");
       setProducts(productData);
       setError(
         "The live catalog is unavailable right now. Showing the saved demo catalog instead.",

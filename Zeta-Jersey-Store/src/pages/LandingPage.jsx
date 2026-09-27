@@ -5,6 +5,7 @@ import LeagueCard from "../components/LeagueCard";
 import Collections from "../components/Collections";
 import Footer from "../components/Footer";
 import HeroSection from "../components/HeroSection";
+import { EUROPEAN_LEAGUES, THAI_LEAGUES, filterProductsByLeagues } from "../lib/landingCatalog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,7 +15,7 @@ const productSections = [
   {
     id: "new-arrivals",
     title: "New Arrivals",
-    query: "sort=newest&limit=8",
+    query: "sort=newest&limit=50",
   },
   {
     id: "best-seller",
@@ -23,7 +24,7 @@ const productSections = [
   },
 ];
 
-const ProductSection = ({ id, title, products, error }) => {
+const ProductSection = ({ id, title, products, error, loading }) => {
   const productsRef = useRef(null);
   const [scrollState, setScrollState] = useState({
     canScrollLeft: false,
@@ -95,7 +96,17 @@ const ProductSection = ({ id, title, products, error }) => {
     <section id={id} className="mx-auto max-w-7xl px-4 scroll-mt-28">
       <h2 className="mt-6 text-3xl text-black font-bold">{title}</h2>
 
-      {error ? (
+      {loading ? (
+        <div role="status" aria-label={`Loading ${title}`} className="flex gap-2 overflow-hidden py-4">
+          <span className="sr-only">Loading products…</span>
+          {[0, 1, 2, 3].map((index) => <div key={index} aria-hidden="true" className="w-[290px] shrink-0 space-y-4 p-5 motion-safe:animate-pulse">
+            <div className="aspect-square rounded-xl bg-zeta-main-lighter" />
+            <div className="h-5 w-3/4 rounded bg-zeta-main-lighter" />
+            <div className="h-5 w-1/2 rounded bg-zeta-main-lighter" />
+            <div className="h-32 rounded bg-zeta-main-lighter" />
+          </div>)}
+        </div>
+      ) : error ? (
         <p className="py-10 text-center text-zeta-muted">{error}</p>
       ) : (
         <div className="relative py-4">
@@ -225,13 +236,23 @@ const LandingPage = () => {
           key={id}
           id={id}
           title={title}
-          products={productsBySection[id]}
+          products={id === "new-arrivals"
+            ? filterProductsByLeagues(productsBySection[id] || [], EUROPEAN_LEAGUES).slice(0, 8)
+            : productsBySection[id]}
           error={error}
+          loading={!error && !productsBySection[id]}
         />
       ))}
 
       <LeagueCard />
       <Collections />
+      <ProductSection
+        id="thai-league-arrivals"
+        title="Thai League"
+        products={filterProductsByLeagues(productsBySection["new-arrivals"] || [], THAI_LEAGUES).slice(0, 8)}
+        error={error}
+        loading={!error && !productsBySection["new-arrivals"]}
+      />
 
       <Footer />
     </div>
