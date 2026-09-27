@@ -3,6 +3,15 @@ import Stripe from "stripe";
 import Order from "../models/Order.model.js";
 import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
+import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
+import { pricePersonalization } from "../lib/personalization.js";
+
+const normalizedName = (value) => typeof value === "string" ? value.toUpperCase() : "";
+const normalizedNumber = (value) => value === undefined || value === null ? null : String(value);
+const samePersonalization = (left, right) =>
+  normalizedName(left.customName) === normalizedName(right.customName) &&
+  normalizedNumber(left.customNumber) === normalizedNumber(right.customNumber) &&
+  (left.sleeveBadge || "none") === (right.sleeveBadge || "none");
 
 const stripe = () => {
   if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) throw new Error("Stripe test secret key is not configured");
@@ -19,7 +28,7 @@ async function removeOrderItemsFromCart(order) {
       if (item.cartItemId) return String(entry._id) === String(item.cartItemId);
       const orderSecond = Math.floor(new Date(order.createdAt).getTime() / 1000) * 1000;
       const cartSecond = entry._id?.getTimestamp?.().getTime();
-      return Number.isFinite(cartSecond) && cartSecond < orderSecond && String(entry.productId?._id || entry.productId) === productId && entry.size === item.size && (entry.customName || "") === (item.customName || "") && (entry.customNumber ?? null) === (item.customNumber ?? null);
+      return Number.isFinite(cartSecond) && cartSecond < orderSecond && String(entry.productId?._id || entry.productId) === productId && entry.size === item.size && samePersonalization(entry, item);
     });
     if (!cartItem) continue;
     cartItem.quantity -= item.quantity;
@@ -38,13 +47,21 @@ async function restoreCart(order) {
     const existing = user.cart.find((cartItem) =>
       String(cartItem.productId?._id || cartItem.productId) === productId &&
       cartItem.size === item.size &&
-      (cartItem.customName || "") === (item.customName || "") &&
-      (cartItem.customNumber ?? null) === (item.customNumber ?? null),
+      samePersonalization(cartItem, item),
     );
     if (existing) {
       if (order.payment?.cartCleared) existing.quantity += item.quantity;
+      Object.assign(existing, {
+        customName: normalizedName(item.customName),
+        customNumber: normalizedNumber(item.customNumber),
+        sleeveBadge: item.sleeveBadge || "none",
+        namePrice: item.namePrice ?? 0,
+        numberPrice: item.numberPrice ?? 0,
+        badgePrice: item.badgePrice ?? 0,
+        price: item.price,
+      });
     } else {
-      user.cart.push({ productId: item.productId, size: item.size, customName: item.customName || "", customNumber: item.customNumber ?? null, quantity: item.quantity, price: item.price });
+      user.cart.push({ productId: item.productId, size: item.size, customName: normalizedName(item.customName), customNumber: normalizedNumber(item.customNumber), sleeveBadge: item.sleeveBadge || "none", namePrice: item.namePrice ?? 0, numberPrice: item.numberPrice ?? 0, badgePrice: item.badgePrice ?? 0, quantity: item.quantity, price: item.price });
     }
   }
   await user.save();
@@ -118,8 +135,21 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
       if (!product || product.isActive === false || !Number.isInteger(quantity) || quantity < 1 || !Number.isSafeInteger(Math.round(product.price * 100)) || product.price <= 0 || product.quantity < quantity) {
         return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
       }
-      items.push({ productId: product._id, cartItemId: cartItem._id, sku: product.sku, name: product.name, size: cartItem.size || product.size, price: product.price, quantity, customName: cartItem.customName || "", customNumber: cartItem.customNumber ?? null });
-      totalAmount += product.price * quantity;
+      items.push({ productId: product._id, cartItemId: cartItem._id, sku: product.sku, name: product.name, size: cartItem.size || product.size, price: product.price, quantity, customName: cartItem.customName || "", customNumber: normalizedNumber(cartItem.customNumber), sleeveBadge: cartItem.sleeveBadge || "none" });
+    }
+    // Re-resolve the active template and calculate the authoritative snapshot immediately before reserving stock.
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product || product.isActive === false || product.quantity < item.quantity) return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
+      const template = await resolvePersonalizationTemplate(product);
+      const hasPrintChoices = Boolean(item.customName || item.customNumber !== null);
+      if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
+      const priced = template
+        ? pricePersonalization({ product, template, printEnabled: hasPrintChoices, customName: item.customName, customNumber: item.customNumber, sleeveBadge: item.sleeveBadge })
+        : { customName: "", customNumber: null, namePrice: 0, numberPrice: 0, sleeveBadge: "none", badgePrice: 0, unitPrice: product.price };
+      if (!priced) return res.status(400).json({ success: false, message: "An item has invalid personalization choices" });
+      Object.assign(item, { price: priced.unitPrice, customName: priced.customName, customNumber: priced.customNumber, sleeveBadge: priced.sleeveBadge, namePrice: priced.namePrice, numberPrice: priced.numberPrice, badgePrice: priced.badgePrice });
+      totalAmount += item.price * item.quantity;
     }
     for (const item of items) {
       const product = await Product.findOneAndUpdate({ _id: item.productId, quantity: { $gte: item.quantity } }, { $inc: { quantity: -item.quantity } });
@@ -140,7 +170,11 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
     session = await client.checkout.sessions.create({
       mode: "payment",
       payment_method_types: [paymentMethod],
-      line_items: items.map((item) => ({ price_data: { currency: "thb", unit_amount: Math.round(item.price * 100), product_data: { name: `${item.name} (${item.size})` } }, quantity: item.quantity })),
+      line_items: items.map((item) => ({ price_data: { currency: "thb", unit_amount: Math.round(item.price * 100), product_data: {
+        name: `${item.name} (${item.size})${item.badgePrice ? ` — ${item.sleeveBadge}` : ""}`,
+        description: [item.customName && `Name: ${item.customName}`, item.customNumber !== null && `Number: ${item.customNumber}`, item.sleeveBadge !== "none" && `Badge: ${item.sleeveBadge}`].filter(Boolean).join("; ") || undefined,
+        metadata: { customName: item.customName, customNumber: item.customNumber ?? "", sleeveBadge: item.sleeveBadge, namePrice: String(item.namePrice), numberPrice: String(item.numberPrice), badgePrice: String(item.badgePrice), unitPrice: String(item.price) },
+      } }, quantity: item.quantity })),
       client_reference_id: order.id,
       metadata: { orderId: order.id },
       success_url: `${origin}/order-confirmation?orderId=${order.id}`,

@@ -3,6 +3,8 @@ import Order from "../models/Order.model.js";
 import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
 import { syncStripeOrder } from "./stripe.controller.js";
+import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
+import { pricePersonalization } from "../lib/personalization.js";
 
 // 1. ฟังก์ชันดูรายละเอียดออเดอร์เดี่ยว
 export const getOrderById = async (req, res) => {
@@ -89,15 +91,7 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      if (product.quantity < item.quantity) {
-        return res.status(400).json({
-          success: false,
-          message: `Insufficient stock for product: ${product.name}`,
-        });
-      }
-
-      totalAmount += product.price * item.quantity;
-
+      const customNumber = item.customNumber === undefined || item.customNumber === null ? null : String(item.customNumber);
       orderItems.push({
         productId: product._id,
         sku: product.sku,
@@ -105,7 +99,36 @@ export const createOrder = async (req, res) => {
         price: product.price,
         size: item.size || product.size,
         quantity: item.quantity,
+        customName: item.customName || "",
+        customNumber,
+        sleeveBadge: item.sleeveBadge || "none",
       });
+    }
+
+    // Re-resolve the active template and calculate the authoritative snapshot immediately before reserving stock.
+    for (const item of orderItems) {
+      const product = await Product.findById(item.productId);
+      if (!product || product.isActive === false) return res.status(404).json({ success: false, message: "Product not found" });
+      if (product.quantity < item.quantity) return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
+      const template = await resolvePersonalizationTemplate(product);
+      const hasPrintChoices = Boolean(item.customName || item.customNumber !== null);
+      if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) {
+        return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
+      }
+      const priced = template
+        ? pricePersonalization({ product, template, printEnabled: hasPrintChoices, customName: item.customName, customNumber: item.customNumber, sleeveBadge: item.sleeveBadge })
+        : { customName: "", customNumber: null, namePrice: 0, numberPrice: 0, sleeveBadge: "none", badgePrice: 0, unitPrice: product.price };
+      if (!priced) return res.status(400).json({ success: false, message: "Invalid personalization choices" });
+      Object.assign(item, {
+        price: priced.unitPrice,
+        customName: priced.customName,
+        customNumber: priced.customNumber,
+        sleeveBadge: priced.sleeveBadge,
+        namePrice: priced.namePrice,
+        numberPrice: priced.numberPrice,
+        badgePrice: priced.badgePrice,
+      });
+      totalAmount += item.price * item.quantity;
     }
 
     for (const item of orderItems) {
