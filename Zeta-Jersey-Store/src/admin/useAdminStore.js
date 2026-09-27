@@ -15,6 +15,7 @@ function normalizeProduct(p) {
     originalPrice: Number(p.originalPrice ?? 0),
     cost: Number(p.cost ?? 0),
     reorder: Number(p.reorder ?? 10),
+    images: Array.isArray(p.images) ? [...p.images] : p.imageUrl ? [p.imageUrl] : [],
     imageUrl: p.images?.[0] || p.imageUrl || "",
     backImageUrl: p.backImageUrl || "",
     personalizationEnabled: p.personalizationEnabled === true,

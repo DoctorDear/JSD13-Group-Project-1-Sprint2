@@ -65,6 +65,7 @@ export async function request(
 ) {
   try {
     const cleanPath = normalizeApiPath(path);
+    const isMultipart = typeof FormData !== "undefined" && body instanceof FormData;
 
     const res = await fetch(`${API_BASE_URL}${cleanPath}`, {
       method,
@@ -72,10 +73,10 @@ export async function request(
       credentials: "include",
       headers: {
         Accept: "application/json",
-        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(body && !isMultipart ? { "Content-Type": "application/json" } : {}),
         ...headers,
       },
-      ...(body ? { body: JSON.stringify(body) } : {}),
+      ...(body ? { body: isMultipart ? body : JSON.stringify(body) } : {}),
     });
 
     const payload = await parseBody(res);

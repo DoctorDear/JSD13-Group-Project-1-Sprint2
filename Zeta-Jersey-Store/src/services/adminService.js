@@ -12,6 +12,13 @@ export const adminService = {
   updateProduct: (id, payload, options) =>
     api.patch(`/products/${id}`, payload, options),
 
+  uploadImage: (file, purpose, options) => {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("purpose", purpose);
+    return api.post("/uploads/images", form, options);
+  },
+
   deleteProduct: (id, options) =>
     api.del(`/products/${id}`, options),
 

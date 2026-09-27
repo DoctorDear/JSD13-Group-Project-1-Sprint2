@@ -3,6 +3,7 @@ import JerseyPersonalizationPreview from "../components/JerseyPersonalizationPre
 import { buildPersonalizationTemplatePayload, validatePersonalizationTemplate } from "../lib/productForm.js";
 import { adminService } from "../services/adminService.js";
 import { PageHeading } from "./AdminUI";
+import { ImageUrlUploadField } from "./ImageUploadField.jsx";
 
 const BADGE_OPTIONS = [
   { id: "none", label: "No badge" },
@@ -150,6 +151,7 @@ export default function PersonalizationTemplates({ store }) {
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const selectedTemplate = store.templates.find((template) => template.groupId === selectedGroupId) || store.templates[0];
   const draft = draftState || copyTemplate(selectedTemplate);
@@ -201,7 +203,7 @@ export default function PersonalizationTemplates({ store }) {
   return (
     <>
       <PageHeading title="Personalization Templates" subtitle="Configure approved jersey print and sleeve badge layouts">
-        <button type="button" className="btn btn-primary" onClick={beginNew}>Create template</button>
+        <button type="button" className="btn btn-primary" onClick={beginNew} disabled={imageUploading}>Create template</button>
       </PageHeading>
       {!store.templates.length && !isNew ? (
         <p className="rounded-xl border border-base-300 p-5 text-sm text-base-content/65">No personalization templates yet. Create one to make products eligible for personalization.</p>
@@ -212,6 +214,7 @@ export default function PersonalizationTemplates({ store }) {
           <select
             className="select select-bordered select-sm flex-1 min-w-[200px]"
             value={selectedGroupId || selectedTemplate?.groupId || ""}
+            disabled={imageUploading}
             onChange={(event) => {
               const selected = store.templates.find((template) => template.groupId === event.target.value);
               setSelectedGroupId(event.target.value);
@@ -255,16 +258,10 @@ export default function PersonalizationTemplates({ store }) {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="flex flex-col gap-1.5 text-sm w-full">
-                <span className="font-medium text-base-content/85">Back image URL</span>
-                <input
-                  className="input input-bordered w-full text-xs font-mono"
-                  value={draft.backImageUrl}
-                  onChange={(event) => setField("backImageUrl", event.target.value)}
-                  placeholder="https://... or /images/..."
-                />
+              <div>
+                <ImageUrlUploadField label="Back image URL" value={draft.backImageUrl} onChange={(value) => setField("backImageUrl", value)} onUploadingChange={setImageUploading} purpose="template-back" disabled={saving} />
                 {errors.backImageUrl && <span role="alert" className="text-xs text-error">{errors.backImageUrl}</span>}
-              </label>
+              </div>
               <BoxField label="Jersey view box" value={draft.viewBox} onChange={(value) => setBox("viewBox", value)} error={errors.viewBox} />
             </div>
 
@@ -353,8 +350,8 @@ export default function PersonalizationTemplates({ store }) {
                   Cancel
                 </button>
               )}
-              <button className="btn btn-primary" type="submit" disabled={saving}>
-                {saving ? "Saving..." : "Save template"}
+              <button className="btn btn-primary" type="submit" disabled={saving || imageUploading}>
+                {imageUploading ? "Finish image upload first" : saving ? "Saving..." : "Save template"}
               </button>
             </div>
           </div>
