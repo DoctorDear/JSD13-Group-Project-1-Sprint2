@@ -21,7 +21,7 @@ const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
                     <h4 className="text-sm font-bold text-gray-900 max-w-xs">{itemName}</h4>
                     <p className="text-xs text-gray-500 mt-0.5">Size : {item.size}</p>
                     <SleeveBadgeDetails item={item} />
-                    <p className="text-base font-bold text-gray-900 mt-1">฿{Number(itemPrice).toLocaleString()}</p>
+                    <p className="text-base font-bold text-gray-900 mt-1">Unit price: ฿{Number(itemPrice).toLocaleString()}</p>
                 </div>
             </div>
 

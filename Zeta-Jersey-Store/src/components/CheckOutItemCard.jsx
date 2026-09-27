@@ -42,7 +42,7 @@ const CheckOutItemCard = ({ item, image, title, size, price, quantity }) => {
 
             {/* Product price */}
             <div className="text-sm font-bold text-gray-900 flex-shrink-0">
-                ฿{Number(itemPrice).toLocaleString()}
+                ฿{Number(itemPrice).toLocaleString()} / shirt
             </div>
         </div>
     );

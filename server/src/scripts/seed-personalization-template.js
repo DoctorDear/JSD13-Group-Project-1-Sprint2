@@ -56,7 +56,8 @@ export async function seedPersonalizationTemplate() {
   const liverpoolHomeProducts = {
     $or: [
       { groupId: LIVERPOOL_HOME_GROUP_ID },
-      { name: { $regex: "Liverpool.*Home", $options: "i" } },
+      { sku: { $regex: "^(?:LFC-2627-|KA6852)", $options: "i" } },
+      { name: { $regex: "Liverpool.*(?:2026\\s*[/ -]\\s*27|26\\s*[/ -]\\s*27).*Home", $options: "i" } },
     ],
   };
   return Product.updateMany(liverpoolHomeProducts, {

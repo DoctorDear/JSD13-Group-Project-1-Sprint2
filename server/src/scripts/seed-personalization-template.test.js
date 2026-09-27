@@ -7,7 +7,9 @@ import { seedPersonalizationTemplate } from "./seed-personalization-template.js"
 test("seeding twice keeps one Liverpool template and stable product flags", async (t) => {
   const templateStore = new Map();
   const products = [
-    { _id: "lfc-home", name: "Liverpool FC 2026/27 Home Jersey", groupId: "LFC-2627-HOME", personalizationEnabled: false },
+    { _id: "lfc-home", sku: "LFC-STADIUM", name: "Liverpool FC 2026/27 Home Jersey", groupId: null, personalizationEnabled: false },
+    { _id: "lfc-approved-sku", sku: "KA6852-STADIUM", name: "Liverpool Home Jersey", groupId: null, personalizationEnabled: false },
+    { _id: "lfc-old-season", sku: "LFC-2526-HOME", name: "Liverpool FC 2025/26 Home Jersey", groupId: null, personalizationEnabled: false },
     { _id: "other", name: "Arsenal Home Jersey", groupId: "ARS-2627-HOME", personalizationEnabled: false },
   ];
   const originals = {
@@ -28,8 +30,12 @@ test("seeding twice keeps one Liverpool template and stable product flags", asyn
   };
   Product.updateMany = async (filter, update) => {
     for (const product of products) {
-      const matches = product.groupId === filter.$or[0].groupId ||
-        (product.name.includes("Liverpool") && product.name.includes("Home"));
+      const matches = filter.$or.some((condition) => {
+        if (condition.groupId) return product.groupId === condition.groupId;
+        if (condition.sku) return new RegExp(condition.sku.$regex, condition.sku.$options).test(product.sku || "");
+        if (condition.name) return new RegExp(condition.name.$regex, condition.name.$options).test(product.name || "");
+        return false;
+      });
       if (matches) Object.assign(product, update.$set);
     }
     return { modifiedCount: 1 };
@@ -60,5 +66,9 @@ test("seeding twice keeps one Liverpool template and stable product flags", asyn
   });
   assert.equal(products[0].personalizationEnabled, true);
   assert.equal(products[0].personalizationGroupId, "LFC-2627-HOME");
-  assert.equal(products[1].personalizationEnabled, false);
+  assert.equal(products[1].personalizationEnabled, true);
+  assert.equal(products[1].personalizationGroupId, "LFC-2627-HOME");
+  assert.equal(products[2].personalizationEnabled, false);
+  assert.equal(products[2].personalizationGroupId, undefined);
+  assert.equal(products[3].personalizationEnabled, false);
 });

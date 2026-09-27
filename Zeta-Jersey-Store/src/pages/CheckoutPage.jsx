@@ -97,7 +97,7 @@ const CheckoutPage = () => {
 
   // --- ระบบคำนวณราคาอัตโนมัติจากสินค้าในตะกร้า (Real-time calculation) ---
   const subtotal = cartItems.reduce((acc, item) => {
-    const price = Number(item.productId?.price ?? item.price) || 0;
+    const price = Number(item.price ?? item.productId?.price) || 0;
     const quantity = Number(item.quantity) || 1;
     return acc + (price * quantity);
   }, 0);
