@@ -27,19 +27,33 @@ function copyTemplate(template) {
 
 function NumericField({ label, value, onChange, step = "any", error }) {
   return (
-    <label className="form-control gap-1 text-sm">
-      <span className="font-medium">{label}</span>
-      <input className="input input-bordered input-sm w-full" type="number" step={step} value={value ?? ""} onChange={(event) => onChange(event.target.value)} />
-      {error && <span role="alert" className="text-error">{error}</span>}
+    <label className="flex flex-col gap-1 text-sm w-full">
+      <span className="font-medium text-xs text-base-content/75">{label}</span>
+      <input
+        className="input input-bordered input-sm w-full"
+        type="number"
+        step={step}
+        value={value ?? ""}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {error && <span role="alert" className="text-xs text-error">{error}</span>}
     </label>
   );
 }
 
-function BoxField({ label, value, onChange }) {
+function BoxField({ label, value, onChange, error }) {
   return (
-    <label className="form-control gap-1 text-sm">
-      <span className="font-medium">{label} (x, y, width, height)</span>
-      <input className="input input-bordered input-sm w-full" value={Array.isArray(value) ? value.join(", ") : ""} onChange={(event) => onChange(event.target.value.split(",").map((part) => part.trim()))} />
+    <label className="flex flex-col gap-1 text-sm w-full">
+      <span className="font-medium text-base-content/85">
+        {label} <span className="text-xs font-normal text-base-content/50">(x, y, width, height)</span>
+      </span>
+      <input
+        className="input input-bordered w-full font-mono text-sm"
+        placeholder="0, 0, 1000, 1000"
+        value={Array.isArray(value) ? value.join(", ") : ""}
+        onChange={(event) => onChange(event.target.value.split(",").map((part) => part.trim()))}
+      />
+      {error && <span role="alert" className="text-xs text-error">{error}</span>}
     </label>
   );
 }
@@ -47,21 +61,68 @@ function BoxField({ label, value, onChange }) {
 function TextStyleFields({ title, style, onChange, errors }) {
   const section = title.toLowerCase();
   return (
-    <fieldset className="rounded-xl border border-base-300 p-4">
-      <legend className="px-1 font-semibold">{title} styling</legend>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        {[["x", "X position"], ["y", "Y position"], ["fontSize", "Font size"], ["fontWeight", "Font weight"], ["letterSpacing", "Letter spacing"], ["strokeWidth", "Outline width"]].map(([key, label]) => (
-          <NumericField key={key} label={label} value={style[key]} onChange={(value) => onChange(key, value)} error={errors[`${section}.${key}`]} />
+    <fieldset className="rounded-2xl border border-base-300 p-5 bg-base-50/50">
+      <legend className="px-2 font-semibold text-sm text-base-content">{title} styling</legend>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {[
+          ["x", "X position"],
+          ["y", "Y position"],
+          ["fontSize", "Font size"],
+          ["fontWeight", "Font weight"],
+          ["letterSpacing", "Letter spacing"],
+          ["strokeWidth", "Outline width"],
+        ].map(([key, label]) => (
+          <NumericField
+            key={key}
+            label={label}
+            value={style[key]}
+            onChange={(value) => onChange(key, value)}
+            error={errors[`${section}.${key}`]}
+          />
         ))}
-        <label className="form-control gap-1 text-sm">
-          <span className="font-medium">Approved font</span>
-          <select className="select select-bordered select-sm" value={style.fontId} onChange={(event) => onChange("fontId", event.target.value)}>
+        <label className="flex flex-col gap-1 text-sm w-full">
+          <span className="font-medium text-xs text-base-content/75">Approved font</span>
+          <select
+            className="select select-bordered select-sm w-full"
+            value={style.fontId}
+            onChange={(event) => onChange("fontId", event.target.value)}
+          >
             <option value="barlow-condensed-900">Barlow Condensed 900</option>
           </select>
-          {errors[`${section}.fontId`] && <span role="alert" className="text-error">{errors[`${section}.fontId`]}</span>}
+          {errors[`${section}.fontId`] && <span role="alert" className="text-xs text-error">{errors[`${section}.fontId`]}</span>}
         </label>
-        <label className="form-control gap-1 text-sm"><span className="font-medium">Fill color</span><input className="input input-bordered input-sm" value={style.fill} onChange={(event) => onChange("fill", event.target.value)} /></label>
-        <label className="form-control gap-1 text-sm"><span className="font-medium">Outline color</span><input className="input input-bordered input-sm" value={style.stroke} onChange={(event) => onChange("stroke", event.target.value)} /></label>
+        <label className="flex flex-col gap-1 text-sm w-full">
+          <span className="font-medium text-xs text-base-content/75">Fill color</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              className="size-8 rounded-lg border border-base-300 cursor-pointer p-0.5 bg-base-100 shrink-0"
+              value={style.fill?.startsWith("#") ? style.fill : "#ffffff"}
+              onChange={(event) => onChange("fill", event.target.value)}
+            />
+            <input
+              className="input input-bordered input-sm w-full font-mono text-xs uppercase"
+              value={style.fill}
+              onChange={(event) => onChange("fill", event.target.value)}
+            />
+          </div>
+        </label>
+        <label className="flex flex-col gap-1 text-sm w-full">
+          <span className="font-medium text-xs text-base-content/75">Outline color</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              className="size-8 rounded-lg border border-base-300 cursor-pointer p-0.5 bg-base-100 shrink-0"
+              value={style.stroke?.startsWith("#") ? style.stroke : "#000000"}
+              onChange={(event) => onChange("stroke", event.target.value)}
+            />
+            <input
+              className="input input-bordered input-sm w-full font-mono text-xs uppercase"
+              value={style.stroke}
+              onChange={(event) => onChange("stroke", event.target.value)}
+            />
+          </div>
+        </label>
       </div>
     </fieldset>
   );
@@ -146,51 +207,175 @@ export default function PersonalizationTemplates({ store }) {
         <p className="rounded-xl border border-base-300 p-5 text-sm text-base-content/65">No personalization templates yet. Create one to make products eligible for personalization.</p>
       ) : null}
       {store.templates.length > 0 && !isNew && (
-        <label className="mb-5 flex max-w-lg flex-col gap-2 text-sm font-medium">
-          Template group
-              <select className="select select-bordered" value={selectedGroupId || selectedTemplate?.groupId || ""} onChange={(event) => { const selected = store.templates.find((template) => template.groupId === event.target.value); setSelectedGroupId(event.target.value); setDraft(copyTemplate(selected)); setErrors({}); setError(""); }}>
-            {store.templates.map((template) => <option key={template.groupId} value={template.groupId}>{template.groupId}{template.active ? "" : " (inactive)"}</option>)}
+        <div className="mb-6 flex flex-wrap items-center gap-3 p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm max-w-xl">
+          <span className="text-sm font-semibold text-base-content shrink-0">Template group:</span>
+          <select
+            className="select select-bordered select-sm flex-1 min-w-[200px]"
+            value={selectedGroupId || selectedTemplate?.groupId || ""}
+            onChange={(event) => {
+              const selected = store.templates.find((template) => template.groupId === event.target.value);
+              setSelectedGroupId(event.target.value);
+              setDraft(copyTemplate(selected));
+              setErrors({});
+              setError("");
+            }}
+          >
+            {store.templates.map((template) => (
+              <option key={template.groupId} value={template.groupId}>
+                {template.groupId}{template.active ? "" : " (inactive)"}
+              </option>
+            ))}
           </select>
-        </label>
+        </div>
       )}
       {(isNew || selectedTemplate) && (
-        <form onSubmit={save} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
-          <div className="space-y-5 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="form-control gap-1 text-sm"><span className="font-medium">Group ID</span><input className="input input-bordered" value={draft.groupId} disabled={!isNew} onChange={(event) => setField("groupId", event.target.value.toUpperCase())} placeholder="LFC-2627-HOME" />{errors.groupId && <span role="alert" className="text-error">{errors.groupId}</span>}</label>
-              <label className="flex items-center gap-3 self-end pb-3 text-sm"><input type="checkbox" className="checkbox checkbox-primary" checked={draft.active} onChange={(event) => setField("active", event.target.checked)} />Active for product personalization</label>
+        <form onSubmit={save} className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
+          <div className="space-y-6 rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm">
+            <div className="grid gap-4 sm:grid-cols-[1fr_auto] items-center pb-4 border-b border-base-200">
+              <label className="flex flex-col gap-1.5 text-sm w-full">
+                <span className="font-medium text-base-content/85">Group ID</span>
+                <input
+                  className="input input-bordered w-full font-mono text-sm"
+                  value={draft.groupId}
+                  disabled={!isNew}
+                  onChange={(event) => setField("groupId", event.target.value.toUpperCase())}
+                  placeholder="LFC-2627-HOME"
+                />
+                {errors.groupId && <span role="alert" className="text-xs text-error">{errors.groupId}</span>}
+              </label>
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-base-300 bg-base-200/40 cursor-pointer hover:bg-base-200/70 transition self-end">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-primary"
+                  checked={draft.active}
+                  onChange={(event) => setField("active", event.target.checked)}
+                />
+                <span className="font-medium text-sm">Active for personalization</span>
+              </label>
             </div>
-            <label className="form-control gap-1 text-sm"><span className="font-medium">Back image URL</span><input className="input input-bordered" value={draft.backImageUrl} onChange={(event) => setField("backImageUrl", event.target.value)} placeholder="https://... or /images/..." />{errors.backImageUrl && <span role="alert" className="text-error">{errors.backImageUrl}</span>}</label>
-            <BoxField label="Jersey view box" value={draft.viewBox} onChange={(value) => setBox("viewBox", value)} />
-            {errors.viewBox && <p role="alert" className="text-sm text-error">{errors.viewBox}</p>}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5 text-sm w-full">
+                <span className="font-medium text-base-content/85">Back image URL</span>
+                <input
+                  className="input input-bordered w-full text-xs font-mono"
+                  value={draft.backImageUrl}
+                  onChange={(event) => setField("backImageUrl", event.target.value)}
+                  placeholder="https://... or /images/..."
+                />
+                {errors.backImageUrl && <span role="alert" className="text-xs text-error">{errors.backImageUrl}</span>}
+              </label>
+              <BoxField label="Jersey view box" value={draft.viewBox} onChange={(value) => setBox("viewBox", value)} error={errors.viewBox} />
+            </div>
+
             <TextStyleFields title="Name" style={draft.name} onChange={(key, value) => setNested("name", key, value)} errors={errors} />
             <TextStyleFields title="Number" style={draft.number} onChange={(key, value) => setNested("number", key, value)} errors={errors} />
-            <fieldset className="rounded-xl border border-base-300 p-4">
-              <legend className="px-1 font-semibold">Sleeve badge geometry</legend>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                {[["x", "X position"], ["y", "Y position"], ["rotate", "Rotation"], ["skewY", "Vertical skew"], ["scaleX", "Horizontal scale"], ["scaleY", "Vertical scale"]].map(([key, label]) => <NumericField key={key} label={label} value={draft.sleeveBadge[key]} onChange={(value) => setNested("sleeveBadge", key, value)} error={errors[`sleeveBadge.${key}`]} />)}
+
+            <fieldset className="rounded-2xl border border-base-300 p-5 bg-base-50/50">
+              <legend className="px-2 font-semibold text-sm text-base-content">Sleeve badge geometry</legend>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[
+                  ["x", "X position"],
+                  ["y", "Y position"],
+                  ["rotate", "Rotation (deg)"],
+                  ["skewY", "Vertical skew (deg)"],
+                  ["scaleX", "Horizontal scale"],
+                  ["scaleY", "Vertical scale"],
+                ].map(([key, label]) => (
+                  <NumericField
+                    key={key}
+                    label={label}
+                    value={draft.sleeveBadge[key]}
+                    onChange={(value) => setNested("sleeveBadge", key, value)}
+                    error={errors[`sleeveBadge.${key}`]}
+                  />
+                ))}
               </div>
               <div className="mt-4 space-y-3">
-                <BoxField label="Sleeve zoom view box" value={draft.sleeveBadge.zoomViewBox} onChange={(value) => setNested("sleeveBadge", "zoomViewBox", value)} />
-                {errors["sleeveBadge.zoomViewBox"] && <p role="alert" className="text-sm text-error">{errors["sleeveBadge.zoomViewBox"]}</p>}
-                <label className="form-control gap-1 text-sm"><span className="font-medium">Badge clip path</span><textarea className="textarea textarea-bordered font-mono" rows={3} value={draft.sleeveBadge.clipPath} onChange={(event) => setNested("sleeveBadge", "clipPath", event.target.value)} />{errors["sleeveBadge.clipPath"] && <span role="alert" className="text-error">{errors["sleeveBadge.clipPath"]}</span>}</label>
+                <BoxField
+                  label="Sleeve zoom view box"
+                  value={draft.sleeveBadge.zoomViewBox}
+                  onChange={(value) => setNested("sleeveBadge", "zoomViewBox", value)}
+                  error={errors["sleeveBadge.zoomViewBox"]}
+                />
+                <label className="flex flex-col gap-1.5 text-sm w-full">
+                  <span className="font-medium text-base-content/85">Badge clip path <span className="text-xs font-normal text-base-content/50">(SVG path data)</span></span>
+                  <textarea
+                    className="textarea textarea-bordered font-mono text-xs w-full leading-relaxed"
+                    rows={3}
+                    value={draft.sleeveBadge.clipPath}
+                    onChange={(event) => setNested("sleeveBadge", "clipPath", event.target.value)}
+                  />
+                  {errors["sleeveBadge.clipPath"] && <span role="alert" className="text-xs text-error">{errors["sleeveBadge.clipPath"]}</span>}
+                </label>
               </div>
             </fieldset>
-            <fieldset className="rounded-xl border border-base-300 p-4">
-              <legend className="px-1 font-semibold">Supported sleeve badges</legend>
-              <div className="flex flex-wrap gap-4">{BADGE_OPTIONS.map(({ id, label }) => <label className="flex items-center gap-2 text-sm" key={id}><input className="checkbox checkbox-sm checkbox-primary" type="checkbox" checked={draft.sleeveBadgeOptions.includes(id)} onChange={(event) => setField("sleeveBadgeOptions", event.target.checked ? [...draft.sleeveBadgeOptions, id] : draft.sleeveBadgeOptions.filter((option) => option !== id))} />{label}</label>)}</div>
-              {errors.sleeveBadgeOptions && <p role="alert" className="mt-2 text-sm text-error">{errors.sleeveBadgeOptions}</p>}
+
+            <fieldset className="rounded-2xl border border-base-300 p-5 bg-base-50/50">
+              <legend className="px-2 font-semibold text-sm text-base-content">Supported sleeve badges</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {BADGE_OPTIONS.map(({ id, label }) => {
+                  const checked = draft.sleeveBadgeOptions.includes(id);
+                  return (
+                    <label
+                      key={id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${checked ? "border-primary bg-primary/5 text-primary font-medium" : "border-base-300 hover:bg-base-200/50"}`}
+                    >
+                      <input
+                        className="checkbox checkbox-sm checkbox-primary"
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) => setField("sleeveBadgeOptions", event.target.checked ? [...draft.sleeveBadgeOptions, id] : draft.sleeveBadgeOptions.filter((option) => option !== id))}
+                      />
+                      <span className="text-xs sm:text-sm">{label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.sleeveBadgeOptions && <p role="alert" className="mt-2 text-xs text-error">{errors.sleeveBadgeOptions}</p>}
             </fieldset>
-            {Object.entries(errors).some(([key]) => key.includes(".")) && <p className="text-sm text-error">Review the highlighted name, number, and badge numeric fields.</p>}
-            {error && <p role="alert" className="alert alert-error py-3">{error}</p>}
-            <div className="flex justify-end gap-3 border-t border-base-300 pt-4">
-              {isNew && <button type="button" className="btn btn-ghost" onClick={() => { setIsNew(false); setDraft(copyTemplate(store.templates.find((template) => template.groupId === selectedGroupId) || store.templates[0])); }}>Cancel</button>}
-              <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? "Saving..." : "Save template"}</button>
+
+            {Object.entries(errors).some(([key]) => key.includes(".")) && (
+              <p className="text-sm text-error">Review the highlighted name, number, and badge numeric fields.</p>
+            )}
+            {error && <p role="alert" className="alert alert-error py-3 text-sm">{error}</p>}
+
+            <div className="flex justify-end gap-3 border-t border-base-300 pt-5">
+              {isNew && (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setIsNew(false);
+                    setDraft(copyTemplate(store.templates.find((template) => template.groupId === selectedGroupId) || store.templates[0]));
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+              <button className="btn btn-primary" type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save template"}
+              </button>
             </div>
           </div>
-          <aside className="h-fit rounded-2xl border border-base-300 bg-base-200 p-5">
-            <h2 className="mb-3 font-semibold">Read-only preview</h2>
-            <JerseyPersonalizationPreview template={previewTemplate} printEnabled name="YOUR NAME" number="00" sleeveBadge={previewBadge} />
+
+          <aside className="h-fit rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm sticky top-24">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-semibold text-base text-base-content">Live Preview</h2>
+                <p className="text-xs text-base-content/60">Read-only template visualization</p>
+              </div>
+              <span className="badge badge-primary badge-outline text-xs font-mono">{previewBadge}</span>
+            </div>
+            <div className="rounded-xl border border-base-200 bg-[#f8f8fc] p-4 flex items-center justify-center overflow-hidden min-h-[420px]">
+              <JerseyPersonalizationPreview
+                template={previewTemplate}
+                printEnabled
+                name="YOUR NAME"
+                number="00"
+                sleeveBadge={previewBadge}
+              />
+            </div>
           </aside>
         </form>
       )}

@@ -31,7 +31,11 @@ const ProductDetail = () => {
         setError(null);
         const data = await api.get(`/products/${id}`, { signal: controller.signal });
         if (controller.signal.aborted) return;
-        setProduct(data.product);
+        setProduct(
+          data.product
+            ? { ...data.product, personalizationTemplate: data.personalizationTemplate }
+            : null,
+        );
         setVariants(data.variants || []);
       } catch (err) {
         if (!controller.signal.aborted) setError(err.message);
@@ -198,7 +202,13 @@ const ProductDetail = () => {
                     {variants.map((item) => (
                       <button
                         key={item._id}
-                        onClick={() => setProduct(prev => ({ ...prev, ...item }))}
+                        onClick={() =>
+                          setProduct((prev) => ({
+                            ...prev,
+                            ...item,
+                            personalizationTemplate: prev?.personalizationTemplate,
+                          }))
+                        }
                         className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${product._id === item._id
                           ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
                           : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"

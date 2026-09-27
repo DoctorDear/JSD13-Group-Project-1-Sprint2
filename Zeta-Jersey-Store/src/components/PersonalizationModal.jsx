@@ -74,7 +74,7 @@ export default function PersonalizationModal({ product, initialSize, adding, onC
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-0 sm:p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="personalization-title" className="relative flex flex-col h-full w-full max-w-6xl overflow-y-auto bg-white shadow-2xl sm:max-h-[min(92vh,900px)] sm:rounded-2xl lg:grid lg:h-[min(92vh,900px)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="personalization-title" className="relative flex flex-col h-full w-full max-w-6xl overflow-y-auto bg-white shadow-2xl sm:max-h-[min(92vh,900px)] sm:rounded-2xl lg:grid lg:h-[min(92vh,900px)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] font-poppins">
         <button ref={closeButton} type="button" onClick={onClose} aria-label="Close jersey personalization" className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-zeta-main shadow-sm hover:bg-slate-100"><X size={20} /></button>
 
         <form id="personalization-form" onSubmit={handleSubmit} className="shrink-0 px-5 pb-8 pt-8 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-10 lg:py-10">
