@@ -354,10 +354,11 @@ export function ProductForm({ store }) {
           <div className="md:col-span-2">
             <ImageUrlUploadField label="Back image for personalization preview (optional)" value={backImageUrl} onChange={setBackImageUrl} onUploadingChange={trackImageUpload} purpose="product-back" disabled={submitting} />
           </div>
-          <Field className="md:col-span-2" label="Product personalization">
-            <label className="flex items-center gap-3">
+          <div className="md:col-span-2 space-y-2">
+            <span className="text-sm font-medium text-base-content/80">Product personalization</span>
+            <label className="flex w-fit items-center gap-3 rounded-xl border border-base-300 px-3 py-2">
               <input
-                className="checkbox checkbox-primary"
+                className="checkbox checkbox-primary size-5 shrink-0"
                 type="checkbox"
                 name="personalizationEnabled"
                 value="true"
@@ -365,7 +366,7 @@ export function ProductForm({ store }) {
               />
               <span>Allow personalization</span>
             </label>
-          </Field>
+          </div>
           {fieldErrors.personalizationGroupId && (
             <p role="alert" className="text-error md:col-span-2">{fieldErrors.personalizationGroupId}</p>
           )}
