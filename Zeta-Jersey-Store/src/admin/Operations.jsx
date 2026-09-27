@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SleeveBadgeDetails from '../components/SleeveBadgeDetails.jsx';
 import { Plus, Eye, Trash2 } from "lucide-react";
 import {
   PageHeading,
@@ -118,9 +119,10 @@ export function Orders({ store, money }) {
                       <p className="text-xs text-base-content/50">
                         SKU: {item.sku} · Size: {item.size || "-"} · Qty: {item.quantity}
                       </p>
+                      <SleeveBadgeDetails item={item} />
                     </div>
                     <span className="font-medium text-base-content">
-                      {money(item.price * item.quantity)}
+                      {money(item.price)} / shirt · {money(item.price * item.quantity)} total
                     </span>
                   </div>
                 ))}
