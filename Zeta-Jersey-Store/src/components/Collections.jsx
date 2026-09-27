@@ -1,6 +1,8 @@
+import { Link } from "react-router-dom";
+
 const Collections = () => {
   return (
-    <section className="px-4 py-8">
+    <section id="collections" className="px-4 py-8 scroll-mt-28">
       <h2 className="text-3xl text-black font-bold tracking-tight mb-6">
         Collections
       </h2>
@@ -18,12 +20,12 @@ const Collections = () => {
             <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#FAFAFC] uppercase tracking-tight max-w-xs drop-shadow-md leading-tight">
               A Special Away Jersey For Every Nation
             </h3>
-            <a
-              href="#"
+            <Link
+              to="/products?search=away"
               className="px-5 py-2.5 bg-zeta-sub hover:bg-gray-100 text-black font-semibold text-xs tracking-wide shadow-md transition-all flex items-center gap-1.5 shrink-0 hover:scale-105 active:scale-95"
             >
               View Collection
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -37,12 +39,12 @@ const Collections = () => {
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-            <a
-              href="#"
+            <Link
+              to="/products?search=green"
               className="relative z-20 ml-auto px-4 py-2 bg-zeta-sub hover:bg-gray-100 text-black font-semibold text-xs shadow-md transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
             >
               View Collection
-            </a>
+            </Link>
           </div>
 
           {/* Champions League Blue Card */}
@@ -74,12 +76,12 @@ const Collections = () => {
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-            <a
-              href="#"
+            <Link
+              to="/products?search=retro"
               className="relative z-20 ml-auto px-4 py-2 bg-zeta-sub hover:bg-gray-100 text-black font-semibold text-xs shadow-md transition-all flex items-center gap-1 hover:scale-105 active:scale-95"
             >
               View Collection
-            </a>
+            </Link>
           </div>
         </div>
       </div>

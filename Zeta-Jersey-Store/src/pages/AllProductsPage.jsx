@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   AlertCircle,
   ChevronLeft,
@@ -46,6 +47,10 @@ const AllProductsPage = () => {
     totalProducts,
     visibleProducts,
   } = useProductCatalog();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [page]);
 
   return (
     <div className="min-h-screen bg-[#fafaff]">

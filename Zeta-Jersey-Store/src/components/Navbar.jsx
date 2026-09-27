@@ -335,6 +335,17 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
     };
   }, [cartCount, isAuthenticated, booting]);
 
+  const handleScrollToSection = (sectionId) => (event) => {
+    if (isHome) {
+      event.preventDefault();
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.pushState(null, "", `#${sectionId}`);
+      }
+    }
+  };
+
   return (
     <>
       <nav
@@ -364,6 +375,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
         >
           <Link
             to={isHome ? "#new-arrivals" : "/products?sort=newest"}
+            onClick={handleScrollToSection("new-arrivals")}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
@@ -372,6 +384,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
           </Link>
           <Link
             to={isHome ? "#best-seller" : "/products?sort=best-selling"}
+            onClick={handleScrollToSection("best-seller")}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
@@ -379,7 +392,8 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
             Best Seller
           </Link>
           <Link
-            to="/products"
+            to={isHome ? "#leagues" : "/#leagues"}
+            onClick={handleScrollToSection("leagues")}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
@@ -387,7 +401,8 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
             League
           </Link>
           <Link
-            to="/products"
+            to={isHome ? "#collections" : "/#collections"}
+            onClick={handleScrollToSection("collections")}
             className={`px-4 py-2 rounded-full transition-all hover:shadow-[inset_-1px_-1px_1px_rgba(255,255,255,0.4),inset_1px_1px_1px_rgba(255,255,255,0.4)] ${
               isHome ? "hover:text-zeta-main hover:bg-zeta-sub/20" : "hover:text-zeta-sub hover:bg-[#FFFFFF]/10"
             }`}
