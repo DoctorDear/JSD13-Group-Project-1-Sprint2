@@ -33,7 +33,7 @@ const leagues = [
 
 const LeagueCard = () => {
   return (
-    <section id="leagues" className="px-4 py-8 scroll-mt-28">
+    <section id="leagues" className="mx-auto max-w-7xl px-4 py-8 scroll-mt-28">
       <h2 className="text-3xl text-black font-bold tracking-tight mb-6">
         Shop by League
       </h2>

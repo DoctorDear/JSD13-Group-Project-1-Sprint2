@@ -142,14 +142,14 @@ const AllProductsPage = () => {
             )}
 
             {loading ? (
-              <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {Array.from({ length: PRODUCT_PAGE_SIZE }).map((_, index) => (
                   <ProductSkeleton key={index} />
                 ))}
               </div>
             ) : visibleProducts.length > 0 ? (
               <>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [&>div]:max-w-none">
                   {visibleProducts.map((product) => (
                     <ProductCard
                       key={getProductId(product)}

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const Collections = () => {
   return (
-    <section id="collections" className="px-4 py-8 scroll-mt-28">
+    <section id="collections" className="mx-auto max-w-7xl px-4 py-8 scroll-mt-28">
       <h2 className="text-3xl text-black font-bold tracking-tight mb-6">
         Collections
       </h2>
