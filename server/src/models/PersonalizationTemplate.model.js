@@ -9,9 +9,13 @@ export const PERSONALIZATION_BADGE_IDS = Object.freeze([
 
 export const isSafeImageUrl = (value) => {
   if (typeof value !== "string" || !value.trim()) return false;
+  if (/[\\\u0000-\u001f\u007f-\u009f]/.test(value)) return false;
   const normalized = value.trim();
-  if (normalized.startsWith("/") && !normalized.startsWith("//")) return true;
   try {
+    const localOrigin = "https://personalization.local";
+    if (normalized.startsWith("/")) {
+      return new URL(normalized, localOrigin).origin === localOrigin;
+    }
     const parsed = new URL(normalized);
     return parsed.protocol === "https:" && Boolean(parsed.hostname);
   } catch {

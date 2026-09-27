@@ -1,6 +1,16 @@
 import { PersonalizationTemplate } from "../models/PersonalizationTemplate.model.js";
 import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
 
+const PATCHABLE_TEMPLATE_FIELDS = new Set([
+  "active",
+  "backImageUrl",
+  "viewBox",
+  "name",
+  "number",
+  "sleeveBadge",
+  "sleeveBadgeOptions",
+]);
+
 export const getPersonalizationTemplates = async (_req, res, next) => {
   try {
     const templates = await PersonalizationTemplate.find().sort({ groupId: 1 });
@@ -37,6 +47,9 @@ export const updatePersonalizationTemplate = async (req, res, next) => {
     const { groupId, ...updates } = req.body ?? {};
     if (typeof groupId !== "string" || !groupId.trim()) {
       return res.status(400).json({ error: "groupId is required" });
+    }
+    if (Object.keys(updates).some((field) => !PATCHABLE_TEMPLATE_FIELDS.has(field))) {
+      return res.status(400).json({ error: "Unsupported template field" });
     }
     const template = await PersonalizationTemplate.findOneAndUpdate(
       { groupId },

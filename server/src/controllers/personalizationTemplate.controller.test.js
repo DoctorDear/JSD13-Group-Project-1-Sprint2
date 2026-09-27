@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import express from "express";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
-import { PersonalizationTemplate } from "../models/PersonalizationTemplate.model.js";
+import { isSafeImageUrl, PersonalizationTemplate } from "../models/PersonalizationTemplate.model.js";
 import { Product } from "../models/Product.model.js";
 import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
 import { getProductById } from "./product.controller.js";
+import { updatePersonalizationTemplate } from "./personalizationTemplate.controller.js";
 import personalizationTemplateRoutes from "../routes/v1/personalizationTemplate.routes.js";
 
 const activeTemplate = {
@@ -73,6 +74,37 @@ test("template schema rejects unsafe geometry, font, badge, and image values", a
     sleeveBadge: { ...activeTemplate.sleeveBadge, clipPath: "url(javascript:alert(1))" },
   });
   await assert.rejects(template.validate());
+});
+
+test("image URLs accept HTTPS and same-origin local paths only", () => {
+  assert.equal(isSafeImageUrl("https://cdn.example.test/image.png"), true);
+  assert.equal(isSafeImageUrl("/images/image.png"), true);
+  assert.equal(isSafeImageUrl("/\\cdn.example.test/image.png"), false);
+  assert.equal(isSafeImageUrl("/images/bad\nimage.png"), false);
+  assert.equal(isSafeImageUrl("http://cdn.example.test/image.png"), false);
+});
+
+test("template PATCH rejects dotted path updates before reaching Mongo", async (t) => {
+  const originalFindOneAndUpdate = PersonalizationTemplate.findOneAndUpdate;
+  let updateCalls = 0;
+  PersonalizationTemplate.findOneAndUpdate = async () => {
+    updateCalls += 1;
+    return activeTemplate;
+  };
+  t.after(() => { PersonalizationTemplate.findOneAndUpdate = originalFindOneAndUpdate; });
+
+  for (const unsafeUpdate of [{ "viewBox.4": 1 }, { "viewBox.2": "Infinity" }]) {
+    let status;
+    let response;
+    await updatePersonalizationTemplate(
+      { body: { groupId: "LFC-2627-HOME", ...unsafeUpdate } },
+      { status(value) { status = value; return this; }, json(value) { response = value; return this; } },
+      (error) => { throw error; },
+    );
+    assert.equal(status, 400);
+    assert.equal(response.error, "Unsupported template field");
+  }
+  assert.equal(updateCalls, 0);
 });
 
 test("public group read resolves only an active matching template", async (t) => {
