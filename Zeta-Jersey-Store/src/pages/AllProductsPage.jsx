@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   AlertCircle,
   ChevronLeft,
@@ -8,13 +8,15 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigationType } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import ProductCard from "../components/ProductCard";
 import ProductFilters from "../components/ProductFilters";
 import useProductCatalog from "../hooks/useProductCatalog";
 import { getProductId, PRODUCT_PAGE_SIZE } from "../lib/productCatalog";
+
+const browseScrollPositions = new Map();
 
 function ProductSkeleton() {
   return (
@@ -31,6 +33,9 @@ function ProductSkeleton() {
 }
 
 const AllProductsPage = () => {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const restoredEntry = useRef(null);
   const {
     actions,
     activeFilters,
@@ -48,9 +53,23 @@ const AllProductsPage = () => {
     visibleProducts,
   } = useProductCatalog();
 
+  useLayoutEffect(() => {
+    if (loading) return;
+    const position = navigationType === "POP" && restoredEntry.current !== location.key
+      ? browseScrollPositions.get(location.key) ?? 0
+      : 0;
+    window.scrollTo({ top: position, behavior: "instant" });
+    restoredEntry.current = location.key;
+  }, [loading, location.key, navigationType, page]);
+
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [page]);
+    const savePosition = () => {
+      browseScrollPositions.set(location.key, window.scrollY);
+      if (browseScrollPositions.size > 30) browseScrollPositions.delete(browseScrollPositions.keys().next().value);
+    };
+    window.addEventListener("scroll", savePosition, { passive: true });
+    return () => window.removeEventListener("scroll", savePosition);
+  }, [location.key]);
 
   return (
     <div className="min-h-screen bg-[#fafaff]">

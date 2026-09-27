@@ -11,6 +11,7 @@ function normalizeProduct(p) {
     category: p.category || "Jerseys",
     stock: Number(p.quantity ?? p.stock ?? 0),
     price: Number(p.price ?? 0),
+    isActive: p.isActive !== false,
     originalPrice: Number(p.originalPrice ?? 0),
     cost: Number(p.cost ?? 0),
     reorder: Number(p.reorder ?? 10),
@@ -35,6 +36,7 @@ function normalizeOrder(o) {
   return {
     id: o.orderNumber || o._id,
     mongoId: o._id,
+    createdAt: o.createdAt,
     customer: customerName,
     email: o.userId?.email || "",
     phone: o.userId?.phone || o.shippingAddress?.phone || "-",
@@ -108,6 +110,7 @@ function loadSettings() {
 export function useAdminStore() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [ordersFetchedAt, setOrdersFetchedAt] = useState(0);
   const [templates, setTemplates] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [movements, setMovements] = useState([]);
@@ -141,6 +144,7 @@ export function useAdminStore() {
       }
 
       if (ordersRes.status === "fulfilled") {
+        setOrdersFetchedAt(Date.now());
         const rawOrders = ordersRes.value.orders || [];
         // กรองเฉพาะออเดอร์จริงของลูกค้า (ไม่รวมออเดอร์จำลอง DEMO-REVIEW ที่ถูก seed ไว้ใน MongoDB สำหรับระบบรีวิว)
         const realOrders = rawOrders.filter(
@@ -224,6 +228,7 @@ export function useAdminStore() {
   return {
     products,
     orders,
+    ordersFetchedAt,
     templates,
     customers,
     movements,

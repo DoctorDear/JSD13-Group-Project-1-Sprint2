@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import logo from "../assets/logo/Zeta_Green_and_Jersey_Logo.png";
-import { Heart, ShoppingCart, ArrowRight } from "lucide-react";
+import { Heart, ShoppingCart, ArrowRight, Menu, Search, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cartService } from "../services/cart.js";
 import { useAuth } from "../contexts/authContext.js";
@@ -10,7 +10,7 @@ import CartHoverMenu from "./CartHoverMenu.jsx";
 import productData from "../data/products.json";
 import { api } from "../lib/api.js";
 
-function ProductSearch({ isHome, location, navigate }) {
+function ProductSearch({ isHome, location, navigate, mobile = false }) {
   const [searchInput, setSearchInput] = useState(() =>
     location.pathname === "/products" ? new URLSearchParams(location.search).get("search") || "" : ""
   );
@@ -122,10 +122,10 @@ function ProductSearch({ isHome, location, navigate }) {
       <form
         role="search"
         onSubmit={handleSearch}
-        className={`input rounded-full h-10 text-white flex items-center transition-all duration-300 ease-out focus-within:outline-none focus-within:ring-2 focus-within:ring-white/40 ${
-          isExpanded ? "w-64 sm:w-80 shadow-lg" : "w-40 sm:w-48"
+        className={`input rounded-full h-10 flex items-center transition-all duration-300 ease-out focus-within:outline-none focus-within:ring-2 ${mobile && !isHome ? "text-zeta-main focus-within:ring-zeta-main/30" : "text-white focus-within:ring-white/40"} ${
+          mobile ? "w-full" : isExpanded ? "w-64 sm:w-80 shadow-lg" : "w-40 sm:w-48"
         } ${
-          isHome ? "bg-zeta-sub/30 border border-white/20" : "bg-[#FFFFFF]/30 border border-white/20"
+          isHome ? "bg-zeta-sub/30 border border-white/20" : mobile ? "bg-zeta-main/5 border border-zeta-main/20" : "bg-[#FFFFFF]/30 border border-white/20"
         }`}
       >
         <button type="submit" aria-label="Search products" className="cursor-pointer p-1">
@@ -155,7 +155,7 @@ function ProductSearch({ isHome, location, navigate }) {
             }
           }}
           placeholder="Search jerseys..."
-          className="placeholder:text-white/80 text-white bg-transparent outline-none w-full text-sm pl-1 pr-2"
+          className={`bg-transparent outline-none w-full text-sm pl-1 pr-2 ${mobile && !isHome ? "text-zeta-main placeholder:text-gray-500" : "placeholder:text-white/80 text-white"}`}
         />
         {searchInput.trim() && (
           <button
@@ -165,7 +165,7 @@ function ProductSearch({ isHome, location, navigate }) {
               setSuggestions([]);
               setShowDropdown(false);
             }}
-            className="text-white/70 hover:text-white text-xs px-2 cursor-pointer"
+            className={`text-xs px-2 cursor-pointer ${mobile && !isHome ? "text-zeta-main" : "text-white/70 hover:text-white"}`}
             aria-label="Clear search"
           >
             ✕
@@ -178,7 +178,7 @@ function ProductSearch({ isHome, location, navigate }) {
         <div
           role="listbox"
           aria-label="Search suggestions"
-          className={`absolute right-0 sm:left-auto top-full mt-2 w-72 sm:w-80 overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute right-0 top-full mt-2 ${mobile ? "w-full" : "w-72 sm:w-80"} overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
             isHome
               ? "bg-[#242424]/95 backdrop-blur-xl border border-white/20 text-white"
               : "bg-white border border-gray-100 text-gray-900"
@@ -292,6 +292,34 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartHoverOpen, setCartHoverOpen] = useState(false);
   const cartTimeoutRef = useRef(null);
+  const navRef = useRef(null);
+  const hamburgerRef = useRef(null);
+  const [mobilePanel, setMobilePanel] = useState(null);
+  const activePanel = mobilePanel?.key === location.key ? mobilePanel.panel : null;
+  const togglePanel = (panel) => setMobilePanel(activePanel === panel ? null : { key: location.key, panel });
+
+  useEffect(() => {
+    if (!activePanel) return;
+    const closeOutside = (event) => {
+      if (!navRef.current?.contains(event.target)) setMobilePanel(null);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setMobilePanel(null);
+        hamburgerRef.current?.focus();
+      }
+    };
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    const closeOnDesktop = (event) => { if (event.matches) setMobilePanel(null); };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+      desktop.removeEventListener("change", closeOnDesktop);
+    };
+  }, [activePanel]);
 
   const handleCartMouseEnter = () => {
     if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
@@ -349,16 +377,44 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
   return (
     <>
       <nav
-        className={`h-16 sticky z-50 flex items-center justify-between px-6 md:px-8 transition-all duration-300 ${
+        ref={navRef}
+        aria-label="Main navigation"
+        className={`h-16 sticky z-50 flex items-center justify-between px-3 sm:px-5 xl:px-8 transition-all duration-300 ${
           isHome
             ? "top-4 mt-4 mx-4 max-w-full bg-[#2F2F2F]/80 backdrop-blur-lg rounded-full"
             : "top-0 w-full bg-zeta-main"
         }`}
       >
+        <div className="flex min-w-0 items-center gap-1 xl:hidden">
+          <button ref={hamburgerRef} type="button" aria-label={activePanel === "menu" ? "Close navigation menu" : "Open navigation menu"} aria-expanded={activePanel === "menu"} aria-controls="mobile-navigation" onClick={() => togglePanel("menu")} className={`flex h-11 w-11 shrink-0 items-center justify-center text-zeta-sub ${isHome ? "rounded-full hover:bg-white/10" : "rounded-full border border-white/30 bg-white/10"}`}>
+            {activePanel === "menu" ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <Link to="/" aria-label="Zeta home" className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden sm:w-24"><img src={logo} alt="Zeta" className="h-40 w-40 max-w-none shrink-0 object-contain sm:h-48 sm:w-48" /></Link>
+        </div>
+        <div className="flex items-center gap-1 text-zeta-sub xl:hidden">
+          <button type="button" aria-label={activePanel === "search" ? "Close search" : "Open search"} aria-expanded={activePanel === "search"} aria-controls="mobile-navigation" onClick={() => togglePanel("search")} className={`flex h-11 w-11 items-center justify-center rounded-full ${isHome ? "hover:bg-white/10" : "border border-white/30 bg-white/10"}`}><Search size={24} /></button>
+          <Link to="/cart" aria-label={`Cart, ${totalItems} items`} className={`relative flex h-11 w-11 items-center justify-center rounded-full ${isHome ? "hover:bg-white/10" : "border border-white/30 bg-white/10"}`}><ShoppingCart size={24} />{totalItems > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">{totalItems}</span>}</Link>
+          <div className={`[&_button]:text-zeta-sub ${!isHome ? "rounded-full border border-white/30 bg-white/10" : ""}`}>
+            {isAuthenticated ? <UserMenu isHome={isHome} /> : <GuestUserMenu isHome={isHome} />}
+          </div>
+        </div>
+        {activePanel && <div id="mobile-navigation" className={`absolute inset-x-0 top-full mt-2 rounded-2xl border p-4 shadow-xl xl:hidden ${isHome ? "border-white/20 bg-[#242424]/95 text-white backdrop-blur-xl" : "border-gray-200 bg-white text-zeta-main"}`}>
+          {activePanel === "search" ? <ProductSearch key={`mobile-${location.key}`} isHome={isHome} location={location} navigate={navigate} mobile /> : <div className="grid gap-1">
+            {[
+              ["All products", "/products"],
+              ["New Arrivals", isHome ? "#new-arrivals" : "/products?sort=newest", "new-arrivals"],
+              ["Best Seller", isHome ? "#best-seller" : "/products?sort=best-selling", "best-seller"],
+              ["League", isHome ? "#leagues" : "/#leagues", "leagues"],
+              ["Collections", isHome ? "#collections" : "/#collections", "collections"],
+              ["On Sale", "/products?onSale=true"],
+              ["Wishlist", "/profile?tab=favorites"],
+            ].map(([label, to, section]) => <Link key={label} to={to} onClick={(event) => { setMobilePanel(null); if (section) handleScrollToSection(section)(event); }} className={`flex min-h-11 items-center justify-between rounded-xl px-3 py-2 font-semibold ${isHome ? "hover:bg-white/10 hover:text-zeta-sub" : "hover:bg-zeta-main/5"}`}>{label}<ArrowRight size={18} aria-hidden="true" /></Link>)}
+          </div>}
+        </div>}
         {/* left: Logo */}
         <div
           onClick={() => navigate("/")}
-          className="flex items-center cursor-pointer"
+          className="hidden items-center cursor-pointer xl:flex"
         >
           <img
             className="h-20 w-auto -my-5 object-contain scale-250"
@@ -369,7 +425,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
 
         {/* center: Navigation Links */}
         <div
-          className={`flex items-center h-10 rounded-full text-base text-white ${
+          className={`hidden xl:flex items-center h-10 rounded-full text-base text-white ${
             isHome ? "bg-zeta-sub/30 border border-white/10" : "bg-[#FFFFFF]/10 border border-white/10"
           }`}
         >
@@ -420,7 +476,7 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
         </div>
 
         {/* right: search & action icons */}
-        <div className="flex items-center space-x-4 h-10">
+        <div className="hidden xl:flex items-center space-x-4 h-10">
           {/* Search Bar */}
           <ProductSearch
             key={`${location.pathname}${location.search}`}

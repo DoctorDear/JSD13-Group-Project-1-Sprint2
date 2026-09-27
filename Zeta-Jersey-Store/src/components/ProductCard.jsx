@@ -1,12 +1,37 @@
 import { ShoppingCart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import WishlistButton from "./WishlistButton.jsx";
+import { useAuth } from "../contexts/authContext.js";
+import { cartService } from "../services/cart.js";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [imageFailed, setImageFailed] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const { isAuthenticated, booting } = useAuth();
   const imageSrc = product.imageUrl || product?.images?.[0];
+  const productId = product._id || product.id;
+
+  const handleAddToCart = async (event) => {
+    event.stopPropagation();
+    if (adding || booting) return;
+
+    setAdding(true);
+    try {
+      await cartService.add(
+        { productId, product, size: product.sizes?.[0] || "M", quantity: 1 },
+        { guest: !isAuthenticated },
+      );
+      window.dispatchEvent(new Event("cart-updated"));
+      window.dispatchEvent(new CustomEvent("cart-feedback", { detail: { type: "success", message: "Added to cart successfully.", isHome: location.pathname === "/" } }));
+    } catch (error) {
+      window.dispatchEvent(new CustomEvent("cart-feedback", { detail: { type: "error", message: error.message || "Could not add this product to your cart. Please try again.", isHome: location.pathname === "/" } }));
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div
@@ -30,7 +55,7 @@ const ProductCard = ({ product }) => {
           NEW
         </span>
         <WishlistButton
-          productId={product._id || product.id}
+          productId={productId}
           className="absolute top-7 right-7 m-1 rounded-full bg-white p-2 text-zeta-main"
         />
       </figure>
@@ -70,11 +95,11 @@ const ProductCard = ({ product }) => {
             </div>
           </div>
 
-          <button className="btn w-full bg-zeta-main text-white rounded-4xl ">
+          <button type="button" onClick={handleAddToCart} disabled={adding || booting || product.quantity <= 0} className="btn w-full rounded-4xl bg-zeta-main text-white disabled:opacity-60">
             <span>
               <ShoppingCart size={20} />
             </span>
-            Add to Cart
+            {adding ? "Adding..." : product.quantity <= 0 ? "Out of Stock" : "Add to Cart"}
           </button>
         </div>
       </div>

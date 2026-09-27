@@ -177,12 +177,16 @@ export default function Overview({ store, money }) {
   const totalRevenue = store.orders
     .filter((o) => ["Paid", "Completed", "Shipped"].includes(o.status))
     .reduce((n, o) => n + o.total, 0);
-  const paidOrders = store.orders.filter((o) =>
+  const successfulOrders = store.orders.filter((o) =>
     ["Paid", "Completed", "Shipped"].includes(o.status),
-  ).length;
+  );
+  const paidOrders = successfulOrders.length;
+  const payingCustomers = new Set(
+    successfulOrders.map((order) => order.email || order.customer).filter(Boolean),
+  ).size;
   const customerCount = store.customers.length;
-  const conversion = customerCount > 0
-    ? Math.round((paidOrders / customerCount) * 100)
+  const ordersPerPayingCustomer = payingCustomers > 0
+    ? paidOrders / payingCustomers
     : 0;
 
   const stats = [
@@ -211,16 +215,41 @@ export default function Overview({ store, money }) {
       to: "/admin/orders",
     },
     {
-      label: "Conversion rate",
-      value: `${conversion}%`,
+      label: "Orders per paying customer",
+      value: ordersPerPayingCustomer.toFixed(1),
       Icon: TrendingUp,
       tone: "green",
-      detail: "Order conversion",
+      detail: `${paidOrders} paid orders from ${payingCustomers} customers`,
       to: "/admin/orders",
     },
   ];
-  const products = [...store.products]
-    .sort((a, b) => b.stock - a.stock)
+  const sevenDaysAgo = store.ordersFetchedAt - 7 * 24 * 60 * 60 * 1000;
+  const unitsSoldByProduct = new Map();
+
+  store.orders.forEach((order) => {
+    const orderTime = new Date(order.createdAt || order.raw?.createdAt).getTime();
+    if (
+      !Number.isFinite(orderTime) ||
+      orderTime < sevenDaysAgo ||
+      orderTime > store.ordersFetchedAt ||
+      order.rawStatus === "cancelled"
+    ) return;
+
+    order.items.forEach((item) => {
+      const productId = item.productId?._id || item.productId?.id || item.productId;
+      if (!productId) return;
+      const id = String(productId);
+      unitsSoldByProduct.set(id, (unitsSoldByProduct.get(id) || 0) + Number(item.quantity || 0));
+    });
+  });
+
+  const products = store.products
+    .map((product) => ({
+      ...product,
+      unitsSold: unitsSoldByProduct.get(String(product.id)) || 0,
+    }))
+    .filter((product) => product.unitsSold > 0)
+    .sort((a, b) => b.unitsSold - a.unitsSold || a.name.localeCompare(b.name))
     .slice(0, 5);
   return (
     <>
@@ -262,7 +291,10 @@ export default function Overview({ store, money }) {
       </div>
       <section className="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Top 5 Products</h2>
+          <div>
+            <h2 className="text-lg font-semibold">Top 5 Products</h2>
+            <p className="mt-1 text-xs text-base-content/55">Ranked by units sold in the last 7 days</p>
+          </div>
           <Link className="link link-primary text-sm" to="/admin/inventory">
             View all products
           </Link>
@@ -272,6 +304,7 @@ export default function Overview({ store, money }) {
             <thead>
               <tr>
                 <th>Product</th>
+                <th>Units sold</th>
                 <th>Collection</th>
                 <th>Unit price</th>
                 <th>Available</th>
@@ -280,7 +313,13 @@ export default function Overview({ store, money }) {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {products.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-sm text-base-content/55">
+                    No product sales in the last 7 days.
+                  </td>
+                </tr>
+              ) : products.map((product) => (
                 <tr key={product.id}>
                   <td>
                     <Link
@@ -298,6 +337,7 @@ export default function Overview({ store, money }) {
                       </span>
                     </Link>
                   </td>
+                  <td className="font-semibold">{product.unitsSold} pcs</td>
                   <td>
                     <span className="badge badge-ghost badge-sm">
                       {product.team || product.category}

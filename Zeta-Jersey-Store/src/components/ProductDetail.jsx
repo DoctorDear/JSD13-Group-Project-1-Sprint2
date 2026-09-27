@@ -66,13 +66,13 @@ const ProductDetail = () => {
       setAdding(true);
       await cartService.add({ productId: product._id, product, size, quantity: 1, customName, customNumber, sleeveBadge }, { guest: !isAuthenticated });
       window.dispatchEvent(new Event("cart-updated"));
-      alert("Added to cart successfully!");
+      window.dispatchEvent(new CustomEvent("cart-feedback", { detail: { type: "success", message: "Added to cart successfully.", isHome: location.pathname === "/" } }));
       setIsPersonalizationOpen(false);
       return true;
 
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert(err.message || "Could not add the product to your cart. Please try again.");
+      window.dispatchEvent(new CustomEvent("cart-feedback", { detail: { type: "error", message: err.message || "Could not add the product to your cart. Please try again.", isHome: location.pathname === "/" } }));
       return false;
     } finally {
       setAdding(false);

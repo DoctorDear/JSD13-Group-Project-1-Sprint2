@@ -6,7 +6,7 @@ import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.j
 export const getProducts = async (req, res, next) => {
   try {
     const { search, sort = "newest", limit: rawLimit, ...filters } = req.query;
-    const query = {};
+    const query = req.includeInactiveProducts ? {} : { isActive: { $ne: false } };
 
     const parsedLimit = Number.parseInt(rawLimit, 10);
     const limit = Number.isInteger(parsedLimit) && parsedLimit > 0
@@ -43,7 +43,6 @@ export const getProducts = async (req, res, next) => {
           },
         },
         { $sort: { totalSold: -1 } },
-        ...(limit ? [{ $limit: limit }] : []),
       ]);
 
       if (bestSellerRows.length > 0) {
@@ -60,6 +59,8 @@ export const getProducts = async (req, res, next) => {
             rankByProductId.get(first._id.toString()) -
             rankByProductId.get(second._id.toString()),
         );
+
+        if (limit) products.splice(limit);
 
         return res.status(200).json(products);
       }
@@ -86,12 +87,12 @@ export const getProductById = async (req, res, next) => {
   try {
     const productById = await Product.findById(req.params.id);
 
-    if (!productById) {
+    if (!productById || productById.isActive === false) {
       return res.status(404).json({ error: "Product not found" });
     }
     let variants = [];
     if (productById.groupId) {
-      variants = await Product.find({ groupId: productById.groupId });
+      variants = await Product.find({ groupId: productById.groupId, isActive: { $ne: false } });
     }
     const personalizationTemplate = await resolvePersonalizationTemplate(productById);
     res.status(200).json({ product: productById, variants, personalizationTemplate });

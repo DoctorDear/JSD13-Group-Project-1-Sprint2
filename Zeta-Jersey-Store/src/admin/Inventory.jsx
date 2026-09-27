@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Plus, Save } from "lucide-react";
+import { Eye, EyeOff, Plus, Save } from "lucide-react";
 import {
   PageHeading,
   SearchBox,
@@ -21,7 +21,22 @@ export function Inventory({ store, money }) {
   const [deleting, setDeleting] = useState(null);
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [updatingVisibility, setUpdatingVisibility] = useState(null);
+  const [visibilityError, setVisibilityError] = useState("");
   const navigate = useNavigate();
+
+  const toggleVisibility = async (product) => {
+    setUpdatingVisibility(product.id);
+    setVisibilityError("");
+    try {
+      await adminService.updateProduct(product.id, { isActive: !product.isActive });
+      await store.refresh(product.isActive ? "Product hidden from store." : "Product visible in store.");
+    } catch (error) {
+      setVisibilityError(error.message || "Could not update product visibility.");
+    } finally {
+      setUpdatingVisibility(null);
+    }
+  };
 
   if (store.loading) {
     return (
@@ -84,6 +99,7 @@ export function Inventory({ store, money }) {
                 "Stock",
                 "Price",
                 "Status",
+                "Store visibility",
                 "Actions",
               ].map((h) => (
                 <th key={h}>{h}</th>
@@ -107,6 +123,27 @@ export function Inventory({ store, money }) {
                   <Badge>{stockStatus(p)}</Badge>
                 </td>
                 <td>
+                  <div className="flex items-center gap-2">
+                    <Badge>{p.isActive ? "Visible" : "Hidden"}</Badge>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm gap-1"
+                      disabled={updatingVisibility === p.id}
+                      onClick={() => toggleVisibility(p)}
+                      aria-label={`${p.isActive ? "Hide" : "Show"} ${p.name} ${p.isActive ? "from" : "in"} storefront`}
+                    >
+                      {updatingVisibility === p.id ? (
+                        <span className="loading loading-spinner loading-xs" />
+                      ) : p.isActive ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                      {p.isActive ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </td>
+                <td>
                   <EditActions
                     name={p.name}
                     onEdit={() => navigate(`/admin/inventory/${p.id}/edit`)}
@@ -120,6 +157,7 @@ export function Inventory({ store, money }) {
             ))}
           </tbody>
         </table>
+        {visibilityError && <p role="alert" className="p-4 text-sm text-error">{visibilityError}</p>}
         {!products.length && <Empty />}
       </div>
       <p className="mt-3 text-sm text-base-content/55">

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigationType, useSearchParams } from "react-router-dom";
 import productData from "../data/products.json";
 import {
   buildProductFilterOptions,
@@ -11,13 +11,17 @@ import {
 } from "../lib/productCatalog";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const catalogHistory = new Map();
 
 export default function useProductCatalog() {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const [savedCatalog] = useState(() => navigationType === "POP" ? catalogHistory.get(location.key) : null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
+  const [products, setProducts] = useState(savedCatalog?.products ?? []);
+  const [loading, setLoading] = useState(!savedCatalog);
+  const [error, setError] = useState(savedCatalog?.error ?? null);
+  const [page, setPage] = useState(savedCatalog?.page ?? 1);
 
   // Directly derive all filters from searchParams so URL is the single source of truth
   const search = searchParams.get("search") || "";
@@ -51,8 +55,10 @@ export default function useProductCatalog() {
 
   // Reset page to 1 whenever URL search parameters change
   const searchParamsString = searchParams.toString();
+  const previousSearch = useRef(searchParamsString);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (previousSearch.current === searchParamsString) return;
+    previousSearch.current = searchParamsString;
     setPage(1);
   }, [searchParamsString]);
 
@@ -84,10 +90,18 @@ export default function useProductCatalog() {
   }, []);
 
   useEffect(() => {
+    if (savedCatalog) return;
     // The catalog request is an external synchronization; its state updates happen asynchronously.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProducts();
-  }, [loadProducts]);
+  }, [loadProducts, savedCatalog]);
+
+  useEffect(() => {
+    if (!loading) {
+      catalogHistory.set(location.key, { products, error, page });
+      if (catalogHistory.size > 30) catalogHistory.delete(catalogHistory.keys().next().value);
+    }
+  }, [location.key, products, error, page, loading]);
 
   const filters = useMemo(
     () => ({
