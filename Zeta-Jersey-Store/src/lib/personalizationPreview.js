@@ -1,3 +1,5 @@
+import { SLEEVE_BADGES } from './sleeveBadges.js';
+
 const FONT_FAMILIES = Object.freeze({
   'barlow-condensed-900': "'Barlow Condensed', Bahnschrift, 'Arial Narrow', sans-serif",
 });
@@ -33,4 +35,13 @@ export function getPersonalizationTextAttributes(style) {
 
 export function normalizePersonalizationName(value) {
   return String(value).replace(/[^A-Za-z]/g, '').slice(0, 20).toUpperCase();
+}
+
+export function getAvailableSleeveBadges(templateOptions = []) {
+  return SLEEVE_BADGES.filter(({ id }) => templateOptions.includes(id));
+}
+
+export function getPreferredSleeveBadge(templateOptions = []) {
+  const available = getAvailableSleeveBadges(templateOptions);
+  return available.find(({ id }) => id === 'none')?.id || available[0]?.id || 'none';
 }

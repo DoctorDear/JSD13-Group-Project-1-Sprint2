@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { preparePersonalization } from '../lib/personalization.js';
-import { getBackPreviewImage, isPersonalizationEligible, normalizePersonalizationName } from '../lib/personalizationPreview.js';
+import { getAvailableSleeveBadges, getBackPreviewImage, getPreferredSleeveBadge, isPersonalizationEligible, normalizePersonalizationName } from '../lib/personalizationPreview.js';
 import JerseyPersonalizationPreview from './JerseyPersonalizationPreview.jsx';
 import SleeveBadge from './SleeveBadge.jsx';
-import { SLEEVE_BADGES, getSleeveBadge } from '../lib/sleeveBadges.js';
+import { getSleeveBadge } from '../lib/sleeveBadges.js';
 
 const sizesLabel = (size) => ({ XS: 'Extra Small', S: 'Small', M: 'Medium', L: 'Large', XL: 'Extra Large', '2XL': '2X Large' })[size] || size;
 
@@ -14,7 +14,7 @@ export default function PersonalizationModal({ product, initialSize, adding, onC
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const [error, setError] = useState('');
-  const [sleeveBadge, setSleeveBadge] = useState('none');
+  const [sleeveBadge, setSleeveBadge] = useState(() => getPreferredSleeveBadge(product.personalizationTemplate?.sleeveBadgeOptions));
   const [zoomSleeve, setZoomSleeve] = useState(false);
   const closeButton = useRef(null);
   const dialog = useRef(null);
@@ -52,7 +52,7 @@ export default function PersonalizationModal({ product, initialSize, adding, onC
   const image = backImage || product.images?.[0];
   const badge = getSleeveBadge(sleeveBadge);
   const totalPrice = preview.price;
-  const availableBadges = SLEEVE_BADGES.filter((option) => template?.sleeveBadgeOptions?.includes(option.id));
+  const availableBadges = getAvailableSleeveBadges(template?.sleeveBadgeOptions);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -109,7 +109,7 @@ export default function PersonalizationModal({ product, initialSize, adding, onC
           </div>}
 
           <p className="mt-3 text-xs leading-5 text-zeta-muted">Up to 20 English letters and a number from 0–99</p>
-          {availableBadges.length > 1 && <fieldset className="mt-7">
+          {availableBadges.length > 0 && <fieldset className="mt-7">
             <legend className="w-full border-b border-slate-200 pb-2 font-semibold text-zeta-main">Sleeve badge</legend>
             <div className="mt-4 grid grid-cols-3 gap-2">
               {availableBadges.map((option) => <button key={option.id} type="button" aria-pressed={sleeveBadge === option.id} onClick={() => setSleeveBadge(option.id)} className={`flex min-h-36 flex-col items-center justify-center gap-2 rounded-xl border-2 px-2 py-3 text-center text-xs ${sleeveBadge === option.id ? 'border-zeta-main bg-violet-50 text-zeta-main' : 'border-slate-200 text-slate-600 hover:border-violet-300'}`}>

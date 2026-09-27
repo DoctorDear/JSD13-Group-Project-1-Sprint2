@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   getBackPreviewImage,
+  getAvailableSleeveBadges,
   getPersonalizationTextAttributes,
+  getPreferredSleeveBadge,
   isPersonalizationEligible,
   normalizePersonalizationName,
 } from './personalizationPreview.js';
@@ -52,4 +54,10 @@ test('one-letter preview text uses the fixed template font size without stretchi
 
 test('name input accepts only ASCII letters and uppercases keystrokes or paste', () => {
   assert.equal(normalizePersonalizationName('a-lé x!'), 'ALX');
+});
+
+test('a single non-none template badge remains selectable and is selected by default', () => {
+  const badges = getAvailableSleeveBadges(['premier-league']);
+  assert.deepEqual(badges.map(({ id }) => id), ['premier-league']);
+  assert.equal(getPreferredSleeveBadge(['premier-league']), 'premier-league');
 });
