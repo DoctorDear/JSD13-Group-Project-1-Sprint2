@@ -16,7 +16,13 @@
   --color-zeta-muted: #9ca3af; 
 }
 
-body {
+html,
+body,
+button,
+input,
+select,
+textarea,
+optgroup {
   font-family: 'Poppins', 'Google Sans', sans-serif;
 }
 

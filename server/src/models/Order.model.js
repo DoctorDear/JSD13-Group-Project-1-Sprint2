@@ -12,7 +12,11 @@ const orderItemSchema = new mongoose.Schema({
   edition: { type: String, default: null },
   size: { type: String, required: true },
   customName: { type: String, default: "" },
-  customNumber: { type: Number, default: null },
+  customNumber: { type: String, default: null },
+  sleeveBadge: { type: String, enum: ["none", "premier-league", "premier-league-racism"], default: "none" },
+  namePrice: { type: Number, min: 0, default: 0 },
+  numberPrice: { type: Number, min: 0, default: 0 },
+  badgePrice: { type: Number, min: 0, default: 0 },
   price: { type: Number, required: true },
   quantity: { type: Number, required: true },
 });

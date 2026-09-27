@@ -4,11 +4,13 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../lib/productCatalog";
 import { api } from "../lib/api.js";
 import { cartService } from "../services/cart.js";
+import { isPersonalizationEligible } from "../lib/personalizationPreview.js";
 import { useAuth } from '../contexts/authContext.js';
 import ProductReviewComposer from "./ProductReviewComposer";
 import ProductReviewSection from "./ProductReviewSection";
 import SizeGuideModal from "./SizeGuideModal";
 import WishlistButton from "./WishlistButton.jsx";
+import PersonalizationModal from "./PersonalizationModal.jsx";
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -16,6 +18,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
   const { id } = useParams();
   const location = useLocation();
   const { isAuthenticated, booting } = useAuth();
@@ -28,7 +31,11 @@ const ProductDetail = () => {
         setError(null);
         const data = await api.get(`/products/${id}`, { signal: controller.signal });
         if (controller.signal.aborted) return;
-        setProduct(data.product);
+        setProduct(
+          data.product
+            ? { ...data.product, personalizationTemplate: data.personalizationTemplate }
+            : null,
+        );
         setVariants(data.variants || []);
       } catch (err) {
         if (!controller.signal.aborted) setError(err.message);
@@ -54,16 +61,19 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async ({ size = selectedSize, customName = '', customNumber = null, sleeveBadge = 'none' } = {}) => {
     try {
       setAdding(true);
-      await cartService.add({ productId: product._id, product, size: selectedSize, quantity: 1 }, { guest: !isAuthenticated });
+      await cartService.add({ productId: product._id, product, size, quantity: 1, customName, customNumber, sleeveBadge }, { guest: !isAuthenticated });
       window.dispatchEvent(new Event("cart-updated"));
       alert("Added to cart successfully!");
+      setIsPersonalizationOpen(false);
+      return true;
 
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert(err.message || "ไม่สามารถเพิ่มสินค้าลงตะกร้าได้ กรุณาลองใหม่อีกครั้ง");
+      alert(err.message || "Could not add the product to your cart. Please try again.");
+      return false;
     } finally {
       setAdding(false);
     }
@@ -91,6 +101,7 @@ const ProductDetail = () => {
 
   const currentImg = selectedImg || product?.images?.[0];
   const productLeague = getProductLeague(product);
+  const canPersonalize = isPersonalizationEligible(product);
   const productAttributes = [
     ["Fit", product.fit],
     ["Kit Type", product.kitType],
@@ -191,7 +202,13 @@ const ProductDetail = () => {
                     {variants.map((item) => (
                       <button
                         key={item._id}
-                        onClick={() => setProduct(prev => ({ ...prev, ...item }))}
+                        onClick={() =>
+                          setProduct((prev) => ({
+                            ...prev,
+                            ...item,
+                            personalizationTemplate: prev?.personalizationTemplate,
+                          }))
+                        }
                         className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${product._id === item._id
                           ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
                           : "border-slate-200 hover:border-zeta-main/50 hover:bg-zeta-main/5"
@@ -238,15 +255,23 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <div className="flex w-full gap-3">
+              <div className="flex w-full flex-wrap gap-3">
                 <button
-                  onClick={handleAddToCart}
+                  onClick={() => handleAddToCart()}
                   disabled={adding || booting}
                   className="btn min-h-12 flex-1 rounded-xl bg-zeta-main text-white hover:bg-zeta-main/90 disabled:opacity-60"
                 >
                   <ShoppingBag size={19} />
                   <span>{adding ? "Adding..." : "Add to Cart"}</span>
                 </button>
+                {canPersonalize && <button
+                  type="button"
+                  onClick={() => setIsPersonalizationOpen(true)}
+                  disabled={adding || booting}
+                  className="btn min-h-12 flex-1 rounded-xl border border-zeta-main bg-white px-4 text-zeta-main hover:bg-zeta-main/5 disabled:opacity-60"
+                >
+                  Customize jersey
+                </button>}
                 <WishlistButton
                   productId={product._id || product.id}
                   className="btn min-h-12 w-12 rounded-xl border border-slate-200 bg-white p-0 text-zeta-main hover:border-zeta-main hover:bg-zeta-main/5"
@@ -283,6 +308,13 @@ const ProductDetail = () => {
         isOpen={isSizeGuideOpen}
         onClose={() => setIsSizeGuideOpen(false)}
       />
+      {isPersonalizationOpen && canPersonalize && <PersonalizationModal
+        product={product}
+        initialSize={product.sizes?.includes(selectedSize) ? selectedSize : product.sizes?.[0] || ''}
+        adding={adding}
+        onClose={() => setIsPersonalizationOpen(false)}
+        onAdd={handleAddToCart}
+      />}
     </main>
   );
 };

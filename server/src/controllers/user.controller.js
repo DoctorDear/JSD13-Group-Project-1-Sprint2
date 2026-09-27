@@ -1,5 +1,7 @@
 import User from "../models/User.model.js";
 import { Product } from "../models/Product.model.js";
+import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
+import { pricePersonalization } from "../lib/personalization.js";
 import mongoose from "mongoose";
 
 export const getWishlist = async (req, res, next) => {
@@ -82,18 +84,68 @@ export const getCart = async (req, res) => {
   }
 };
 
+const normalizeCartPersonalization = ({ customName, customNumber }) => {
+  const name = customName === undefined || customName === null ? "" : customName;
+  if (typeof name !== "string") return null;
+  const providedName = name;
+
+  let number = customNumber;
+  if (number === undefined || number === null || number === "") number = null;
+  if (number !== null && (typeof number !== "string" || !/^\d{1,2}$/.test(number))) return null;
+  if (Boolean(providedName) !== Boolean(number)) return null;
+
+  return { customName: providedName, customNumber: number };
+};
+
 // 2. POST /api/v1/users/cart - เพิ่มสินค้าลงตะกร้า (ถ้าซ้ำไซส์เดิมให้บวกทบจำนวน)
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { productId, size, customName, customNumber, quantity } =
+    const { productId, size, customName, customNumber, quantity, sleeveBadge } =
       req.body;
     const count = Number(quantity);
+    const personalization = normalizeCartPersonalization({ customName, customNumber });
     if (!productId || !size || !Number.isInteger(count) || count < 1) {
       return res.status(400).json({ success: false, message: "Valid product, size, and quantity are required" });
     }
+    if (!personalization) {
+      return res.status(400).json({ success: false, message: "A printed name and a number from 0 to 99 must be provided together" });
+    }
     const product = await Product.findById(productId);
     if (!product || !product.isActive) return res.status(404).json({ success: false, message: "Product not found" });
+    const requestedBadge = sleeveBadge === undefined || sleeveBadge === null ? "none" : sleeveBadge;
+    const hasPersonalizationChoices = Boolean(personalization.customName || personalization.customNumber || requestedBadge !== "none");
+    const template = product.personalizationEnabled === true ? await resolvePersonalizationTemplate(product) : null;
+    if (hasPersonalizationChoices && !template) {
+      return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
+    }
+
+    const priced = template
+      ? pricePersonalization({
+          product,
+          template,
+          printEnabled: Boolean(personalization.customName && personalization.customNumber),
+          ...personalization,
+          sleeveBadge: requestedBadge,
+        })
+      : {
+          ...personalization,
+          namePrice: 0,
+          numberPrice: 0,
+          sleeveBadge: "none",
+          badgePrice: 0,
+          unitPrice: product.price,
+        };
+    if (!priced) return res.status(400).json({ success: false, message: "Invalid personalization choices" });
+    const line = {
+      customName: priced.customName,
+      customNumber: personalization.customNumber,
+      sleeveBadge: priced.sleeveBadge,
+      namePrice: priced.namePrice,
+      numberPrice: priced.numberPrice,
+      badgePrice: priced.badgePrice,
+      price: priced.unitPrice,
+    };
 
     const user = await User.findById(userId);
     if (!user) {
@@ -102,27 +154,28 @@ export const addToCart = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // ตรวจสอบว่ามีสินค้า (productId) และไซส์ (size) เดียวกันอยู่ในตะกร้าแล้วหรือยัง
-    // ตรวจสอบว่ามีสินค้าและไซส์เดียวกันอยู่ในตะกร้าแล้วหรือยัง (ป้องกัน item.productId เป็น null ด้วย)
     const existingItemIndex = user.cart.findIndex(
       (item) =>
         item.productId &&
-        item.productId.toString() === productId &&
-        item.size === size,
+        String(item.productId._id || item.productId) === String(productId) &&
+        item.size === size &&
+        (item.customName || "") === line.customName &&
+        (item.customNumber === undefined || item.customNumber === null ? null : String(item.customNumber)) === line.customNumber &&
+        (item.sleeveBadge || "none") === line.sleeveBadge,
     );
 
     if (existingItemIndex > -1) {
-      // หากพบสินค้าและไซส์ซ้ำกัน ให้บวกทบจำนวนเข้าไป
       user.cart[existingItemIndex].quantity += count;
+      user.cart[existingItemIndex].namePrice = line.namePrice;
+      user.cart[existingItemIndex].numberPrice = line.numberPrice;
+      user.cart[existingItemIndex].badgePrice = line.badgePrice;
+      user.cart[existingItemIndex].price = line.price;
     } else {
-      // หากไม่ซ้ำ ให้ push เพิ่มรายการใหม่เข้าไปใน array
       user.cart.push({
         productId: productId,
         size,
-        customName,
-        customNumber,
+        ...line,
         quantity: count,
-        price: product.price,
       });
     }
 

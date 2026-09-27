@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import SleeveBadgeDetails from '../SleeveBadgeDetails.jsx';
 import { Link } from "react-router-dom";
 import { orderService } from "../../services/order.js";
 import { reviewService } from "../../services/review.js";
@@ -115,13 +116,17 @@ export default function OrderHistory() {
                             <p className="break-words font-semibold">{item.name}</p>
                           )}
                           <p className="mt-1 text-xs text-zeta-muted">Size {item.size} · Qty {item.quantity}{item.edition ? ` · ${item.edition}` : ""}</p>
+                          <SleeveBadgeDetails item={item} />
                           {hasReviewed ? (
                             <span className="mt-2 inline-block text-xs font-semibold text-green-700">Reviewed</span>
                           ) : canReviewOrderItem(order, item, reviewedProductIds) ? (
                             <Link to={`/products/${productId}/review`} className="mt-2 inline-block text-xs font-semibold text-zeta-main underline">Review product</Link>
                           ) : null}
                         </div>
-                        <p className="shrink-0 font-semibold">{money.format(item.price * item.quantity)}</p>
+                        <div className="shrink-0 text-right">
+                          <p className="font-semibold">{money.format(item.price)}</p>
+                          <p className="text-xs text-zeta-muted">Unit price · {money.format(item.price * item.quantity)} total</p>
+                        </div>
                       </div>
                     </li>
                     );

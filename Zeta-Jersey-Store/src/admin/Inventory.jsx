@@ -13,7 +13,7 @@ import {
 } from "./AdminUI";
 import { matches, stockStatus } from "./data";
 import { adminService } from "../services/adminService";
-import { validateProductForm } from "../lib/productForm.js";
+import { getProductPersonalizationFields, validateProductForm } from "../lib/productForm.js";
 
 export function Inventory({ store, money }) {
   const [query, setQuery] = useState("");
@@ -192,7 +192,7 @@ export function ProductForm({ store }) {
 
     const form = Object.fromEntries(new FormData(e.currentTarget));
     for (const key of Object.keys(form)) form[key] = form[key].trim();
-    const validationErrors = validateProductForm(form);
+    const validationErrors = validateProductForm(form, { templates: store.templates });
     setFieldErrors(validationErrors);
     if (Object.keys(validationErrors).length) {
       setSubmitting(false);
@@ -230,6 +230,8 @@ export function ProductForm({ store }) {
         : existing?.imageUrl
           ? [existing.imageUrl]
           : [],
+      backImageUrl: form.backImageUrl || "",
+      ...getProductPersonalizationFields(form),
     };
 
     try {
@@ -316,6 +318,42 @@ export function ProductForm({ store }) {
             placeholder="https://example.com/jersey.jpg"
             defaultValue={existing?.imageUrl}
           />
+          <Field
+            className="md:col-span-2"
+            label="Back image URL for personalization preview (optional)"
+            name="backImageUrl"
+            placeholder="https://example.com/jersey-back.jpg"
+            defaultValue={existing?.backImageUrl}
+          />
+          <Field className="md:col-span-2" label="Product personalization">
+            <label className="flex items-center gap-3">
+              <input
+                className="checkbox checkbox-primary"
+                type="checkbox"
+                name="personalizationEnabled"
+                value="true"
+                defaultChecked={existing?.personalizationEnabled === true}
+              />
+              <span>Allow personalization</span>
+            </label>
+          </Field>
+          {fieldErrors.personalizationGroupId && (
+            <p role="alert" className="text-error md:col-span-2">{fieldErrors.personalizationGroupId}</p>
+          )}
+          <Field className="md:col-span-2" label="Personalization template group">
+            <select
+              className="select select-bordered w-full"
+              name="personalizationGroupId"
+              defaultValue={existing?.personalizationGroupId || ""}
+            >
+              <option value="">No template group</option>
+              {store.templates.map((template) => (
+                <option key={template.groupId} value={template.groupId}>
+                  {template.groupId}{template.active ? "" : " (inactive)"}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Description" className="md:col-span-2" required>
             <textarea
               required

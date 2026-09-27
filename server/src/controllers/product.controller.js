@@ -1,5 +1,6 @@
 import { Product } from "../models/Product.model.js";
 import Order from "../models/Order.model.js";
+import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
 
 // read all product and filter by searc name
 export const getProducts = async (req, res, next) => {
@@ -92,7 +93,8 @@ export const getProductById = async (req, res, next) => {
     if (productById.groupId) {
       variants = await Product.find({ groupId: productById.groupId });
     }
-    res.status(200).json({ product: productById, variants });
+    const personalizationTemplate = await resolvePersonalizationTemplate(productById);
+    res.status(200).json({ product: productById, variants, personalizationTemplate });
   } catch (err) {
     next(err);
   }
