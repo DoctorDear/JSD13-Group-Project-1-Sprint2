@@ -9,12 +9,16 @@ export function getPersonalizationBreakdown(item = {}) {
     : String(item.customNumber);
   const badge = SLEEVE_BADGES.find((entry) => entry.id === (item.sleeveBadge || 'none'));
 
-  const namePrice = name ? Number(hasPrice(item.namePrice) ? item.namePrice : name.length * 80) : 0;
+  const snapshotPrice = (value, fallback, hasChoice) => {
+    if (hasChoice && (!hasPrice(value) || Number(value) === 0)) return fallback;
+    return hasPrice(value) ? Number(value) : 0;
+  };
+  const namePrice = snapshotPrice(item.namePrice, name.length * 80, Boolean(name));
   const numberPrice = number
-    ? Number(hasPrice(item.numberPrice) ? item.numberPrice : number.length === 1 ? 350 : 700)
+    ? snapshotPrice(item.numberPrice, number.length === 1 ? 350 : 700, true)
     : 0;
   const badgePrice = badge && badge.id !== 'none'
-    ? Number(hasPrice(item.badgePrice) ? item.badgePrice : badge.price)
+    ? snapshotPrice(item.badgePrice, badge.price, true)
     : 0;
   const componentTotal = namePrice + numberPrice + badgePrice;
   const productBasePrice = hasPrice(item.productId?.price)

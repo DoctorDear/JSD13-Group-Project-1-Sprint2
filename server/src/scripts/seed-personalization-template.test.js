@@ -9,6 +9,7 @@ test("seeding twice keeps one Liverpool template and stable product flags", asyn
   const products = [
     { _id: "lfc-home", sku: "LFC-STADIUM", name: "Liverpool FC 2026/27 Home Jersey", groupId: null, personalizationEnabled: false },
     { _id: "lfc-approved-sku", sku: "KA6852-STADIUM", name: "Liverpool Home Jersey", groupId: null, personalizationEnabled: false },
+    { _id: "lfc-away", sku: "LFC-2627-AWAY-STADIUM", name: "Liverpool FC 2026/27 Away Jersey", groupId: null, personalizationEnabled: false },
     { _id: "lfc-old-season", sku: "LFC-2526-HOME", name: "Liverpool FC 2025/26 Home Jersey", groupId: null, personalizationEnabled: false },
     { _id: "other", name: "Arsenal Home Jersey", groupId: "ARS-2627-HOME", personalizationEnabled: false },
   ];
@@ -71,4 +72,5 @@ test("seeding twice keeps one Liverpool template and stable product flags", asyn
   assert.equal(products[2].personalizationEnabled, false);
   assert.equal(products[2].personalizationGroupId, undefined);
   assert.equal(products[3].personalizationEnabled, false);
+  assert.equal(products[4].personalizationEnabled, false);
 });
