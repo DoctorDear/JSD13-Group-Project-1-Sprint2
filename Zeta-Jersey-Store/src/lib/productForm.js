@@ -1,6 +1,24 @@
 const GROUP_ID_PATTERN = /^[A-Z0-9]+(?:-[A-Z0-9]+)*$/;
 const FONT_IDS = new Set(["barlow-condensed-900"]);
 const BADGE_IDS = new Set(["none", "premier-league", "premier-league-racism"]);
+const PERSONALIZATION_TEMPLATE_FIELDS = [
+  "groupId",
+  "active",
+  "backImageUrl",
+  "viewBox",
+  "name",
+  "number",
+  "sleeveBadge",
+  "sleeveBadgeOptions",
+];
+
+export function buildPersonalizationTemplatePayload(template = {}) {
+  return Object.fromEntries(
+    PERSONALIZATION_TEMPLATE_FIELDS
+      .filter((field) => Object.hasOwn(template, field))
+      .map((field) => [field, template[field]]),
+  );
+}
 
 export function getProductPersonalizationFields(form = {}) {
   const enabled = form.personalizationEnabled === true || form.personalizationEnabled === "true" || form.personalizationEnabled === "on";

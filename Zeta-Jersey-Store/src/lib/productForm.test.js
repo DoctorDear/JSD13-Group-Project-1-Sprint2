@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildPersonalizationTemplatePayload,
   getProductPersonalizationFields,
   validatePersonalizationTemplate,
   validateProductForm,
@@ -46,4 +47,16 @@ test('template validation rejects malformed group IDs and non-finite geometry', 
 
   assert.equal(validatePersonalizationTemplate(template).groupId, 'Use letters, numbers, and hyphens for the group ID.');
   assert.equal(validatePersonalizationTemplate({ ...template, groupId: 'VALID-GROUP', sleeveBadge: { ...template.sleeveBadge, x: Number.NaN } })['sleeveBadge.x'], 'Enter a finite number.');
+});
+
+test('template payload strips API metadata and keeps only editable fields', () => {
+  const document = {
+    _id: 'template-123', __v: 4, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-02T00:00:00.000Z',
+    groupId: 'LFC-2627-HOME', active: true, backImageUrl: '/back.png', viewBox: [0, 0, 100, 100],
+    name: { x: 50 }, number: { y: 70 }, sleeveBadge: { x: 1 }, sleeveBadgeOptions: ['none'],
+  };
+  assert.deepEqual(buildPersonalizationTemplatePayload(document), {
+    groupId: 'LFC-2627-HOME', active: true, backImageUrl: '/back.png', viewBox: [0, 0, 100, 100],
+    name: { x: 50 }, number: { y: 70 }, sleeveBadge: { x: 1 }, sleeveBadgeOptions: ['none'],
+  });
 });

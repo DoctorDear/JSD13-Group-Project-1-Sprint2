@@ -1,6 +1,6 @@
 import { useState } from "react";
 import JerseyPersonalizationPreview from "../components/JerseyPersonalizationPreview.jsx";
-import { validatePersonalizationTemplate } from "../lib/productForm.js";
+import { buildPersonalizationTemplatePayload, validatePersonalizationTemplate } from "../lib/productForm.js";
 import { adminService } from "../services/adminService.js";
 import { PageHeading } from "./AdminUI";
 
@@ -25,11 +25,12 @@ function copyTemplate(template) {
   return template ? structuredClone(template) : structuredClone(DEFAULT_TEMPLATE);
 }
 
-function NumericField({ label, value, onChange, step = "any" }) {
+function NumericField({ label, value, onChange, step = "any", error }) {
   return (
     <label className="form-control gap-1 text-sm">
       <span className="font-medium">{label}</span>
       <input className="input input-bordered input-sm w-full" type="number" step={step} value={value ?? ""} onChange={(event) => onChange(event.target.value)} />
+      {error && <span role="alert" className="text-error">{error}</span>}
     </label>
   );
 }
@@ -43,19 +44,21 @@ function BoxField({ label, value, onChange }) {
   );
 }
 
-function TextStyleFields({ title, style, onChange }) {
+function TextStyleFields({ title, style, onChange, errors }) {
+  const section = title.toLowerCase();
   return (
     <fieldset className="rounded-xl border border-base-300 p-4">
       <legend className="px-1 font-semibold">{title} styling</legend>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {[["x", "X position"], ["y", "Y position"], ["fontSize", "Font size"], ["fontWeight", "Font weight"], ["letterSpacing", "Letter spacing"], ["strokeWidth", "Outline width"]].map(([key, label]) => (
-          <NumericField key={key} label={label} value={style[key]} onChange={(value) => onChange(key, value)} />
+          <NumericField key={key} label={label} value={style[key]} onChange={(value) => onChange(key, value)} error={errors[`${section}.${key}`]} />
         ))}
         <label className="form-control gap-1 text-sm">
           <span className="font-medium">Approved font</span>
           <select className="select select-bordered select-sm" value={style.fontId} onChange={(event) => onChange("fontId", event.target.value)}>
             <option value="barlow-condensed-900">Barlow Condensed 900</option>
           </select>
+          {errors[`${section}.fontId`] && <span role="alert" className="text-error">{errors[`${section}.fontId`]}</span>}
         </label>
         <label className="form-control gap-1 text-sm"><span className="font-medium">Fill color</span><input className="input input-bordered input-sm" value={style.fill} onChange={(event) => onChange("fill", event.target.value)} /></label>
         <label className="form-control gap-1 text-sm"><span className="font-medium">Outline color</span><input className="input input-bordered input-sm" value={style.stroke} onChange={(event) => onChange("stroke", event.target.value)} /></label>
@@ -112,7 +115,7 @@ export default function PersonalizationTemplates({ store }) {
     setErrors(nextErrors);
     setError("");
     if (Object.keys(nextErrors).length) return;
-    const prepared = numericValues(draftForValidation);
+    const prepared = buildPersonalizationTemplatePayload(numericValues(draftForValidation));
 
     setSaving(true);
     try {
@@ -160,17 +163,17 @@ export default function PersonalizationTemplates({ store }) {
             <label className="form-control gap-1 text-sm"><span className="font-medium">Back image URL</span><input className="input input-bordered" value={draft.backImageUrl} onChange={(event) => setField("backImageUrl", event.target.value)} placeholder="https://... or /images/..." />{errors.backImageUrl && <span role="alert" className="text-error">{errors.backImageUrl}</span>}</label>
             <BoxField label="Jersey view box" value={draft.viewBox} onChange={(value) => setBox("viewBox", value)} />
             {errors.viewBox && <p role="alert" className="text-sm text-error">{errors.viewBox}</p>}
-            <TextStyleFields title="Name" style={draft.name} onChange={(key, value) => setNested("name", key, value)} />
-            <TextStyleFields title="Number" style={draft.number} onChange={(key, value) => setNested("number", key, value)} />
+            <TextStyleFields title="Name" style={draft.name} onChange={(key, value) => setNested("name", key, value)} errors={errors} />
+            <TextStyleFields title="Number" style={draft.number} onChange={(key, value) => setNested("number", key, value)} errors={errors} />
             <fieldset className="rounded-xl border border-base-300 p-4">
               <legend className="px-1 font-semibold">Sleeve badge geometry</legend>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                {[["x", "X position"], ["y", "Y position"], ["rotate", "Rotation"], ["skewY", "Vertical skew"], ["scaleX", "Horizontal scale"], ["scaleY", "Vertical scale"]].map(([key, label]) => <NumericField key={key} label={label} value={draft.sleeveBadge[key]} onChange={(value) => setNested("sleeveBadge", key, value)} />)}
+                {[["x", "X position"], ["y", "Y position"], ["rotate", "Rotation"], ["skewY", "Vertical skew"], ["scaleX", "Horizontal scale"], ["scaleY", "Vertical scale"]].map(([key, label]) => <NumericField key={key} label={label} value={draft.sleeveBadge[key]} onChange={(value) => setNested("sleeveBadge", key, value)} error={errors[`sleeveBadge.${key}`]} />)}
               </div>
               <div className="mt-4 space-y-3">
                 <BoxField label="Sleeve zoom view box" value={draft.sleeveBadge.zoomViewBox} onChange={(value) => setNested("sleeveBadge", "zoomViewBox", value)} />
                 {errors["sleeveBadge.zoomViewBox"] && <p role="alert" className="text-sm text-error">{errors["sleeveBadge.zoomViewBox"]}</p>}
-                <label className="form-control gap-1 text-sm"><span className="font-medium">Badge clip path</span><textarea className="textarea textarea-bordered font-mono" rows={3} value={draft.sleeveBadge.clipPath} onChange={(event) => setNested("sleeveBadge", "clipPath", event.target.value)} /></label>
+                <label className="form-control gap-1 text-sm"><span className="font-medium">Badge clip path</span><textarea className="textarea textarea-bordered font-mono" rows={3} value={draft.sleeveBadge.clipPath} onChange={(event) => setNested("sleeveBadge", "clipPath", event.target.value)} />{errors["sleeveBadge.clipPath"] && <span role="alert" className="text-error">{errors["sleeveBadge.clipPath"]}</span>}</label>
               </div>
             </fieldset>
             <fieldset className="rounded-xl border border-base-300 p-4">
