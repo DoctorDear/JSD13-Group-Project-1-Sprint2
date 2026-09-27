@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import { useAuth } from "./contexts/authContext.js";
 import { ProtectedRoute, GuestRoute, AdminRoute } from "./components/RouteGuards";
 
@@ -23,15 +23,25 @@ import LoginSuccess from "./pages/LoginSuccess";
 import ResetPasswordSuccess from "./pages/ResetPasswordSuccess";
 import ChangePasswordSuccess from "./pages/ChangePasswordSuccess";
 import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
+import CartFeedbackHost from "./components/CartFeedbackHost.jsx";
 
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const ProfileBody = lazy(() => import("./pages/ProfileBody"));
 const loadingPage = <div className="p-8 text-center text-zeta-muted">Loading...</div>;
 
+function ScrollToTop() {
+  const { pathname, search } = useLocation();
+  const navigationType = useNavigationType();
 
+  useEffect(() => {
+    if (pathname === "/products" && navigationType === "POP") return;
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, search, navigationType]);
 
-
-
+  return null;
+}
 
 function Logout() {
   const { logout } = useAuth();
@@ -44,7 +54,10 @@ function Logout() {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <CartFeedbackHost />
+      <Routes>
       {/* Admin routes — restricted to role: admin */}
       <Route element={<AdminRoute />}>
         <Route path="/admin/*" element={<AdminApp />} />
@@ -93,5 +106,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }

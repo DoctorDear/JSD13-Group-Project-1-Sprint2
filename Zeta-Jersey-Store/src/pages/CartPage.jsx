@@ -101,7 +101,7 @@ const CartPage = () => {
                 <div className="lg:grid lg:grid-cols-3 lg:gap-8 items-start">
                     <div className="lg:col-span-2 bg-white border border-gray-200 rounded-3xl p-6 shadow-sm mb-6 lg:mb-0">
                         {cartItems.length === 0 ? (
-                            <p className="text-gray-500 text-center py-8">ตะกร้าสินค้าของคุณว่างเปล่า</p>
+                            <p className="text-gray-500 text-center py-8">Your cart is empty.</p>
                         ) : (
                             <div className="divide-y divide-gray-100">
                                 {cartItems.map((item, index) => (

@@ -78,7 +78,13 @@ export function Badge({ children }) {
         : tone === "red"
           ? "badge-error"
           : "badge-ghost";
-  return <span className={`badge badge-sm ${toneClass}`}>{children}</span>;
+  return (
+    <span
+      className={`badge badge-sm inline-flex items-center justify-center whitespace-nowrap px-2.5 leading-none ${toneClass}`}
+    >
+      {children}
+    </span>
+  );
 }
 export function ProductMark({ src, alt = "" }) {
   const [failed, setFailed] = useState(false);

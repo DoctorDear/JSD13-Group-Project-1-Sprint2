@@ -92,7 +92,7 @@ const ProductSection = ({ id, title, products, error }) => {
     scrollState.canScrollLeft || scrollState.canScrollRight;
 
   return (
-    <section id={id} className="mx-auto max-w-7xl px-4">
+    <section id={id} className="mx-auto max-w-7xl px-4 scroll-mt-28">
       <h2 className="mt-6 text-3xl text-black font-bold">{title}</h2>
 
       {error ? (
@@ -194,6 +194,18 @@ const LandingPage = () => {
     fetchProducts();
 
     return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.replace("#", "");
+      const el = document.getElementById(id);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      }
+    }
   }, []);
 
   return (

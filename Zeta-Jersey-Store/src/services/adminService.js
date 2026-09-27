@@ -2,7 +2,7 @@ import { api } from "../lib/api";
 
 export const adminService = {
   // Products APIs
-  getProducts: (options) => api.get("/products", options),
+  getProducts: (options) => api.get("/products/admin", options),
 
   getProductById: (id, options) => api.get(`/products/${id}`, options),
 
