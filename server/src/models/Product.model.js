@@ -33,6 +33,7 @@ const productSchema = new mongoose.Schema(
       default: "football",
     },
     images: [{ type: String }],
+    backImageUrl: { type: String, default: "", trim: true },
     sizes: { type: [String], default: ["S", "M", "L", "XL", "2XL"] },
     isActive: { type: Boolean, default: true },
   },
