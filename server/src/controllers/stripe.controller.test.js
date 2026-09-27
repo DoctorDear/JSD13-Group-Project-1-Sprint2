@@ -217,11 +217,45 @@ test("Stripe checkout rejects missing active templates before reserving stock", 
   }
 });
 
+test("Stripe prices each line immediately before reserving it and rolls back when a later template is inactive", async (context) => {
+  const original = { find: Order.find, findUser: User.findById, findProduct: Product.findById, reserveProduct: Product.findOneAndUpdate, releaseProduct: Product.findByIdAndUpdate };
+  const user = { cart: [
+    { productId: "first", size: "M", quantity: 1, customName: "SALAH", customNumber: "11" },
+    { productId: "second", size: "L", quantity: 1, customName: "SALAH", customNumber: "11" },
+  ], save: async () => {} };
+  const events = [];
+  try {
+    Order.find = () => ({ sort: async () => [] });
+    User.findById = async () => user;
+    Product.findById = async (id) => ({ _id: id, sku: id, name: "Liverpool Home", price: 2900, quantity: 5, isActive: true, personalizationEnabled: true, personalizationGroupId: "LFC-2627-HOME" });
+    context.mock.method(PersonalizationTemplate, "findOne", async () => {
+      events.push("resolve");
+      return events.filter((event) => event === "resolve").length === 1 ? activeTemplate : { ...activeTemplate, active: false };
+    });
+    Product.findOneAndUpdate = async () => { events.push("reserve"); return { _id: "first" }; };
+    Product.findByIdAndUpdate = async () => { events.push("rollback"); };
+    const client = { checkout: { sessions: { create: async () => ({ id: "cs", url: "https://checkout.stripe.com" }) } } };
+    const req = { user: { userId: "user-1" }, body: { paymentMethod: "card", shippingAddress: { recipientName: "Jane Doe", phone: "123", addressLine: "1 Main St", province: "Bangkok", postalCode: "10000" } } };
+    const res = { code: 200, body: null, status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
+
+    await createCheckoutSessionWithClient(req, res, client);
+
+    assert.equal(res.code, 400);
+    assert.deepEqual(events, ["resolve", "reserve", "resolve", "rollback"]);
+  } finally {
+    Order.find = original.find;
+    User.findById = original.findUser;
+    Product.findById = original.findProduct;
+    Product.findOneAndUpdate = original.reserveProduct;
+    Product.findByIdAndUpdate = original.releaseProduct;
+  }
+});
+
 test("expired Stripe checkout restores the saved badge and does not merge another badge line", async () => {
   process.env.STRIPE_SECRET_KEY = "sk_test_local_test_key";
   process.env.STRIPE_WEBHOOK_SECRET = signingSecret;
   const original = { findOne: Order.findOne, findOneAndUpdate: Order.findOneAndUpdate, findUser: User.findById, restock: Product.findByIdAndUpdate };
-  const cart = [{ _id: "cart-1", productId: "jersey", size: "M", sleeveBadge: "premier-league", badgePrice: 450, price: 3350, quantity: 1 }];
+  const cart = [{ _id: "cart-1", productId: "jersey", size: "M", customName: "ALEX", customNumber: "22", sleeveBadge: "premier-league", namePrice: 400, numberPrice: 700, badgePrice: 450, price: 4450, quantity: 1 }];
   cart.pull = (item) => { const index = cart.findIndex((entry) => entry._id === (item?._id || item)); if (index >= 0) cart.splice(index, 1); };
   const user = { cart, save: async () => {} };
   const order = {
@@ -258,7 +292,7 @@ test("Stripe expiry restores string zero and double-zero as separate personalize
   const original = { findOne: Order.findOne, findOneAndUpdate: Order.findOneAndUpdate, findUser: User.findById, restock: Product.findByIdAndUpdate };
   const cart = [
     { _id: "cart-zero", productId: "jersey", size: "M", customName: "SALAH", customNumber: "0", sleeveBadge: "premier-league", namePrice: 0, numberPrice: 0, badgePrice: 0, price: 1, quantity: 1 },
-    { _id: "cart-double-zero", productId: "jersey", size: "M", customName: "SALAH", customNumber: "00", sleeveBadge: "premier-league-racism", namePrice: 400, numberPrice: 700, badgePrice: 850, price: 4850, quantity: 1 },
+    { _id: "cart-double-zero", productId: "jersey", size: "M", customName: "SALAH", customNumber: "00", sleeveBadge: "premier-league", namePrice: 400, numberPrice: 700, badgePrice: 450, price: 4450, quantity: 1 },
   ];
   cart.pull = (item) => { const index = cart.findIndex((entry) => entry._id === (item?._id || item)); if (index >= 0) cart.splice(index, 1); };
   const user = { cart, save: async () => {} };
@@ -266,7 +300,7 @@ test("Stripe expiry restores string zero and double-zero as separate personalize
     _id: "order-1", userId: "user-1", createdAt: new Date(),
     items: [
       { productId: "jersey", size: "M", quantity: 2, price: 4100, sleeveBadge: "premier-league", badgePrice: 450, namePrice: 400, numberPrice: 350, customName: "SALAH", customNumber: 0 },
-      { productId: "jersey", size: "M", quantity: 3, price: 4850, sleeveBadge: "premier-league-racism", badgePrice: 850, namePrice: 400, numberPrice: 700, customName: "SALAH", customNumber: "00" },
+      { productId: "jersey", size: "M", quantity: 3, price: 4450, sleeveBadge: "premier-league", badgePrice: 450, namePrice: 400, numberPrice: 700, customName: "SALAH", customNumber: "00" },
     ],
     payment: { reservationState: "held", cartCleared: true },
   };
@@ -283,7 +317,7 @@ test("Stripe expiry restores string zero and double-zero as separate personalize
     assert.equal(cart.length, 2);
     assert.deepEqual(cart.map(({ customNumber, sleeveBadge, quantity, price, namePrice, numberPrice, badgePrice }) => ({ customNumber, sleeveBadge, quantity, price, namePrice, numberPrice, badgePrice })), [
       { customNumber: "0", sleeveBadge: "premier-league", quantity: 3, price: 4100, namePrice: 400, numberPrice: 350, badgePrice: 450 },
-      { customNumber: "00", sleeveBadge: "premier-league-racism", quantity: 4, price: 4850, namePrice: 400, numberPrice: 700, badgePrice: 850 },
+      { customNumber: "00", sleeveBadge: "premier-league", quantity: 4, price: 4450, namePrice: 400, numberPrice: 700, badgePrice: 450 },
     ]);
   } finally {
     Order.findOne = original.findOne;

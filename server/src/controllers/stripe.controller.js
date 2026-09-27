@@ -137,27 +137,39 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
       }
       items.push({ productId: product._id, cartItemId: cartItem._id, sku: product.sku, name: product.name, size: cartItem.size || product.size, price: product.price, quantity, customName: cartItem.customName || "", customNumber: normalizedNumber(cartItem.customNumber), sleeveBadge: cartItem.sleeveBadge || "none" });
     }
-    // Re-resolve the active template and calculate the authoritative snapshot immediately before reserving stock.
+    const rollbackReserved = async () => {
+      for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+      reserved.length = 0;
+    };
+
+    // Price each item from the active template immediately before reserving its stock.
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product || product.isActive === false || product.quantity < item.quantity) return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
+      if (!product || product.isActive === false || product.quantity < item.quantity) {
+        await rollbackReserved();
+        return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
+      }
       const template = await resolvePersonalizationTemplate(product);
       const hasPrintChoices = Boolean(item.customName || item.customNumber !== null);
-      if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
+      if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) {
+        await rollbackReserved();
+        return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
+      }
       const priced = template
         ? pricePersonalization({ product, template, printEnabled: hasPrintChoices, customName: item.customName, customNumber: item.customNumber, sleeveBadge: item.sleeveBadge })
         : { customName: "", customNumber: null, namePrice: 0, numberPrice: 0, sleeveBadge: "none", badgePrice: 0, unitPrice: product.price };
-      if (!priced) return res.status(400).json({ success: false, message: "An item has invalid personalization choices" });
+      if (!priced) {
+        await rollbackReserved();
+        return res.status(400).json({ success: false, message: "An item has invalid personalization choices" });
+      }
       Object.assign(item, { price: priced.unitPrice, customName: priced.customName, customNumber: priced.customNumber, sleeveBadge: priced.sleeveBadge, namePrice: priced.namePrice, numberPrice: priced.numberPrice, badgePrice: priced.badgePrice });
-      totalAmount += item.price * item.quantity;
-    }
-    for (const item of items) {
-      const product = await Product.findOneAndUpdate({ _id: item.productId, quantity: { $gte: item.quantity } }, { $inc: { quantity: -item.quantity } });
-      if (!product) {
-        for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+      const productAfterReservation = await Product.findOneAndUpdate({ _id: item.productId, quantity: { $gte: item.quantity } }, { $inc: { quantity: -item.quantity } });
+      if (!productAfterReservation) {
+        await rollbackReserved();
         return res.status(409).json({ success: false, message: `Insufficient stock for ${item.name}` });
       }
       reserved.push(item);
+      totalAmount += item.price * item.quantity;
     }
     const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
     order = await Order.create({

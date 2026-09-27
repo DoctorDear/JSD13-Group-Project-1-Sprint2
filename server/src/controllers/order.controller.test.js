@@ -106,6 +106,32 @@ test("COD checkout applies the catalog price for every badge choice on printed s
   }
 });
 
+test("COD prices each line immediately before reserving it and rolls back when a later template is inactive", async (context) => {
+  const user = {
+    cart: [
+      { productId: "first", size: "M", quantity: 1, customName: "SALAH", customNumber: "11" },
+      { productId: "second", size: "L", quantity: 1, customName: "SALAH", customNumber: "11" },
+    ],
+    save: async () => {},
+    populate: async () => user,
+  };
+  const events = [];
+  context.mock.method(User, "findById", () => ({ populate: async () => user }));
+  context.mock.method(Product, "findById", async (id) => ({ _id: id, sku: id, name: "Liverpool Home", price: 2900, quantity: 5, isActive: true, personalizationEnabled: true, personalizationGroupId: "LFC-2627-HOME" }));
+  context.mock.method(PersonalizationTemplate, "findOne", async () => {
+    events.push("resolve");
+    return events.filter((event) => event === "resolve").length === 1 ? activeTemplate : { ...activeTemplate, active: false };
+  });
+  context.mock.method(Product, "findOneAndUpdate", async () => { events.push("reserve"); return { _id: "first" }; });
+  context.mock.method(Product, "findByIdAndUpdate", async () => { events.push("rollback"); });
+  const response = createResponse();
+
+  await createOrder({ user: { userId: "customer" }, body: { shippingAddress: {} } }, response);
+
+  assert.equal(response.statusCode, 400);
+  assert.deepEqual(events, ["resolve", "reserve", "resolve", "rollback"]);
+});
+
 function createResponse() {
   return {
     statusCode: 200,

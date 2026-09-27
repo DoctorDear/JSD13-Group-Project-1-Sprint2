@@ -105,20 +105,35 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Re-resolve the active template and calculate the authoritative snapshot immediately before reserving stock.
+    const rollbackReserved = async () => {
+      for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+      reserved.length = 0;
+    };
+
+    // Price each item from the active template immediately before reserving its stock.
     for (const item of orderItems) {
       const product = await Product.findById(item.productId);
-      if (!product || product.isActive === false) return res.status(404).json({ success: false, message: "Product not found" });
-      if (product.quantity < item.quantity) return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
+      if (!product || product.isActive === false) {
+        await rollbackReserved();
+        return res.status(404).json({ success: false, message: "Product not found" });
+      }
+      if (product.quantity < item.quantity) {
+        await rollbackReserved();
+        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
+      }
       const template = await resolvePersonalizationTemplate(product);
       const hasPrintChoices = Boolean(item.customName || item.customNumber !== null);
       if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) {
+        await rollbackReserved();
         return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
       }
       const priced = template
         ? pricePersonalization({ product, template, printEnabled: hasPrintChoices, customName: item.customName, customNumber: item.customNumber, sleeveBadge: item.sleeveBadge })
         : { customName: "", customNumber: null, namePrice: 0, numberPrice: 0, sleeveBadge: "none", badgePrice: 0, unitPrice: product.price };
-      if (!priced) return res.status(400).json({ success: false, message: "Invalid personalization choices" });
+      if (!priced) {
+        await rollbackReserved();
+        return res.status(400).json({ success: false, message: "Invalid personalization choices" });
+      }
       Object.assign(item, {
         price: priced.unitPrice,
         customName: priced.customName,
@@ -128,19 +143,16 @@ export const createOrder = async (req, res) => {
         numberPrice: priced.numberPrice,
         badgePrice: priced.badgePrice,
       });
-      totalAmount += item.price * item.quantity;
-    }
-
-    for (const item of orderItems) {
       const updated = await Product.findOneAndUpdate(
         { _id: item.productId, quantity: { $gte: item.quantity } },
         { $inc: { quantity: -item.quantity } },
       );
       if (!updated) {
-        for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+        await rollbackReserved();
         return res.status(400).json({ success: false, message: `Insufficient stock for product: ${item.name}` });
       }
       reserved.push(item);
+      totalAmount += item.price * item.quantity;
     }
 
     const orderNumber = `ZT-${new mongoose.Types.ObjectId().toString().toUpperCase()}`;
