@@ -5,6 +5,7 @@ import User from "../models/User.model.js";
 import { syncStripeOrder } from "./stripe.controller.js";
 import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
 import { pricePersonalization } from "../lib/personalization.js";
+import { validateShippingAddress } from "../lib/shippingAddressValidation.js";
 
 // 1. ฟังก์ชันดูรายละเอียดออเดอร์เดี่ยว
 export const getOrderById = async (req, res) => {
@@ -56,6 +57,8 @@ export const createOrder = async (req, res) => {
     if (paymentMethod !== "cod") {
       return res.status(400).json({ success: false, message: "Use Stripe checkout for online payment" });
     }
+    const shippingAddressError = validateShippingAddress(shippingAddress);
+    if (shippingAddressError) return res.status(400).json({ success: false, message: shippingAddressError });
     const user = await User.findById(userId).populate("cart.productId");
 
     if (!user || !user.cart || user.cart.length === 0) {

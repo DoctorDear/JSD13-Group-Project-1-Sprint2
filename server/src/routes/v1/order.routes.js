@@ -10,7 +10,7 @@ import {
   verifyToken,
   requireAdmin,
 } from "../../middlewares/auth.middleware.js";
-import { createCheckoutSession, getStripeAvailability, resumeCheckoutSession } from "../../controllers/stripe.controller.js";
+import { createCheckoutSession, getStripeAvailability, resumeCheckoutSession, retryCheckoutSession } from "../../controllers/stripe.controller.js";
 
 export const router = Router();
 
@@ -20,6 +20,7 @@ router.get("/payment-options", getStripeAvailability);
 router.post("/", verifyToken, createOrder);
 router.post("/checkout-session", verifyToken, createCheckoutSession);
 router.get("/:id/checkout-session", verifyToken, resumeCheckoutSession);
+router.post("/:id/checkout-session/retry", verifyToken, retryCheckoutSession);
 router.get("/:id", verifyToken, getOrderById);
 
 // 2. Admin Order Management Routes

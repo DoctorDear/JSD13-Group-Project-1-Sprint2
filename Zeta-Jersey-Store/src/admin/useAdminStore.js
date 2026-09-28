@@ -50,6 +50,9 @@ function normalizeOrder(o) {
     total: o.totalAmount || 0,
     status: o.orderStatus ? o.orderStatus.charAt(0).toUpperCase() + o.orderStatus.slice(1) : "Pending",
     rawStatus: o.orderStatus,
+    paymentStatus: o.payment?.status ? o.payment.status.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) : "Unknown",
+    paymentMethod: o.payment?.method || "-",
+    paidAt: o.payment?.paidAt || null,
     items: o.items || [],
     raw: o,
   };

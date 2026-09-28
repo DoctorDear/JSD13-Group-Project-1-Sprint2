@@ -7,4 +7,5 @@ export const orderService = {
   getById: (id) => api.get(`/orders/${id}`),
   getPaymentOptions: () => api.get('/orders/payment-options'),
   resumeCheckoutSession: (id) => api.get(`/orders/${id}/checkout-session`),
+  retryCheckoutSession: (id, paymentMethod) => api.post(`/orders/${id}/checkout-session/retry`, { paymentMethod }),
 };

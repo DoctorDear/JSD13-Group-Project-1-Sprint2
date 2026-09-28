@@ -8,6 +8,8 @@ import { canReviewOrderItem } from "../../lib/reviews/reviewEligibility.js";
 const money = new Intl.NumberFormat("en-TH", { style: "currency", currency: "THB" });
 const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" });
 const statusColors = {
+  awaiting_payment: "bg-amber-100 text-amber-800",
+  failed: "bg-red-100 text-red-800",
   pending: "bg-amber-100 text-amber-800",
   processing: "bg-blue-100 text-blue-800",
   shipped: "bg-purple-100 text-purple-800",
@@ -33,6 +35,10 @@ export default function OrderHistory() {
   const [reviewedProductIds, setReviewedProductIds] = useState(new Set());
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const [paymentOptions, setPaymentOptions] = useState({ card: false, promptpay: false });
+  const [paymentMethods, setPaymentMethods] = useState({});
+  const [retryingOrderId, setRetryingOrderId] = useState("");
+  const [paymentError, setPaymentError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,6 +59,32 @@ export default function OrderHistory() {
       });
     return () => controller.abort();
   }, [attempt]);
+
+  useEffect(() => {
+    orderService.getPaymentOptions().then(setPaymentOptions).catch(() => setPaymentOptions({ card: false, promptpay: false }));
+  }, []);
+
+  const retryPayment = async (order) => {
+    const selected = paymentMethods[order._id];
+    const savedMethod = order.payment?.method === "PromptPay" ? "promptpay" : "card";
+    const method = selected && paymentOptions[selected]
+      ? selected
+      : paymentOptions[savedMethod]
+        ? savedMethod
+        : paymentOptions.card
+          ? "card"
+          : "promptpay";
+    setPaymentError("");
+    setRetryingOrderId(order._id);
+    try {
+      const checkout = await orderService.retryCheckoutSession(order._id, method);
+      if (!checkout?.url) throw new Error("Stripe checkout link was not returned. Please try again.");
+      window.location.assign(checkout.url);
+    } catch (cause) {
+      setPaymentError(cause.message || "Could not restart payment. Please try again.");
+      setRetryingOrderId("");
+    }
+  };
 
   const retry = () => {
     setError("");
@@ -80,6 +112,7 @@ export default function OrderHistory() {
         </div>
       ) : (
         <div className="mt-6 space-y-4">
+          {paymentError && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{paymentError}</p>}
           {orders.map((order) => (
             <article key={order._id} className="overflow-hidden rounded-xl border border-zeta-main-lighter bg-white p-5 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -87,11 +120,44 @@ export default function OrderHistory() {
                   <h2 className="break-all font-bold">{order.orderNumber}</h2>
                   <p className="mt-1 text-xs text-zeta-muted">{date.format(new Date(order.createdAt))}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusColors[order.orderStatus] || "bg-gray-100 text-gray-700"}`}>
-                  {order.orderStatus === "processing" && order.payment?.status === "paid" ? "Paid" : order.orderStatus}
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusColors[order.payment?.status === "failed" ? "failed" : order.payment?.status === "awaiting_payment" ? "awaiting_payment" : order.orderStatus] || "bg-gray-100 text-gray-700"}`}>
+                  {order.payment?.status === "failed" ? "Payment failed" : order.payment?.status === "awaiting_payment" ? "Payment pending" : order.orderStatus === "processing" && order.payment?.status === "paid" ? "Paid" : order.orderStatus}
                 </span>
               </div>
               <p className="mt-4 text-lg font-black">{money.format(order.totalAmount)}</p>
+              {order.payment?.method !== "Cash on Delivery" && ["awaiting_payment", "failed"].includes(order.payment?.status) && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-sm font-semibold text-amber-950">
+                    {order.payment.status === "failed" ? "Payment was not completed." : "Payment is still pending."}
+                  </p>
+                  <p className="mt-1 text-xs text-amber-900">Choose a payment method and continue to Stripe. Your order items and address are saved.</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <label className="sr-only" htmlFor={`payment-method-${order._id}`}>Payment method</label>
+                    <select
+                      id={`payment-method-${order._id}`}
+                      value={paymentMethods[order._id] && paymentOptions[paymentMethods[order._id]]
+                        ? paymentMethods[order._id]
+                        : paymentOptions[order.payment.method === "PromptPay" ? "promptpay" : "card"]
+                          ? (order.payment.method === "PromptPay" ? "promptpay" : "card")
+                          : paymentOptions.card ? "card" : "promptpay"}
+                      onChange={(event) => setPaymentMethods((current) => ({ ...current, [order._id]: event.target.value }))}
+                      className="min-h-10 rounded-lg border border-amber-300 bg-white px-3 text-sm"
+                    >
+                      {paymentOptions.card && <option value="card">Credit Card</option>}
+                      {paymentOptions.promptpay && <option value="promptpay">QR PromptPay</option>}
+                      {!paymentOptions.card && !paymentOptions.promptpay && <option value="card">Credit Card (unavailable)</option>}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => retryPayment(order)}
+                      disabled={retryingOrderId === order._id || (!paymentOptions.card && !paymentOptions.promptpay)}
+                      className="min-h-10 rounded-lg bg-zeta-main px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {retryingOrderId === order._id ? "Opening Stripe…" : order.payment.status === "failed" ? "Try payment again" : "Continue to payment"}
+                    </button>
+                  </div>
+                </div>
+              )}
               <details className="mt-4 border-t border-zeta-main-lighter pt-4">
                 <summary className="cursor-pointer text-sm font-semibold text-zeta-main">View order details</summary>
                 <ul className="mt-4 divide-y divide-zeta-main-lighter">
