@@ -90,7 +90,7 @@ async function releaseStock(order) {
 }
 
 async function releaseStaleRetry(order) {
-  const staleBefore = new Date(Date.now() - 15 * 60 * 1000);
+  const staleBefore = new Date(Date.now() - 2 * 60 * 1000);
   const claimed = await Order.findOneAndUpdate(
     { _id: order._id, "payment.status": "failed", "payment.reservationState": "restarting", "payment.retryStartedAt": { $lte: staleBefore } },
     { $set: { "payment.reservationState": "released", "payment.retryStartedAt": null } },
@@ -223,26 +223,31 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
       expires_at: expiresAt,
     }, { idempotencyKey: sourceOrder ? `order-${order.id}-retry-${new mongoose.Types.ObjectId()}` : `order-${order.id}` });
     if (sourceOrder) {
-      order.items = items;
-      order.shippingAddress = shippingAddress;
-      order.totalAmount = totalAmount;
-      order.orderStatus = "pending";
-      order.payment.method = paymentMethod === "card" ? "Credit Card" : "PromptPay";
-      order.payment.status = "awaiting_payment";
-      order.payment.reservationState = "held";
-      order.payment.reservationExpiresAt = new Date(expiresAt * 1000);
-      order.payment.retryStartedAt = null;
-      order.payment.cartManaged = false;
+      const finalized = await Order.updateOne(
+        { _id: order._id, "payment.status": "failed", "payment.reservationState": "restarting", "payment.retryStartedAt": order.payment.retryStartedAt },
+        { $set: {
+          items, shippingAddress, totalAmount, orderStatus: "pending",
+          "payment.method": paymentMethod === "card" ? "Credit Card" : "PromptPay",
+          "payment.status": "awaiting_payment",
+          "payment.reservationState": "held",
+          "payment.reservationExpiresAt": new Date(expiresAt * 1000),
+          "payment.retryStartedAt": null,
+          "payment.cartManaged": false,
+          "payment.stripeSessionId": session.id,
+        } },
+      );
+      if (finalized.modifiedCount !== 1) throw new Error("The payment retry was released before Stripe checkout was ready");
+    } else {
+      order.payment.stripeSessionId = session.id;
+      await order.save();
     }
-    order.payment.stripeSessionId = session.id;
-    await order.save();
     if (!sourceOrder) await removeOrderItemsFromCart(order);
     return res.status(201).json({ success: true, url: session.url, orderId: order.id });
   } catch (error) {
     if (session) await client.checkout.sessions.expire(session.id).catch(() => {});
     if (req.sourceOrder) {
       const reset = order ? await Order.updateOne(
-        { _id: order._id, "payment.reservationState": "restarting" },
+        { _id: order._id, "payment.reservationState": "restarting", "payment.retryStartedAt": order.payment.retryStartedAt },
         { $set: { "payment.reservationState": "released", "payment.retryStartedAt": null } },
       ) : null;
       if (!order || reset.modifiedCount === 1) {
@@ -349,6 +354,10 @@ export const retryCheckoutSession = async (req, res) => {
     if (order.payment?.status === "paid") return res.status(409).json({ success: false, message: "This order has already been paid" });
 
     client = stripe();
+    if (order.payment.status === "failed" && order.payment.reservationState === "restarting") {
+      if (await releaseStaleRetry(order)) order = await Order.findById(order._id);
+      else return res.status(409).json({ success: false, message: "A payment retry is still being prepared. Please try again in a couple of minutes." });
+    }
     if (order.payment?.reservationState === "held" && order.payment.stripeSessionId) {
       const current = await client.checkout.sessions.retrieve(order.payment.stripeSessionId);
       if (current.payment_status === "paid") {
