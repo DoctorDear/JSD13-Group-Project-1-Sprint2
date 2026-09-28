@@ -133,8 +133,8 @@ export default function OrderHistory() {
                   <p className="mt-1 text-xs text-amber-900">{order.payment.status === "failed" ? "Review your shipping details and choose a payment method at checkout." : "Choose a payment method and continue to Stripe. Your order items and address are saved."}</p>
                   {order.payment.status === "failed" ? (
                     <Link
-                      to="/checkout"
-                      state={{ retryShippingAddress: order.shippingAddress }}
+                      to={`/checkout?retryOrder=${order._id}`}
+                      state={{ retryOrderId: order._id, retryShippingAddress: order.shippingAddress }}
                       className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-zeta-main px-4 text-sm font-semibold text-white"
                     >
                       Return to checkout

@@ -48,6 +48,7 @@ const orderSchema = new mongoose.Schema(
       reservationState: { type: String, enum: ["held", "restarting", "committed", "released"], default: "committed" },
       reservationExpiresAt: { type: Date, default: null },
       cartCleared: { type: Boolean, default: false },
+      cartManaged: { type: Boolean, default: true },
     },
     totalAmount: { type: Number, required: true },
     orderStatus: {

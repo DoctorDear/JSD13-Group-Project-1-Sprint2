@@ -27,7 +27,7 @@ export function validateCheckoutForm({ formData, deliveryLocation }) {
   if (!validName(formData.firstName)) errors.firstName = "Enter a valid first name (2–80 characters).";
   if (!validName(formData.lastName)) errors.lastName = "Enter a valid last name (2–80 characters).";
   if (!requiredText(formData.address, 5, 250)) errors.address = "Enter a valid street address (5–250 characters).";
-  if (!/^0\d{8,9}$/.test(phone)) errors.telephone = "Enter a valid Thai phone number, for example 0812345678.";
+  if (!/^[+()\d๐-๙\s-]+$/.test(String(formData.telephone ?? "").trim()) || !/^0\d{8,9}$/.test(phone)) errors.telephone = "Enter a valid Thai phone number, for example 0812345678.";
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address.";
   if (!deliveryLocation.province || !deliveryLocation.district || !deliveryLocation.subdistrict || !/^\d{5}$/.test(toAsciiDigits(deliveryLocation.postalCode))) {
     errors.location = "Choose a complete Thai address with province, district, sub-district and postal code.";

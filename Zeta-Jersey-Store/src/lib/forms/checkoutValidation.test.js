@@ -14,6 +14,7 @@ test("rejects non-phone input and malformed contact email", () => {
   });
   assert.ok(errors.telephone);
   assert.ok(errors.email);
+  assert.ok(validateCheckoutForm({ ...validForm, formData: { ...validForm.formData, telephone: "0812345678ก" } }).telephone);
 });
 
 test("normalizes Thai numerals and the +66 country prefix", () => {
