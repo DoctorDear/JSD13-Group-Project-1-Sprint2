@@ -16,7 +16,7 @@ export function validateShippingAddress(address) {
   const addressLine = String(address.addressLine ?? "").trim();
   if (recipientName.length < 3 || recipientName.length > 161 || !/\p{L}/u.test(recipientName)) return "Enter a valid recipient name";
   if (addressLine.length < 5 || addressLine.length > 250) return "Enter a valid street address";
-  if (!/^0\d{8,9}$/.test(normalizeThaiPhone(address.phone))) return "Enter a valid Thai phone number";
+  if (!/^[+()\d๐-๙\s-]+$/.test(String(address.phone ?? "").trim()) || !/^0\d{8,9}$/.test(normalizeThaiPhone(address.phone))) return "Enter a valid Thai phone number";
   for (const key of ["province", "district", "subdistrict"]) {
     if (typeof address[key] !== "string" || !address[key].trim() || address[key].trim().length > 100) return "Choose a complete Thai delivery address";
   }

@@ -15,6 +15,7 @@ const validAddress = {
 test("rejects invalid phone, address, or location fields", () => {
   for (const patch of [
     { phone: "กกกกก" },
+    { phone: "0812345678ก" },
     { phone: "12345" },
     { addressLine: "abc" },
     { recipientName: "12345" },

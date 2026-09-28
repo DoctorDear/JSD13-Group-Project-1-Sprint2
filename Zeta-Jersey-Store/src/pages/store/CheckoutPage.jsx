@@ -11,6 +11,7 @@ import { validateCheckoutForm } from '../../lib/forms/checkoutValidation.js';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const retryOrderId = new URLSearchParams(location.search).get('retryOrder') || location.state?.retryOrderId;
   const retryShippingAddress = location.state?.retryShippingAddress;
   const [retryFirstName = '', ...retryLastNameParts] = (retryShippingAddress?.recipientName || '').trim().split(/\s+/);
   const cartItemsFromCart = location.state?.cartItems || [];
@@ -18,6 +19,7 @@ const CheckoutPage = () => {
   const [paymentOptions, setPaymentOptions] = useState({ card: false, promptpay: false });
   const [paymentOptionsLoading, setPaymentOptionsLoading] = useState(true);
   const [unpaidOrder, setUnpaidOrder] = useState(null);
+  const [retryOrder, setRetryOrder] = useState(null);
   const [deliveryLocation, setDeliveryLocation] = useState({
     postalCode: retryShippingAddress?.postalCode || '',
     province: retryShippingAddress?.province || '',
@@ -51,7 +53,12 @@ const CheckoutPage = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState(() => {
+    if (!retryShippingAddress?.phone) return {};
+    const errors = validateCheckoutForm({ formData: { telephone: retryShippingAddress.phone }, deliveryLocation: {} });
+    return errors.telephone ? { telephone: errors.telephone } : {};
+  });
+  const checkoutItems = retryOrderId ? (retryOrder?.items || []) : cartItems;
   const inputClass = (field) => `w-full h-14 px-4 rounded-xl border text-sm focus:outline-none focus:ring-2 ${fieldErrors[field] ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-900'}`;
 
   const applySavedAddress = (address) => {
@@ -80,7 +87,7 @@ const CheckoutPage = () => {
     orderService.getPaymentOptions()
       .then((options) => {
         setPaymentOptions(options);
-        setPaymentMethod((current) => current || (options.card ? 'card' : 'cod'));
+        setPaymentMethod((current) => current || (options.card ? 'card' : options.promptpay ? 'promptpay' : 'cod'));
       })
       .catch(() => setPaymentMethod((current) => current || 'cod'))
       .finally(() => setPaymentOptionsLoading(false));
@@ -89,10 +96,23 @@ const CheckoutPage = () => {
       setSavedAddresses(addresses);
       setFormData((prev) => ({ ...prev, email: prev.email || user?.email || '' }));
       const preferred = addresses.find((address) => address.isDefault) || addresses[0];
-      if (preferred && !addressTouched.current) applySavedAddress(preferred);
+      if (preferred && !retryOrderId && !addressTouched.current) applySavedAddress(preferred);
     }).catch(() => {});
     const fetchCart = async () => {
       try {
+        if (retryOrderId) {
+          const result = await orderService.getById(retryOrderId);
+          if (result.data?.payment?.status !== 'failed') throw new Error('This order is no longer available for payment retry.');
+          setRetryOrder(result.data);
+          if (!retryShippingAddress && result.data.shippingAddress) {
+            applySavedAddress(result.data.shippingAddress);
+            setSelectedAddressId('new');
+            addressTouched.current = true;
+            const errors = validateCheckoutForm({ formData: { telephone: result.data.shippingAddress.phone }, deliveryLocation: {} });
+            if (errors.telephone) setFieldErrors({ telephone: errors.telephone });
+          }
+          return;
+        }
         const response = await api.get('/users/cart');
         if (response.cart) {
           setCartItems(response.cart);
@@ -107,10 +127,10 @@ const CheckoutPage = () => {
       }
     };
     fetchCart();
-  }, []);
+  }, [retryOrderId, retryShippingAddress]);
 
   // --- ระบบคำนวณราคาอัตโนมัติจากสินค้าในตะกร้า (Real-time calculation) ---
-  const subtotal = cartItems.reduce((acc, item) => {
+  const subtotal = checkoutItems.reduce((acc, item) => {
     const price = Number(item.price ?? item.productId?.price) || 0;
     const quantity = Number(item.quantity) || 1;
     return acc + (price * quantity);
@@ -138,7 +158,10 @@ const CheckoutPage = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
     setErrorMessage('');
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    if (name === 'telephone') {
+      const nextErrors = validateCheckoutForm({ formData: { ...formData, telephone: value }, deliveryLocation });
+      setFieldErrors((prev) => ({ ...prev, telephone: value ? (nextErrors.telephone || '') : '' }));
+    } else if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleAddressSelection = (event) => {
@@ -155,7 +178,7 @@ const CheckoutPage = () => {
     setErrorMessage('');
 
     if (paymentOptionsLoading || !paymentMethod) return;
-    if (!cartItems.length) return setErrorMessage('Your cart is empty.');
+    if (!checkoutItems.length) return setErrorMessage(retryOrderId ? 'Could not load this order. Return to My Orders and try again.' : 'Your cart is empty.');
     const errors = validateCheckoutForm({ formData, deliveryLocation });
     setFieldErrors(errors);
     if (Object.keys(errors).length) {
@@ -184,11 +207,14 @@ const CheckoutPage = () => {
         setSaveAddress(false);
       }
       if (paymentMethod !== 'cod') {
-        const checkout = await orderService.createCheckoutSession(shippingAddress, paymentMethod);
+        const checkout = retryOrderId
+          ? await orderService.retryCheckoutSession(retryOrderId, paymentMethod, shippingAddress)
+          : await orderService.createCheckoutSession(shippingAddress, paymentMethod);
         if (!checkout?.url) throw new Error('Stripe checkout link was not returned. Please try again.');
         window.location.assign(checkout.url);
         return;
       }
+      if (retryOrderId) throw new Error('Choose Credit Card or QR PromptPay to retry this order.');
       const response = await orderService.create(shippingAddress, paymentMethod);
       window.dispatchEvent(new Event('cart-updated'));
       navigate(`/order-confirmation?orderId=${response.data._id}`);
@@ -217,6 +243,11 @@ const CheckoutPage = () => {
           <Link to="/profile?tab=orders" className="ml-2 font-semibold underline">Continue payment from My Orders</Link>
         </div>
       )}
+      {retryOrder && (
+        <div role="status" className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          Retrying payment for order {retryOrder.orderNumber}. Review your shipping details before paying.
+        </div>
+      )}
 
       {/* --- 1. Order Summary แบบดรอปดาวน์ (สำหรับมือถือ - วางไว้บนสุด) --- */}
       <div className="lg:hidden bg-[#f9f9f9] border-b border-gray-200 px-4 py-4">
@@ -243,8 +274,8 @@ const CheckoutPage = () => {
         {isSummaryOpen && (
           <div className="mt-4 space-y-4 pt-2 border-t border-gray-200">
             <div className="space-y-3">
-              {cartItems.length > 0 ? (
-                cartItems.map((item, index) => (
+              {checkoutItems.length > 0 ? (
+                checkoutItems.map((item, index) => (
                   <CheckOutItemCard
                     key={item._id || item.id || index}
                     item={item}
@@ -459,7 +490,7 @@ const CheckoutPage = () => {
                 {[
                   { id: 'card', label: 'Credit Card', detail: paymentOptions.card ? 'Pay securely with Stripe test checkout' : 'Unavailable until Stripe test keys are configured', badges: 'VISA · MC', disabled: !paymentOptions.card },
                   { id: 'promptpay', label: 'QR PromptPay', detail: paymentOptions.promptpay ? 'Pay with Stripe test checkout' : 'Unavailable for this Stripe test account', badges: 'PromptPay', disabled: !paymentOptions.promptpay },
-                  { id: 'cod', label: 'Cash on Delivery', detail: 'Pay when your order is delivered', badges: '' },
+                  { id: 'cod', label: 'Cash on Delivery', detail: retryOrderId ? 'Unavailable when retrying an online payment' : 'Pay when your order is delivered', badges: '', disabled: Boolean(retryOrderId) },
                 ].map((method, index) => (
                   <label key={method.id} className={`flex items-center justify-between gap-4 p-4 ${method.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${index < 2 ? 'border-b border-gray-100' : ''} ${paymentMethod === method.id ? 'bg-blue-50/40' : ''}`}>
                     <span className="flex items-center gap-3">
@@ -480,8 +511,8 @@ const CheckoutPage = () => {
               <h3 className="text-xl font-bold text-gray-900">Order Summary</h3>
 
               <div className="space-y-4">
-                {cartItems.length > 0 ? (
-                  cartItems.map((item, index) => (
+                {checkoutItems.length > 0 ? (
+                  checkoutItems.map((item, index) => (
                     <CheckOutItemCard
                       key={item._id || item.id || index}
                       item={item}
@@ -516,7 +547,7 @@ const CheckoutPage = () => {
               {errorMessage && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{errorMessage}</p>}
               <button
                 onClick={handlePayNow}
-                disabled={loading || paymentOptionsLoading}
+                disabled={loading || paymentOptionsLoading || (retryOrderId && !retryOrder)}
                 className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
               >
                 {loading || paymentOptionsLoading ? 'PROCESSING...' : 'PLACE ORDER'}
@@ -533,8 +564,8 @@ const CheckoutPage = () => {
             <h3 className="text-xl font-bold text-gray-900">Order Summary</h3>
 
             <div className="space-y-4">
-              {cartItems.length > 0 ? (
-                cartItems.map((item, index) => (
+              {checkoutItems.length > 0 ? (
+                checkoutItems.map((item, index) => (
                   <CheckOutItemCard
                     key={item._id || item.id || index}
                     item={item}
@@ -581,7 +612,7 @@ const CheckoutPage = () => {
               {errorMessage && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{errorMessage}</p>}
               <button
                 onClick={handlePayNow}
-                disabled={loading || paymentOptionsLoading}
+                disabled={loading || paymentOptionsLoading || (retryOrderId && !retryOrder)}
                 className="w-full h-12 bg-[#251b74] hover:bg-[#1a1355] text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {loading || paymentOptionsLoading ? 'PROCESSING...' : 'PLACE ORDER'}
