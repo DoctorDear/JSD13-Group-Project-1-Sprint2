@@ -1,33 +1,32 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import { useAuth } from "./contexts/authContext.js";
-import { ProtectedRoute, GuestRoute, AdminRoute } from "./components/RouteGuards";
+import { ProtectedRoute, GuestRoute, AdminRoute } from "./components/navigation/RouteGuards";
 
-import LandingPage from "./pages/LandingPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import SubmitReviewPage from "./pages/SubmitReviewPage";
-import AllProductsPage from "./pages/AllProductsPage";
-import CartPage from "./pages/CartPage";
-import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import LandingPage from "./pages/store/LandingPage";
+const ProductDetailPage = lazy(() => import("./pages/store/ProductDetailPage"));
+const SubmitReviewPage = lazy(() => import("./pages/reviews/SubmitReviewPage"));
+const AllProductsPage = lazy(() => import("./pages/store/AllProductsPage"));
+const CartPage = lazy(() => import("./pages/store/CartPage"));
+const OrderConfirmationPage = lazy(() => import("./pages/store/OrderConfirmationPage"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
+const EmailConfirmation = lazy(() => import("./pages/auth/EmailConfirmation"));
+const AdminApp = lazy(() => import("./admin/AdminApp"));
+const Settings = lazy(() => import("./pages/account/Settings"));
+const ChangePassword = lazy(() => import("./pages/auth/ChangePassword"));
+const RegisterSuccess = lazy(() => import("./pages/auth/RegisterSuccess"));
+const LoginSuccess = lazy(() => import("./pages/auth/LoginSuccess"));
+const ResetPasswordSuccess = lazy(() => import("./pages/auth/ResetPasswordSuccess"));
+const ChangePasswordSuccess = lazy(() => import("./pages/auth/ChangePasswordSuccess"));
+const VerifyEmailSuccess = lazy(() => import("./pages/auth/VerifyEmailSuccess"));
+import CartFeedbackHost from "./components/cart/CartFeedbackHost.jsx";
 
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import EmailConfirmation from "./pages/EmailConfirmation";
-import AdminApp from "./admin/AdminApp";
-import Settings from "./pages/Settings";
-import ChangePassword from "./pages/ChangePassword";
-import RegisterSuccess from "./pages/RegisterSuccess";
-import LoginSuccess from "./pages/LoginSuccess";
-import ResetPasswordSuccess from "./pages/ResetPasswordSuccess";
-import ChangePasswordSuccess from "./pages/ChangePasswordSuccess";
-import VerifyEmailSuccess from "./pages/VerifyEmailSuccess";
-import CartFeedbackHost from "./components/CartFeedbackHost.jsx";
-
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-const ProfileBody = lazy(() => import("./pages/ProfileBody"));
-const loadingPage = <div className="p-8 text-center text-zeta-muted">Loading...</div>;
+const CheckoutPage = lazy(() => import("./pages/store/CheckoutPage"));
+const ProfileBody = lazy(() => import("./pages/account/ProfileBody"));
+const loadingPage = <div role="status" className="flex min-h-[60vh] items-center justify-center gap-3 text-zeta-muted"><span aria-hidden="true" className="loading loading-spinner text-zeta-main" />Loading…</div>;
 
 function ScrollToTop() {
   const { pathname, search } = useLocation();
@@ -57,6 +56,7 @@ export default function App() {
     <>
       <ScrollToTop />
       <CartFeedbackHost />
+      <Suspense fallback={loadingPage}>
       <Routes>
       {/* Admin routes — restricted to role: admin */}
       <Route element={<AdminRoute />}>
@@ -106,6 +106,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
     </>
   );
 }

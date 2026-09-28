@@ -39,7 +39,6 @@ Wishlist เก็บรหัสสินค้าไว้ใน `User.wishlis
 - `src/models/User.model.js`: ฟิลด์ `wishlist` เป็น array ของ Product ObjectId
 - `src/routes/v1/user.routes.js`: route และ `verifyToken`
 - `src/controllers/user.controller.js`: `getWishlist`, `addToWishlist`, `removeFromWishlist`
-- `src/controllers/wishlist.controller.test.js` และ `src/routes/v1/wishlist.routes.test.js`: ทดสอบ controller และ auth ของ route
 
 ## รันและตรวจสอบ
 
@@ -47,6 +46,4 @@ Wishlist เก็บรหัสสินค้าไว้ใน `User.wishlis
 2. เตรียม `server/.env` สำหรับฐานข้อมูลและ JWT ตามการตั้งค่าของโปรเจกต์ ไฟล์นี้ถูก Git ignore
 3. รัน `npm run dev` เพื่อเปิด API ที่พอร์ต 3001 ตามค่าเริ่มต้น
 4. ล็อกอินผ่านเว็บ แล้วเรียก endpoint โดยส่ง cookie `accessToken` ไปด้วย
-5. รัน `npm test` สำหรับ automated tests
-
-Automated tests ใช้ stub ของ Mongoose model และ HTTP route จึงไม่ยืนยันการทำงานกับ MongoDB จริง ควรลองเพิ่มและลบสินค้าจากหน้าเว็บที่ต่อกับฐานข้อมูลก่อน merge
+5. ตรวจการเพิ่มและลบสินค้าจากหน้าเว็บที่ต่อกับฐานข้อมูล

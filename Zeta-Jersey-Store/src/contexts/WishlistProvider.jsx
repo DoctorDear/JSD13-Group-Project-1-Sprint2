@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "./authContext.js";
 import { WishlistContext } from "./wishlistContext.js";
-import { readWishlist, wishlistHasProduct } from "../lib/wishlistModel.js";
+import { readWishlist, wishlistHasProduct } from "../lib/wishlist/wishlistModel.js";
 import { wishlistService } from "../services/wishlist.js";
 
 const guestWishlist = {

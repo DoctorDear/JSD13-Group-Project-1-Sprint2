@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AuthContext } from "../../../server/src/contexts/AuthContext";
-import { API_BASE_URL } from "../lib/api.js";
+import { API_BASE_URL } from "../lib/api/api.js";
 
 export function AuthProvider({ children }) {
   const apiBase = API_BASE_URL;

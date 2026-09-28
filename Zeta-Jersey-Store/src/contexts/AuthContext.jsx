@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { authService } from "../services/auth";
-import { onUnauthorized } from "../lib/api";
+import { onUnauthorized } from "../lib/api/api";
 import { authUserFromResponse } from "./authUser";
 import { cartService } from '../services/cart.js';
 import { AuthContext } from './authContext.js';

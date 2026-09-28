@@ -1,5 +1,5 @@
 import { useState } from "react";
-import SleeveBadgeDetails from '../components/SleeveBadgeDetails.jsx';
+import SleeveBadgeDetails from '../components/personalization/SleeveBadgeDetails.jsx';
 import { Plus, Eye, Trash2 } from "lucide-react";
 import {
   PageHeading,

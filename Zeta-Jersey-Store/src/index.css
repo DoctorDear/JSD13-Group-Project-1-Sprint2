@@ -16,6 +16,11 @@
   --color-zeta-muted: #9ca3af; 
 }
 
+@keyframes cart-feedback-countdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
 html,
 body,
 button,

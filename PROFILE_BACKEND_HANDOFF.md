@@ -16,7 +16,7 @@
 3. เปิด Profile edit และ Checkout: ลองเลือกจังหวัดก่อน แล้วเลือกอำเภอ/ตำบล; ลองค้นด้วย ZIP และเลือกรายการที่ตรงกัน
 4. ตรวจ ProductCard badge `NEW` และ badge หมวดสินค้าในหน้า Landing/Products หลังแก้ CSS
 
-คำสั่งตรวจ: ใน `Zeta-Jersey-Store` ใช้ `node --test src/lib/*.test.js` และ `npm run build`; ใน `server` ใช้ `node --test src/config/cors.test.js src/controllers/review.controller.test.js src/controllers/user.controller.test.js`.
+คำสั่งตรวจ: ใน `Zeta-Jersey-Store` ใช้ `npm run build`.
 
 ## งานที่พักไว้
 

@@ -29,6 +29,6 @@
 2. ใน `Zeta-Jersey-Store` รัน `npm ci` แล้ว `npm run dev` Vite proxy ส่ง `/api` ไป `http://localhost:3001` ตามค่าเริ่มต้น หากตั้ง `VITE_API_BASE_URL` ให้ชี้ไป API ที่ถูกต้อง
 3. ล็อกอินด้วยบัญชีทดสอบ กดหัวใจบน Product Detail แล้วเปิด Favorites จาก Navbar
 4. ลบสินค้าใน Favorites และลองกดหัวใจบน Product Card โดยตรวจว่าไม่พาไป Product Detail และปุ่มสินค้าอื่นไม่กระพริบ
-5. รัน `node --test src/lib/*.test.js src/contexts/*.test.js` และ `npm run build`
+5. รัน `npm run build`
 
 ไฟล์ `.env` ใช้เฉพาะเครื่องและถูก Git ignore ไม่ควรใส่ค่า secret ลงในเอกสารหรือ PR

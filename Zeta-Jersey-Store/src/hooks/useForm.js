@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { validate } from "../lib/validation";
-import { ApiError } from "../lib/api";
+import { validate } from "../lib/forms/validation";
+import { ApiError } from "../lib/api/api";
 
 export default function useForm(initialValues, schema, onSubmit) {
   const [values, setValues] = useState(initialValues);

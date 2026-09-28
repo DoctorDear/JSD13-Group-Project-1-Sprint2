@@ -11,20 +11,24 @@
     "start": "node src/server.js",
     "seed:reviews": "node --env-file=.env src/scripts/seed-review-demo.js",
     "seed:admin": "node --env-file=.env src/scripts/seed-admin.js",
-    "seed:personalization": "node --env-file=.env src/scripts/seed-personalization-template.js",
-    "test": "node --test"
+    "seed:personalization": "node --env-file=.env src/scripts/seed-personalization-template.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "@smithy/node-http-handler": "^4.12.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.1",
+    "multer": "^2.4.0",
+    "sharp": "^0.35.5",
     "stripe": "^22.6.2"
   }
 }

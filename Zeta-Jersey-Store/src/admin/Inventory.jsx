@@ -13,7 +13,8 @@ import {
 } from "./AdminUI";
 import { matches, stockStatus } from "./data";
 import { adminService } from "../services/adminService";
-import { getProductPersonalizationFields, validateProductForm } from "../lib/productForm.js";
+import { getProductPersonalizationFields, validateProductForm } from "../lib/forms/productForm.js";
+import { ImageUrlUploadField, ProductImageGallery } from "./ImageUploadField.jsx";
 
 export function Inventory({ store, money }) {
   const [query, setQuery] = useState("");
@@ -200,6 +201,10 @@ export function ProductForm({ store }) {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [images, setImages] = useState(() => existing?.images?.length ? [...existing.images] : existing?.imageUrl ? [existing.imageUrl] : []);
+  const [backImageUrl, setBackImageUrl] = useState(existing?.backImageUrl || "");
+  const [imageUploadCount, setImageUploadCount] = useState(0);
+  const trackImageUpload = (active) => setImageUploadCount((count) => Math.max(0, count + (active ? 1 : -1)));
 
   if (id && !existing && store.loading) {
     return (
@@ -263,12 +268,8 @@ export function ProductForm({ store }) {
       date: form.date,
       tag: form.tag.split(',').map((tag) => tag.trim()).filter(Boolean),
       brand: form.supplier || form.brand || "Adidas",
-      images: form.imageUrl
-        ? [form.imageUrl]
-        : existing?.imageUrl
-          ? [existing.imageUrl]
-          : [],
-      backImageUrl: form.backImageUrl || "",
+      images,
+      backImageUrl,
       ...getProductPersonalizationFields(form),
     };
 
@@ -349,24 +350,15 @@ export function ProductForm({ store }) {
               ))}
             </select>
           </Field>
-          <Field
-            className="md:col-span-2"
-            label="Image URL (optional)"
-            name="imageUrl"
-            placeholder="https://example.com/jersey.jpg"
-            defaultValue={existing?.imageUrl}
-          />
-          <Field
-            className="md:col-span-2"
-            label="Back image URL for personalization preview (optional)"
-            name="backImageUrl"
-            placeholder="https://example.com/jersey-back.jpg"
-            defaultValue={existing?.backImageUrl}
-          />
-          <Field className="md:col-span-2" label="Product personalization">
-            <label className="flex items-center gap-3">
+          <ProductImageGallery images={images} onChange={setImages} onUploadingChange={trackImageUpload} disabled={submitting} />
+          <div className="md:col-span-2">
+            <ImageUrlUploadField label="Back image for personalization preview (optional)" value={backImageUrl} onChange={setBackImageUrl} onUploadingChange={trackImageUpload} purpose="product-back" disabled={submitting} />
+          </div>
+          <div className="md:col-span-2 space-y-2">
+            <span className="text-sm font-medium text-base-content/80">Product personalization</span>
+            <label className="flex w-fit items-center gap-3 rounded-xl border border-base-300 px-3 py-2">
               <input
-                className="checkbox checkbox-primary"
+                className="checkbox checkbox-primary size-5 shrink-0"
                 type="checkbox"
                 name="personalizationEnabled"
                 value="true"
@@ -374,7 +366,7 @@ export function ProductForm({ store }) {
               />
               <span>Allow personalization</span>
             </label>
-          </Field>
+          </div>
           {fieldErrors.personalizationGroupId && (
             <p role="alert" className="text-error md:col-span-2">{fieldErrors.personalizationGroupId}</p>
           )}
@@ -475,10 +467,10 @@ export function ProductForm({ store }) {
           <button
             className="btn btn-primary"
             type="submit"
-            disabled={submitting}
+            disabled={submitting || imageUploadCount > 0}
           >
             <Save size={17} />
-            {submitting ? "Saving..." : "Save Product"}
+            {imageUploadCount > 0 ? "Finish image upload first" : submitting ? "Saving..." : "Save Product"}
           </button>
           <Link className="btn btn-ghost" to="/admin/inventory">
             Cancel

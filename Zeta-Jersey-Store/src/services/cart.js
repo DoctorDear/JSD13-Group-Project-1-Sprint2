@@ -1,4 +1,4 @@
-import { api } from "../lib/api.js";
+import { api } from "../lib/api/api.js";
 import { addGuestItem, mergeGuestCart, readGuestCart, removeGuestItem, updateGuestItem } from './guestCart.js';
 
 let syncPromise;

@@ -1,4 +1,4 @@
-import { api } from "../lib/api.js";
+import { api } from "../lib/api/api.js";
 
 export const reviewService = {
   getProductReviews: (productId, query, options) => api.get(`/products/${productId}/reviews?${query}`, options),
