@@ -15,6 +15,7 @@ const statusColors = {
   shipped: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-gray-100 text-gray-700",
+  superseded: "bg-gray-100 text-gray-700",
 };
 
 function OrderItemImage({ src, name }) {
@@ -120,11 +121,14 @@ export default function OrderHistory() {
                   <h2 className="break-all font-bold">{order.orderNumber}</h2>
                   <p className="mt-1 text-xs text-zeta-muted">{date.format(new Date(order.createdAt))}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusColors[order.payment?.status === "failed" ? "failed" : order.payment?.status === "awaiting_payment" ? "awaiting_payment" : order.orderStatus] || "bg-gray-100 text-gray-700"}`}>
-                  {order.payment?.status === "failed" ? "Payment failed" : order.payment?.status === "awaiting_payment" ? "Payment pending" : order.orderStatus === "processing" && order.payment?.status === "paid" ? "Paid" : order.orderStatus}
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusColors[order.payment?.status === "superseded" ? "superseded" : order.payment?.status === "failed" ? "failed" : order.payment?.status === "awaiting_payment" ? "awaiting_payment" : order.orderStatus] || "bg-gray-100 text-gray-700"}`}>
+                  {order.payment?.status === "superseded" ? "Replaced" : order.payment?.status === "failed" ? "Payment failed" : order.payment?.status === "awaiting_payment" ? "Payment pending" : order.orderStatus === "processing" && order.payment?.status === "paid" ? "Paid" : order.orderStatus}
                 </span>
               </div>
               <p className="mt-4 text-lg font-black">{money.format(order.totalAmount)}</p>
+              {order.payment?.status === "superseded" && (
+                <p className="mt-3 text-sm text-zeta-muted">Payment completed under order {orders.find((candidate) => candidate._id === order.payment.replacedBy)?.orderNumber || String(order.payment.replacedBy)}.</p>
+              )}
               {order.payment?.method !== "Cash on Delivery" && ["awaiting_payment", "failed"].includes(order.payment?.status) && (
                 <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <p className="text-sm font-semibold text-amber-950">

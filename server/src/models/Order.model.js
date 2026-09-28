@@ -47,8 +47,10 @@ const orderSchema = new mongoose.Schema(
       stripeSessionId: { type: String },
       reservationState: { type: String, enum: ["held", "restarting", "committed", "released"], default: "committed" },
       reservationExpiresAt: { type: Date, default: null },
+      retryStartedAt: { type: Date, default: null },
       cartCleared: { type: Boolean, default: false },
       cartManaged: { type: Boolean, default: true },
+      replacedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Order", default: null },
     },
     totalAmount: { type: Number, required: true },
     orderStatus: {
