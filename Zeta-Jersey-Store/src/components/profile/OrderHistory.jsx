@@ -130,8 +130,17 @@ export default function OrderHistory() {
                   <p className="text-sm font-semibold text-amber-950">
                     {order.payment.status === "failed" ? "Payment was not completed." : "Payment is still pending."}
                   </p>
-                  <p className="mt-1 text-xs text-amber-900">Choose a payment method and continue to Stripe. Your order items and address are saved.</p>
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <p className="mt-1 text-xs text-amber-900">{order.payment.status === "failed" ? "Review your shipping details and choose a payment method at checkout." : "Choose a payment method and continue to Stripe. Your order items and address are saved."}</p>
+                  {order.payment.status === "failed" ? (
+                    <Link
+                      to="/checkout"
+                      state={{ retryShippingAddress: order.shippingAddress }}
+                      className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-zeta-main px-4 text-sm font-semibold text-white"
+                    >
+                      Return to checkout
+                    </Link>
+                  ) : (
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
                     <label className="sr-only" htmlFor={`payment-method-${order._id}`}>Payment method</label>
                     <select
                       id={`payment-method-${order._id}`}
@@ -153,9 +162,10 @@ export default function OrderHistory() {
                       disabled={retryingOrderId === order._id || (!paymentOptions.card && !paymentOptions.promptpay)}
                       className="min-h-10 rounded-lg bg-zeta-main px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {retryingOrderId === order._id ? "Opening Stripe…" : order.payment.status === "failed" ? "Try payment again" : "Continue to payment"}
+                      {retryingOrderId === order._id ? "Opening Stripe…" : "Continue to payment"}
                     </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
               <details className="mt-4 border-t border-zeta-main-lighter pt-4">

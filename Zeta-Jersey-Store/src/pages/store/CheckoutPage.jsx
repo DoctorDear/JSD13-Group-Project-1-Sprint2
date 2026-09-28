@@ -11,16 +11,23 @@ import { validateCheckoutForm } from '../../lib/forms/checkoutValidation.js';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const retryShippingAddress = location.state?.retryShippingAddress;
+  const [retryFirstName = '', ...retryLastNameParts] = (retryShippingAddress?.recipientName || '').trim().split(/\s+/);
   const cartItemsFromCart = location.state?.cartItems || [];
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [paymentOptions, setPaymentOptions] = useState({ card: false, promptpay: false });
   const [paymentOptionsLoading, setPaymentOptionsLoading] = useState(true);
   const [unpaidOrder, setUnpaidOrder] = useState(null);
-  const [deliveryLocation, setDeliveryLocation] = useState({ postalCode: '', province: '', district: '', subdistrict: '' });
+  const [deliveryLocation, setDeliveryLocation] = useState({
+    postalCode: retryShippingAddress?.postalCode || '',
+    province: retryShippingAddress?.province || '',
+    district: retryShippingAddress?.district || '',
+    subdistrict: retryShippingAddress?.subdistrict || '',
+  });
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('new');
   const [saveAddress, setSaveAddress] = useState(false);
-  const addressTouched = useRef(false);
+  const addressTouched = useRef(Boolean(retryShippingAddress));
 
   // State สำหรับเปิด-ปิด Order Summary ด้านบนบนมือถือ
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -33,11 +40,11 @@ const CheckoutPage = () => {
     email: '',
     receiveNews: true,
     country: 'Thailand',
-    firstName: '',
-    lastName: '',
+    firstName: retryFirstName,
+    lastName: retryLastNameParts.join(' '),
     apartment: '',
-    address: '',
-    telephone: '',
+    address: retryShippingAddress?.addressLine || '',
+    telephone: retryShippingAddress?.phone || '',
     shippingMethod: 'Standard Delivery',
   });
 
