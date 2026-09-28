@@ -1,4 +1,4 @@
-import { api } from "../lib/api";
+import { api } from "../lib/api/api";
 
 export const userService = {
   getProfile: (options) => api.get("/users/profile", options),

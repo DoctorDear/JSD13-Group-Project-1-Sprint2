@@ -1,10 +1,10 @@
 import { useState } from "react";
-import JerseyPersonalizationPreview from "../components/JerseyPersonalizationPreview.jsx";
-import { buildPersonalizationTemplatePayload, validatePersonalizationTemplate } from "../lib/productForm.js";
+import JerseyPersonalizationPreview from "../components/personalization/JerseyPersonalizationPreview.jsx";
+import { buildPersonalizationTemplatePayload, validatePersonalizationTemplate } from "../lib/forms/productForm.js";
 import { adminService } from "../services/adminService.js";
 import { PageHeading } from "./AdminUI";
 import { ImageUrlUploadField } from "./ImageUploadField.jsx";
-import { getTemplateProductGroups, getTemplateProductImages } from "../lib/templateProductChoices.js";
+import { getTemplateProductGroups, getTemplateProductImages } from "../lib/personalization/templateProductChoices.js";
 
 const BADGE_OPTIONS = [
   { id: "none", label: "No badge" },

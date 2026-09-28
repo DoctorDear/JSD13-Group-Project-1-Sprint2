@@ -13,7 +13,7 @@ import {
 } from "./AdminUI";
 import { matches, stockStatus } from "./data";
 import { adminService } from "../services/adminService";
-import { getProductPersonalizationFields, validateProductForm } from "../lib/productForm.js";
+import { getProductPersonalizationFields, validateProductForm } from "../lib/forms/productForm.js";
 import { ImageUrlUploadField, ProductImageGallery } from "./ImageUploadField.jsx";
 
 export function Inventory({ store, money }) {

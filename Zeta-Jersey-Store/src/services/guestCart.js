@@ -1,4 +1,4 @@
-import { preparePersonalization } from '../lib/personalization.js';
+import { preparePersonalization } from '../lib/personalization/personalization.js';
 
 const KEY = 'zeta_guest_cart';
 

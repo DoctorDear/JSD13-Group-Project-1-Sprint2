@@ -1,7 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
-import heroImages from "./src/lib/heroImages.json" with { type: "json" };
+import heroImages from "./src/data/heroImages.json" with { type: "json" };
 
 // https://vite.dev/config/
 export default defineConfig({

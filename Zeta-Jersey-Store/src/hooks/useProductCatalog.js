@@ -7,7 +7,7 @@ import {
   getProductPriceBounds,
   PRODUCT_PAGE_SIZE,
   sortProducts,
-} from "../lib/productCatalog";
+} from "../lib/catalog/productCatalog";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const catalogHistory = new Map();

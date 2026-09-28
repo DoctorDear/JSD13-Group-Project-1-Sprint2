@@ -1,4 +1,4 @@
-import { api } from "../lib/api";
+import { api } from "../lib/api/api";
 
 const AUTH_PATH = "/v1/auth";
 
