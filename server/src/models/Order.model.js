@@ -45,7 +45,7 @@ const orderSchema = new mongoose.Schema(
       paidAt: { type: Date, default: null },
       transactionId: { type: String, default: "" },
       stripeSessionId: { type: String },
-      reservationState: { type: String, enum: ["held", "committed", "released"], default: "committed" },
+      reservationState: { type: String, enum: ["held", "restarting", "committed", "released"], default: "committed" },
       reservationExpiresAt: { type: Date, default: null },
       cartCleared: { type: Boolean, default: false },
     },

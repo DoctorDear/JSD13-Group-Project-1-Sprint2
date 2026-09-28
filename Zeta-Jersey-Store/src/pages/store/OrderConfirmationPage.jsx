@@ -74,6 +74,7 @@ export default function OrderConfirmationPage() {
             <div className="border-t border-gray-300" />
             <p className="text-xs sm:text-sm text-gray-500" role="status">{statusMessage}</p>
             {paymentStatus === 'awaiting_payment' && <button className="px-6 py-2.5 bg-gray-800 hover:bg-gray-900 text-white text-xs sm:text-sm font-medium rounded-lg" onClick={() => orderService.resumeCheckoutSession(order._id).then(({ url }) => window.location.assign(url)).catch((cause) => setResumeError(cause.message))}>Return to Stripe checkout</button>}
+            {(paymentStatus === 'failed' || paymentStatus === 'awaiting_payment') && <Link to="/profile?tab=orders" className="inline-block px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg">Choose another payment method</Link>}
             {paymentStatus === 'failed' && <Link to="/cart" className="inline-block px-6 py-2.5 bg-gray-800 text-white text-xs sm:text-sm font-medium rounded-lg">Review cart</Link>}
             {paymentStatus !== 'awaiting_payment' && paymentStatus !== 'failed' && <Link to="/profile?tab=orders" className="inline-block px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg">View your orders</Link>}
             {resumeError && <p className="text-xs text-red-700" role="alert">{resumeError}</p>}

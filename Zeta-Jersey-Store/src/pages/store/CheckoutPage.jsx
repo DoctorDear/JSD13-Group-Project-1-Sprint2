@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import CheckOutItemCard from '../../components/checkout/CheckOutItemCard';
 import ThaiLocationFields from '../../components/checkout/ThaiLocationFields.jsx';
 import { api } from '../../lib/api/api';
 import { orderService } from '../../services/order.js';
+import { validateCheckoutForm } from '../../lib/forms/checkoutValidation.js';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [paymentOptions, setPaymentOptions] = useState({ card: false, promptpay: false });
   const [paymentOptionsLoading, setPaymentOptionsLoading] = useState(true);
+  const [unpaidOrder, setUnpaidOrder] = useState(null);
   const [deliveryLocation, setDeliveryLocation] = useState({ postalCode: '', province: '', district: '', subdistrict: '' });
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('new');
@@ -87,6 +89,11 @@ const CheckoutPage = () => {
         const response = await api.get('/users/cart');
         if (response.cart) {
           setCartItems(response.cart);
+          if (!response.cart.length) {
+            const orderData = await orderService.getMyOrders();
+            const pendingOrder = orderData.orders?.find((order) => ["awaiting_payment", "failed"].includes(order.payment?.status));
+            if (pendingOrder) setUnpaidOrder(pendingOrder);
+          }
         }
       } catch (error) {
         setErrorMessage(error.message || 'Failed to load cart.');
@@ -142,16 +149,10 @@ const CheckoutPage = () => {
 
     if (paymentOptionsLoading || !paymentMethod) return;
     if (!cartItems.length) return setErrorMessage('Your cart is empty.');
-    const errors = {
-      firstName: formData.firstName.trim() ? '' : 'Enter your first name.',
-      lastName: formData.lastName.trim() ? '' : 'Enter your last name.',
-      address: formData.address.trim() ? '' : 'Enter your street address.',
-      telephone: formData.telephone.trim() ? '' : 'Enter your telephone number.',
-      location: deliveryLocation.province && deliveryLocation.postalCode ? '' : 'Choose your province and postal code.',
-    };
+    const errors = validateCheckoutForm({ formData, deliveryLocation });
     setFieldErrors(errors);
-    if (Object.values(errors).some(Boolean)) {
-      setErrorMessage('Please complete the highlighted fields.');
+    if (Object.keys(errors).length) {
+      setErrorMessage('Please correct the highlighted fields before continuing.');
       return;
     }
 
@@ -201,6 +202,12 @@ const CheckoutPage = () => {
       {errorMessage && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 mt-4 text-red-700 text-sm">
           {errorMessage}
+        </div>
+      )}
+      {unpaidOrder && (
+        <div role="status" className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          You have an order awaiting payment. Its items are saved with the order.
+          <Link to="/profile?tab=orders" className="ml-2 font-semibold underline">Continue payment from My Orders</Link>
         </div>
       )}
 
@@ -293,8 +300,10 @@ const CheckoutPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="username@gmail.com"
+                    aria-invalid={Boolean(fieldErrors.email)}
                     className="w-full h-12 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
                   />
+                  {fieldErrors.email && <p className="mt-1 text-xs text-red-600" role="alert">{fieldErrors.email}</p>}
                 </div>
                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                   <input
@@ -342,12 +351,13 @@ const CheckoutPage = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <input
+                  <input
                       type="text"
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder="First name"
+                      maxLength={80}
                       aria-invalid={Boolean(fieldErrors.firstName)}
                       className={inputClass('firstName')}
                     />
@@ -360,6 +370,7 @@ const CheckoutPage = () => {
                       value={formData.lastName}
                       onChange={handleChange}
                       placeholder="Last name"
+                      maxLength={80}
                       aria-invalid={Boolean(fieldErrors.lastName)}
                       className={inputClass('lastName')}
                     />
@@ -373,6 +384,7 @@ const CheckoutPage = () => {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Address"
+                  maxLength={250}
                   aria-invalid={Boolean(fieldErrors.address)}
                   className={inputClass('address')}
                 />
@@ -398,11 +410,13 @@ const CheckoutPage = () => {
                 />
 
                 <input
-                  type="text"
+                  type="tel"
                   name="telephone"
                   value={formData.telephone}
                   onChange={handleChange}
                   placeholder="Telephone"
+                  autoComplete="tel"
+                  maxLength={24}
                   aria-invalid={Boolean(fieldErrors.telephone)}
                   className={inputClass('telephone')}
                 />

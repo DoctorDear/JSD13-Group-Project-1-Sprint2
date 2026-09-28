@@ -1,8 +1,11 @@
 import SleeveBadgeDetails from '../personalization/SleeveBadgeDetails.jsx';
+import { Link } from 'react-router-dom';
 
 const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
     // Cart item identity and populated product details.
     const product = item.productId || {};
+    const productId = product?._id || product?.id || (typeof product === 'string' ? product : null);
+    const productUrl = productId ? `/products/${productId}` : null;
 
     const itemImage = product.images?.[0] || product.image || product.imageUrl || item.image || '';
     const itemName = product.name || item.name || 'Product';
@@ -12,13 +15,25 @@ const CartItemCard = ({ item, onUpdateQuantity, onRemoveItem }) => {
         <div className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
             {/* Image and product details */}
             <div className="flex items-center gap-4">
-                <img
-                    src={itemImage}
-                    alt={itemName}
-                    className="w-20 h-20 object-cover rounded-xl border border-gray-100 flex-shrink-0"
-                />
+                {productUrl ? (
+                    <Link to={productUrl} aria-label={`View ${itemName}`} className="shrink-0 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-900">
+                        <img
+                            src={itemImage}
+                            alt={itemName}
+                            className="w-20 h-20 object-cover rounded-xl border border-gray-100 flex-shrink-0"
+                        />
+                    </Link>
+                ) : (
+                    <img
+                        src={itemImage}
+                        alt={itemName}
+                        className="w-20 h-20 object-cover rounded-xl border border-gray-100 flex-shrink-0"
+                    />
+                )}
                 <div>
-                    <h4 className="text-sm font-bold text-gray-900 max-w-xs">{itemName}</h4>
+                    <h4 className="text-sm font-bold text-gray-900 max-w-xs">
+                        {productUrl ? <Link to={productUrl} className="hover:text-indigo-900 hover:underline focus-visible:underline">{itemName}</Link> : itemName}
+                    </h4>
                     <p className="text-xs text-gray-500 mt-0.5">Size : {item.size}</p>
                     <SleeveBadgeDetails item={item} />
                     <p className="text-base font-bold text-gray-900 mt-1">Unit price: ฿{Number(itemPrice).toLocaleString()}</p>

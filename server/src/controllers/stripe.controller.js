@@ -5,6 +5,7 @@ import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
 import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
 import { pricePersonalization } from "../lib/personalization.js";
+import { validateShippingAddress } from "../lib/shippingAddressValidation.js";
 
 const normalizedName = (value) => typeof value === "string" ? value.toUpperCase() : "";
 const normalizedNumber = (value) => value === undefined || value === null ? null : String(value);
@@ -98,9 +99,8 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
     const { shippingAddress, paymentMethod } = req.body;
     if (!["card", "promptpay"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "Choose Card or PromptPay" });
     if (paymentMethod === "promptpay" && process.env.STRIPE_PROMPTPAY_ENABLED !== "true") return res.status(400).json({ success: false, message: "PromptPay is not enabled for this Stripe account" });
-    if (!shippingAddress || !["recipientName", "phone", "addressLine", "province", "postalCode"].every((key) => typeof shippingAddress[key] === "string" && shippingAddress[key].trim())) {
-      return res.status(400).json({ success: false, message: "Complete the shipping address" });
-    }
+    const shippingAddressError = validateShippingAddress(shippingAddress);
+    if (shippingAddressError) return res.status(400).json({ success: false, message: shippingAddressError });
     const client = stripeClient || stripe();
     const heldOrders = await Order.find({ userId: req.user.userId, "payment.reservationState": "held" }).sort({ createdAt: -1 });
     let previousCheckoutExpired = false;
@@ -218,6 +218,8 @@ export const stripeWebhook = async (req, res) => {
     if (!["checkout.session.completed", "checkout.session.async_payment_succeeded", "checkout.session.async_payment_failed", "checkout.session.expired"].includes(event.type)) return res.sendStatus(200);
     const order = await Order.findOne({ $or: [{ "payment.stripeSessionId": session.id }, { _id: mongoose.Types.ObjectId.isValid(session.metadata?.orderId) ? session.metadata.orderId : null }] });
     if (!order) return res.sendStatus(503);
+    // Replaced/expired checkout attempts must not change the current reservation state.
+    if (order.payment?.stripeSessionId !== session.id || order.payment?.reservationState === "restarting") return res.sendStatus(200);
     if ((event.type === "checkout.session.completed" && session.payment_status === "paid") || event.type === "checkout.session.async_payment_succeeded") {
       await markOrderPaid(order, session);
     } else if (["checkout.session.async_payment_failed", "checkout.session.expired"].includes(event.type)) {
@@ -231,8 +233,12 @@ export const stripeWebhook = async (req, res) => {
 };
 
 export const syncStripeOrder = async (order) => {
-  if (order.payment?.reservationState !== "held" || !order.payment.stripeSessionId) return false;
+  if (!["held", "restarting"].includes(order.payment?.reservationState) || !order.payment.stripeSessionId) return false;
   const session = await stripe().checkout.sessions.retrieve(order.payment.stripeSessionId);
+  if (order.payment.reservationState === "restarting") {
+    order.payment.reservationState = "held";
+    await order.save();
+  }
   if (session.payment_status === "paid") {
     await markOrderPaid(order, session);
     return true;
@@ -247,7 +253,7 @@ export const syncStripeOrder = async (order) => {
 // Recover terminal Checkout sessions when local webhook forwarding was interrupted.
 export const reconcileStripeOrders = async () => {
   if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) return;
-  const pending = await Order.find({ "payment.reservationState": "held", "payment.stripeSessionId": { $exists: true } }).limit(50);
+  const pending = await Order.find({ "payment.reservationState": { $in: ["held", "restarting"] }, "payment.stripeSessionId": { $exists: true } }).limit(50);
   for (const order of pending) {
     try { await syncStripeOrder(order); }
     catch (error) { console.error("Stripe order reconciliation failed:", order.id, error); }
@@ -268,5 +274,92 @@ export const resumeCheckoutSession = async (req, res) => {
     return res.json({ success: true, url: session.url });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Could not resume checkout" });
+  }
+};
+
+export const retryCheckoutSession = async (req, res) => {
+  let order;
+  let replacement;
+  let client;
+  let previousSessionId;
+  try {
+    const { paymentMethod } = req.body;
+    if (!["card", "promptpay"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "Choose Card or PromptPay" });
+    if (paymentMethod === "promptpay" && process.env.STRIPE_PROMPTPAY_ENABLED !== "true") return res.status(400).json({ success: false, message: "PromptPay is not enabled for this Stripe account" });
+
+    order = await Order.findOne({ _id: req.params.id, userId: req.user.userId });
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (!["Credit Card", "PromptPay"].includes(order.payment?.method) || !["awaiting_payment", "failed"].includes(order.payment?.status)) {
+      return res.status(409).json({ success: false, message: "This order is not eligible for payment retry" });
+    }
+    if (order.payment?.status === "paid") return res.status(409).json({ success: false, message: "This order has already been paid" });
+
+    client = stripe();
+    if (order.payment?.reservationState === "held" && order.payment.stripeSessionId) {
+      const current = await client.checkout.sessions.retrieve(order.payment.stripeSessionId);
+      if (current.payment_status === "paid") {
+        await markOrderPaid(order, current);
+        return res.status(409).json({ success: false, message: "This order has already been paid" });
+      }
+      if (current.status === "open") {
+        previousSessionId = current.id;
+        const claimedOrder = await Order.findOneAndUpdate(
+          { _id: order._id, "payment.reservationState": "held", "payment.stripeSessionId": current.id },
+          { $set: { "payment.reservationState": "restarting" } },
+          { new: true },
+        );
+        if (!claimedOrder) return res.status(409).json({ success: false, message: "This payment attempt has already changed. Refresh your orders and try again." });
+        order = claimedOrder;
+        await client.checkout.sessions.expire(current.id);
+      } else if (current.status !== "expired") {
+        return res.status(409).json({ success: false, message: "The current payment is still processing. Please wait for Stripe to confirm it." });
+      }
+      if (current.status === "expired") await releaseStock(order);
+      else {
+        const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
+        const origin = process.env.FRONTEND_URL || "http://localhost:5173";
+        replacement = await client.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: [paymentMethod],
+          line_items: order.items.map((item) => ({
+            price_data: {
+              currency: "thb",
+              unit_amount: Math.round(item.price * 100),
+              product_data: {
+                name: `${item.name} (${item.size})${item.badgePrice ? ` — ${item.sleeveBadge}` : ""}`,
+                description: [item.customName && `Name: ${item.customName}`, item.customNumber !== null && `Number: ${item.customNumber}`, item.sleeveBadge !== "none" && `Badge: ${item.sleeveBadge}`].filter(Boolean).join("; ") || undefined,
+              },
+            },
+            quantity: item.quantity,
+          })),
+          client_reference_id: order.id,
+          metadata: { orderId: order.id },
+          success_url: `${origin}/order-confirmation?orderId=${order.id}`,
+          cancel_url: `${origin}/order-confirmation?orderId=${order.id}&cancelled=1`,
+          expires_at: expiresAt,
+        }, { idempotencyKey: `order-${order.id}-retry-${current.id}-${paymentMethod}` });
+        order.payment.method = paymentMethod === "card" ? "Credit Card" : "PromptPay";
+        order.payment.status = "awaiting_payment";
+        order.payment.stripeSessionId = replacement.id;
+        order.payment.reservationState = "held";
+        order.payment.reservationExpiresAt = new Date(expiresAt * 1000);
+        await order.save();
+        return res.status(201).json({ success: true, url: replacement.url, orderId: order.id });
+      }
+    }
+
+    // Failed or expired sessions restore the cart; start a fresh order attempt from that server-side cart.
+    return createCheckoutSessionWithClient({ ...req, body: { shippingAddress: order.shippingAddress, paymentMethod } }, res, client);
+  } catch (error) {
+    if (replacement?.id) await client.checkout.sessions.expire(replacement.id).catch(() => {});
+    if (order?.payment?.reservationState === "restarting") {
+      const previous = await client.checkout.sessions.retrieve(previousSessionId).catch(() => null);
+      order.payment.reservationState = "held";
+      await order.save().catch(() => {});
+      if (previous?.payment_status === "paid") await markOrderPaid(order, previous).catch(() => {});
+      else if (previous?.status === "expired") await releaseStock(order).catch(() => {});
+    }
+    console.error("Stripe checkout retry failed:", error);
+    return res.status(500).json({ success: false, message: "Could not restart payment" });
   }
 };

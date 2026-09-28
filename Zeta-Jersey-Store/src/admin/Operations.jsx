@@ -54,7 +54,7 @@ export function Orders({ store, money }) {
         <table className="table">
           <thead>
             <tr>
-              {["Order", "Customer", "Date", "Total", "Status", "Actions"].map(
+              {["Order", "Customer", "Date", "Total", "Order Status", "Payment Status", "Actions"].map(
                 (h) => (
                   <th key={h}>{h}</th>
                 ),
@@ -70,6 +70,9 @@ export function Orders({ store, money }) {
                 <td className="font-medium">{money(o.total)}</td>
                 <td>
                   <Badge>{o.status}</Badge>
+                </td>
+                <td>
+                  <Badge>{o.paymentStatus}</Badge>
                 </td>
                 <td>
                   <button
@@ -101,6 +104,11 @@ export function Orders({ store, money }) {
               <p className="text-xs text-base-content/60">Phone: {viewing.phone}</p>
             )}
             <p className="text-xs text-base-content/50">Date: {viewing.date}</p>
+            <div className="mt-3 grid gap-2 rounded-xl bg-base-200/50 p-3 text-sm sm:grid-cols-2">
+              <p><span className="text-base-content/60">Payment status:</span> <Badge>{viewing.paymentStatus}</Badge></p>
+              <p><span className="text-base-content/60">Payment method:</span> {viewing.paymentMethod}</p>
+              {viewing.paidAt && <p className="sm:col-span-2"><span className="text-base-content/60">Paid at:</span> {new Date(viewing.paidAt).toLocaleString()}</p>}
+            </div>
           </div>
 
           {viewing.items && viewing.items.length > 0 && (
