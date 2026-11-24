@@ -79,9 +79,11 @@ const ProductCard = ({ product }) => {
         <div className="badge badge-outline min-h-8 rounded-xl border-0 bg-zeta-main-lighter font-medium text-zeta-main">
           {product.team || product.category || product.catagory}
         </div>
-        <p className="!line-clamp-3 h-[4.5rem] overflow-hidden">
-          {product.description}
-        </p>
+        <div className="min-h-[3.75rem]">
+          <p className="line-clamp-3 flex-none text-sm leading-5">
+            {product.description}
+          </p>
+        </div>
         <div className="mt-auto flex flex-col gap-5">
           <div>
             <div className="flex justify-between text-zeta-muted">
