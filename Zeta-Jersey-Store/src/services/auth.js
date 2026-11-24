@@ -32,8 +32,16 @@ export const authService = {
   resendVerification: ({ email }, o) =>
     api.post(`${AUTH_PATH}/verify-email/resend`, { email }, o),
 
-  changePassword: ({ email, oldPassword, newPassword }, o) =>
-    api.post(`${AUTH_PATH}/password/change`, { email, oldPassword, newPassword }, o),
+  changePassword: ({ oldPassword, newPassword, confirmPassword }, o) =>
+    api.patch(
+      `${AUTH_PATH}/change-password`,
+      {
+        oldPassword,
+        newPassword,
+        confirmPassword: confirmPassword ?? newPassword,
+      },
+      o,
+    ),
 
   async logout() {
     try {
