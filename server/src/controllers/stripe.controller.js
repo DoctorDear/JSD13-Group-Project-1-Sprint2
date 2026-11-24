@@ -3,16 +3,17 @@ import Stripe from "stripe";
 import Order from "../models/Order.model.js";
 import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
-import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
-import { pricePersonalization } from "../lib/personalization.js";
 import { validateShippingAddress } from "../lib/shippingAddressValidation.js";
-
-const normalizedName = (value) => typeof value === "string" ? value.toUpperCase() : "";
-const normalizedNumber = (value) => value === undefined || value === null ? null : String(value);
-const samePersonalization = (left, right) =>
-  normalizedName(left.customName) === normalizedName(right.customName) &&
-  normalizedNumber(left.customNumber) === normalizedNumber(right.customNumber) &&
-  (left.sleeveBadge || "none") === (right.sleeveBadge || "none");
+import {
+  normalizePersonalizationName,
+  normalizePersonalizationNumber,
+  normalizeSleeveBadge,
+  samePersonalization,
+} from "../lib/personalization.js";
+import {
+  reserveAndPriceItems,
+  rollbackReservedStock,
+} from "../services/checkoutReservation.js";
 
 const stripe = () => {
   if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) throw new Error("Stripe test secret key is not configured");
@@ -35,8 +36,8 @@ export function validateStripePaymentMethod(paymentMethod) {
 export function buildStripeLineItems(items) {
   return items.map((item) => {
     const customName = item.customName || "";
-    const customNumber = normalizedNumber(item.customNumber);
-    const sleeveBadge = item.sleeveBadge || "none";
+    const customNumber = normalizePersonalizationNumber(item.customNumber);
+    const sleeveBadge = normalizeSleeveBadge(item.sleeveBadge);
     const namePrice = item.namePrice ?? 0;
     const numberPrice = item.numberPrice ?? 0;
     const badgePrice = item.badgePrice ?? 0;
@@ -119,16 +120,16 @@ async function restoreCart(order) {
     if (existing) {
       if (order.payment?.cartCleared) existing.quantity += item.quantity;
       Object.assign(existing, {
-        customName: normalizedName(item.customName),
-        customNumber: normalizedNumber(item.customNumber),
-        sleeveBadge: item.sleeveBadge || "none",
+        customName: normalizePersonalizationName(item.customName),
+        customNumber: normalizePersonalizationNumber(item.customNumber),
+        sleeveBadge: normalizeSleeveBadge(item.sleeveBadge),
         namePrice: item.namePrice ?? 0,
         numberPrice: item.numberPrice ?? 0,
         badgePrice: item.badgePrice ?? 0,
         price: item.price,
       });
     } else {
-      user.cart.push({ productId: item.productId, size: item.size, customName: normalizedName(item.customName), customNumber: normalizedNumber(item.customNumber), sleeveBadge: item.sleeveBadge || "none", namePrice: item.namePrice ?? 0, numberPrice: item.numberPrice ?? 0, badgePrice: item.badgePrice ?? 0, quantity: item.quantity, price: item.price });
+      user.cart.push({ productId: item.productId, size: item.size, customName: normalizePersonalizationName(item.customName), customNumber: normalizePersonalizationNumber(item.customNumber), sleeveBadge: normalizeSleeveBadge(item.sleeveBadge), namePrice: item.namePrice ?? 0, numberPrice: item.numberPrice ?? 0, badgePrice: item.badgePrice ?? 0, quantity: item.quantity, price: item.price });
     }
   }
   await user.save();
@@ -172,7 +173,7 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
   let order;
   let session;
   let client;
-  const reserved = [];
+  let reserved = [];
   try {
     const { shippingAddress, paymentMethod } = req.body;
     const paymentMethodError = validateStripePaymentMethod(paymentMethod);
@@ -207,53 +208,16 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
     if (previousCheckoutExpired) return res.status(409).json({ success: false, message: "A previous checkout expired. Its items are back in your cart; review the cart before placing a new order." });
     const sourceItems = sourceOrder ? sourceOrder.items : user?.cart;
     if (!sourceItems?.length) return res.status(400).json({ success: false, message: "There are no items available for checkout." });
-    const items = [];
-    let totalAmount = 0;
-    for (const cartItem of sourceItems) {
-      const product = await Product.findById(cartItem.productId);
-      const quantity = Number(cartItem.quantity);
-      const unitPrice = sourceOrder ? Number(cartItem.price) : Number(product?.price);
-      if (!product || product.isActive === false || !Number.isInteger(quantity) || quantity < 1 || !Number.isSafeInteger(Math.round(unitPrice * 100)) || unitPrice <= 0 || product.quantity < quantity) {
-        return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
-      }
-      items.push({ productId: product._id, cartItemId: sourceOrder ? undefined : cartItem._id, sku: product.sku, name: product.name, size: cartItem.size || product.size, price: unitPrice, quantity, customName: cartItem.customName || "", customNumber: normalizedNumber(cartItem.customNumber), sleeveBadge: cartItem.sleeveBadge || "none", namePrice: cartItem.namePrice ?? 0, numberPrice: cartItem.numberPrice ?? 0, badgePrice: cartItem.badgePrice ?? 0 });
+    const reservation = await reserveAndPriceItems(sourceItems, {
+      mode: "stripe",
+      preservePricing: Boolean(sourceOrder),
+      includeCartItemId: !sourceOrder,
+    });
+    if (!reservation.ok) {
+      return res.status(reservation.status).json({ success: false, message: reservation.message });
     }
-    const rollbackReserved = async () => {
-      for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
-      reserved.length = 0;
-    };
-
-    // Price each item from the active template immediately before reserving its stock.
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product || product.isActive === false || product.quantity < item.quantity) {
-        await rollbackReserved();
-        return res.status(400).json({ success: false, message: "An item is unavailable or invalid" });
-      }
-      if (!sourceOrder) {
-        const template = await resolvePersonalizationTemplate(product);
-        const hasPrintChoices = Boolean(item.customName || item.customNumber !== null);
-        if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) {
-          await rollbackReserved();
-          return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
-        }
-        const priced = template
-          ? pricePersonalization({ product, template, printEnabled: hasPrintChoices, customName: item.customName, customNumber: item.customNumber, sleeveBadge: item.sleeveBadge })
-          : { customName: "", customNumber: null, namePrice: 0, numberPrice: 0, sleeveBadge: "none", badgePrice: 0, unitPrice: product.price };
-        if (!priced) {
-          await rollbackReserved();
-          return res.status(400).json({ success: false, message: "An item has invalid personalization choices" });
-        }
-        Object.assign(item, { price: priced.unitPrice, customName: priced.customName, customNumber: priced.customNumber, sleeveBadge: priced.sleeveBadge, namePrice: priced.namePrice, numberPrice: priced.numberPrice, badgePrice: priced.badgePrice });
-      }
-      const productAfterReservation = await Product.findOneAndUpdate({ _id: item.productId, quantity: { $gte: item.quantity } }, { $inc: { quantity: -item.quantity } });
-      if (!productAfterReservation) {
-        await rollbackReserved();
-        return res.status(409).json({ success: false, message: `Insufficient stock for ${item.name}` });
-      }
-      reserved.push(item);
-      totalAmount += item.price * item.quantity;
-    }
+    reserved = reservation.reserved;
+    const { items, totalAmount } = reservation;
     const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
     if (sourceOrder) {
       order = await Order.findOneAndUpdate(
@@ -262,7 +226,7 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
         { new: true },
       );
       if (!order) {
-        await rollbackReserved();
+        await rollbackReservedStock(reserved);
         return res.status(409).json({ success: false, message: "This order has already changed. Refresh your orders before retrying." });
       }
     } else {
@@ -306,10 +270,10 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
         { $set: { "payment.reservationState": "released", "payment.retryStartedAt": null } },
       ) : null;
       if (!order || reset.modifiedCount === 1) {
-        for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+        await rollbackReservedStock(reserved);
       }
     } else if (order) await releaseStock(order);
-    else for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+    else await rollbackReservedStock(reserved);
     console.error("Stripe checkout creation failed:", error);
     return res.status(500).json({ success: false, message: "Could not start payment" });
   }

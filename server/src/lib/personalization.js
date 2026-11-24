@@ -4,6 +4,34 @@ const NAME_PRICE_PER_LETTER = 80;
 const NUMBER_PRICE_ONE_DIGIT = 350;
 const NUMBER_PRICE_TWO_DIGITS = 700;
 
+export const normalizePersonalizationName = (value) =>
+  typeof value === "string" ? value.toUpperCase() : "";
+
+export const normalizePersonalizationNumber = (value) =>
+  value === undefined || value === null ? null : String(value);
+
+export const normalizeSleeveBadge = (value) => value || "none";
+
+export const samePersonalization = (left = {}, right = {}) =>
+  normalizePersonalizationName(left.customName) === normalizePersonalizationName(right.customName) &&
+  normalizePersonalizationNumber(left.customNumber) === normalizePersonalizationNumber(right.customNumber) &&
+  normalizeSleeveBadge(left.sleeveBadge) === normalizeSleeveBadge(right.sleeveBadge);
+
+/**
+ * Validate and normalize cart customName/customNumber pairs (both present or both empty).
+ */
+export function normalizeCartPersonalization({ customName, customNumber } = {}) {
+  const name = customName === undefined || customName === null ? "" : customName;
+  if (typeof name !== "string") return null;
+
+  let number = customNumber;
+  if (number === undefined || number === null || number === "") number = null;
+  if (number !== null && (typeof number !== "string" || !/^\d{1,2}$/.test(number))) return null;
+  if (Boolean(name) !== Boolean(number)) return null;
+
+  return { customName: name, customNumber: number };
+}
+
 export function pricePersonalization({
   product,
   template,
