@@ -101,14 +101,53 @@ export const getProductById = async (req, res, next) => {
   }
 };
 
+const ALLOWED_PRODUCT_FIELDS = [
+  "sku",
+  "groupId",
+  "personalizationEnabled",
+  "personalizationGroupId",
+  "edition",
+  "brand",
+  "name",
+  "description",
+  "price",
+  "originalPrice",
+  "cost",
+  "quantity",
+  "date",
+  "tag",
+  "category",
+  "fit",
+  "kitType",
+  "activity",
+  "images",
+  "backImageUrl",
+  "sizes",
+  "isActive",
+];
+
+/**
+ * Filter request body to whitelisted Product schema fields to prevent mass assignment.
+ */
+export function pickProductPayload(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+  const payload = {};
+  for (const field of ALLOWED_PRODUCT_FIELDS) {
+    if (body[field] !== undefined) {
+      payload[field] = body[field];
+    }
+  }
+  return Object.keys(payload).length > 0 ? payload : null;
+}
+
 // create new product
 export const createProduct = async (req, res, next) => {
   try {
-    const product = req.body;
-    if (!product) {
-      res.status(400).json({ error: "Can't create product" });
+    const payload = pickProductPayload(req.body);
+    if (!payload) {
+      return res.status(400).json({ error: "Can't create product" });
     }
-    const newProduct = await Product.create(product);
+    const newProduct = await Product.create(payload);
     return res
       .status(201)
       .json({ message: "create new product completed ", data: newProduct });
@@ -120,20 +159,20 @@ export const createProduct = async (req, res, next) => {
 // update product
 export const updateProduct = async (req, res, next) => {
   try {
-    const product = req.body;
+    const payload = pickProductPayload(req.body);
 
-    if (!product) {
+    if (!payload) {
       return res.status(400).json({ error: "Can't update product" });
     }
 
-    const updateProduct = await Product.findByIdAndUpdate(
+    const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      product,
+      payload,
       { returnDocument: "after", runValidators: true },
     );
 
-    if (!updateProduct) {
-      return res.status(400).json({ error: "Product not found" });
+    if (!updatedProduct) {
+      return res.status(404).json({ error: "Product not found" });
     }
 
     return res.status(200).json({ message: "update product completed " });
