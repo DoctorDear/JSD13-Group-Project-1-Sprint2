@@ -195,7 +195,7 @@ const ProductDetail = () => {
                     {product.brand}
                   </p>
                 )}
-                <h1 className="mt-1 text-3xl font-bold leading-tight text-zeta-main sm:text-xl lg:text-3xl">
+                <h1 className="mt-1 text-2xl font-bold leading-tight text-zeta-main sm:text-3xl">
                   {product?.name}
                 </h1>
               </div>
@@ -233,14 +233,18 @@ const ProductDetail = () => {
                     {variants.map((item) => (
                       <button
                         key={item._id}
-                        onClick={() =>
+                        onClick={() => {
+                          setSelectedImg(null);
+                          if (item.sizes?.length && !item.sizes.includes(selectedSize)) {
+                            setSelectedSize(item.sizes[0]);
+                          }
                           setProduct((prev) => ({
                             ...prev,
                             ...item,
                             personalizationTemplate:
                               prev?.personalizationTemplate,
-                          }))
-                        }
+                          }));
+                        }}
                         className={`rounded-xl border p-3 text-left font-bold transition-all sm:p-4 ${
                           product._id === item._id
                             ? "border-zeta-main bg-zeta-main/10 ring-2 ring-zeta-main"
