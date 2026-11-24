@@ -7,6 +7,7 @@ import {
   deleteProduct,
 } from "../../controllers/product.controller.js";
 import { verifyToken, requireAdmin } from "../../middlewares/auth.middleware.js";
+import { validateObjectId } from "../../middlewares/validateObjectId.middleware.js";
 export const router = Router();
 
 // Admin inventory can include products hidden from the public catalog.
@@ -19,13 +20,13 @@ router.get("/admin", verifyToken, requireAdmin, (req, res, next) => {
 router.get("/", getProducts);
 
 // Read product by id
-router.get("/:id", getProductById);
+router.get("/:id", validateObjectId("id", "product ID"), getProductById);
 
 // Create new product
 router.post("/", verifyToken, requireAdmin, createProduct);
 
 // update new product
-router.patch("/:id", verifyToken, requireAdmin, updateProduct);
+router.patch("/:id", verifyToken, requireAdmin, validateObjectId("id", "product ID"), updateProduct);
 
 // Delete product
-router.delete("/:id", verifyToken, requireAdmin, deleteProduct);
+router.delete("/:id", verifyToken, requireAdmin, validateObjectId("id", "product ID"), deleteProduct);
