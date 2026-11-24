@@ -1,13 +1,14 @@
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../../components/layout/Navbar";
 import PromoBar from "../../components/layout/PromoBar";
 import ProductCard from "../../components/catalog/ProductCard";
-import LeagueCard from "../../components/catalog/LeagueCard";
-import Collections from "../../components/catalog/Collections";
-import Footer from "../../components/layout/Footer";
 import HeroSection from "../../components/catalog/HeroSection";
 import { EUROPEAN_LEAGUES, THAI_LEAGUES, filterProductsByLeagues } from "../../lib/catalog/landingCatalog";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+
+const LeagueCard = lazy(() => import("../../components/catalog/LeagueCard"));
+const Collections = lazy(() => import("../../components/catalog/Collections"));
+const Footer = lazy(() => import("../../components/layout/Footer"));
 import { API_BASE_URL } from "../../lib/api/api.js";
 import {
   COLD_START_SLOW_NOTICE_DELAY_MS,
@@ -341,40 +342,46 @@ const LandingPage = () => {
     <div>
       <Navbar page="home" />
 
-      <div className="-mt-24">
-        <HeroSection className="relative w-full min-h-[500px]" />
-      </div>
+      <main>
+        <div className="-mt-24">
+          <HeroSection className="relative w-full min-h-[500px]" />
+        </div>
 
-      <div>
-        <PromoBar />
-      </div>
+        <div>
+          <PromoBar />
+        </div>
 
-      {productSections.map(({ id, title }) => (
+        {productSections.map(({ id, title }) => (
+          <ProductSection
+            key={id}
+            id={id}
+            title={title}
+            products={id === "new-arrivals" ? europeanArrivals : productsBySection[id]}
+            error={error}
+            loading={loading}
+            loadingMessage={loadingMessage}
+            onRetry={handleRetry}
+          />
+        ))}
+
+        <Suspense fallback={null}>
+          <LeagueCard />
+          <Collections />
+        </Suspense>
         <ProductSection
-          key={id}
-          id={id}
-          title={title}
-          products={id === "new-arrivals" ? europeanArrivals : productsBySection[id]}
+          id="thai-league-arrivals"
+          title="Thai League"
+          products={thaiLeagueArrivals}
           error={error}
           loading={loading}
           loadingMessage={loadingMessage}
           onRetry={handleRetry}
         />
-      ))}
+      </main>
 
-      <LeagueCard />
-      <Collections />
-      <ProductSection
-        id="thai-league-arrivals"
-        title="Thai League"
-        products={thaiLeagueArrivals}
-        error={error}
-        loading={loading}
-        loadingMessage={loadingMessage}
-        onRetry={handleRetry}
-      />
-
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </div>
   );
 };
