@@ -88,7 +88,7 @@ export const getProductById = async (req, res, next) => {
     const productById = await Product.findById(req.params.id);
 
     if (!productById || productById.isActive === false) {
-      return res.status(404).json({ error: "Product not found" });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
     let variants = [];
     if (productById.groupId) {
@@ -145,7 +145,7 @@ export const createProduct = async (req, res, next) => {
   try {
     const payload = pickProductPayload(req.body);
     if (!payload) {
-      return res.status(400).json({ error: "Can't create product" });
+      return res.status(400).json({ success: false, message: "Can't create product" });
     }
     const newProduct = await Product.create(payload);
     return res
@@ -162,7 +162,7 @@ export const updateProduct = async (req, res, next) => {
     const payload = pickProductPayload(req.body);
 
     if (!payload) {
-      return res.status(400).json({ error: "Can't update product" });
+      return res.status(400).json({ success: false, message: "Can't update product" });
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -172,7 +172,7 @@ export const updateProduct = async (req, res, next) => {
     );
 
     if (!updatedProduct) {
-      return res.status(404).json({ error: "Product not found" });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
     return res.status(200).json({ message: "update product completed " });
@@ -187,7 +187,7 @@ export const deleteProduct = async (req, res, next) => {
     const deleteProduct = await Product.findByIdAndDelete(req.params.id);
 
     if (!deleteProduct) {
-      return res.status(404).json({ error: "Product not found!" });
+      return res.status(404).json({ success: false, message: "Product not found!" });
     }
 
     res.status(200).json({

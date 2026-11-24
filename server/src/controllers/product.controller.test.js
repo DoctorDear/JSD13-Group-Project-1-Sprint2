@@ -66,7 +66,7 @@ test("createProduct returns 400 without calling Product.create when body is empt
       throw err;
     });
     assert.equal(resEmpty.statusCode, 400);
-    assert.deepEqual(resEmpty.body, { error: "Can't create product" });
+    assert.deepEqual(resEmpty.body, { success: false, message: "Can't create product" });
     assert.equal(createCalled, false);
 
     const resDisallowedOnly = makeRes();
@@ -146,7 +146,7 @@ test("updateProduct returns 404 when product is not found and 400 when payload h
     );
     assert.equal(updateCalls, 1);
     assert.equal(resMissing.statusCode, 404);
-    assert.deepEqual(resMissing.body, { error: "Product not found" });
+    assert.deepEqual(resMissing.body, { success: false, message: "Product not found" });
   } finally {
     Product.findByIdAndUpdate = originalFindByIdAndUpdate;
   }
