@@ -73,7 +73,10 @@ test("validateUploadOrigin allows missing or allowed origins and rejects unknown
     });
     assert.equal(nextCalled, false);
     assert.equal(blockedRes.statusCode, 403);
-    assert.deepEqual(blockedRes.body, { message: "This website is not allowed to upload images." });
+    assert.deepEqual(blockedRes.body, {
+      success: false,
+      message: "This website is not allowed to upload images.",
+    });
   } finally {
     if (prevFrontend === undefined) delete process.env.FRONTEND_URL;
     else process.env.FRONTEND_URL = prevFrontend;
