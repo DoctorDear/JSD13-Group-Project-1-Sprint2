@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
-import CheckOutItemCard from '../../components/checkout/CheckOutItemCard';
-import ThaiLocationFields from '../../components/checkout/ThaiLocationFields.jsx';
+import CheckoutDeliverySection from '../../components/checkout/CheckoutDeliverySection.jsx';
+import CheckoutOrderSummary from '../../components/checkout/CheckoutOrderSummary.jsx';
+import CheckoutPaymentSection from '../../components/checkout/CheckoutPaymentSection.jsx';
 import { api } from '../../lib/api/api';
 import { orderService } from '../../services/order.js';
 import { validateCheckoutForm } from '../../lib/forms/checkoutValidation.js';
@@ -273,50 +274,18 @@ const CheckoutPage = () => {
 
         {isSummaryOpen && (
           <div className="mt-4 space-y-4 pt-2 border-t border-gray-200">
-            <div className="space-y-3">
-              {checkoutItems.length > 0 ? (
-                checkoutItems.map((item, index) => (
-                  <CheckOutItemCard
-                    key={item._id || item.id || index}
-                    item={item}
-                  />
-                ))
-              ) : (
-                <p className="text-xs text-gray-500 text-center py-2">No items in cart</p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value)}
-                placeholder="Discount code or gift card"
-                className="w-full h-11 px-4 rounded-xl border border-gray-300 text-xs focus:outline-none bg-white text-gray-900"
-              />
-              <button className="h-11 px-6 bg-[#251b74] hover:bg-indigo-900 text-white text-xs font-semibold rounded-lg transition-colors shrink-0">
-                Apply
-              </button>
-            </div>
-
-            <div className="space-y-2 text-sm pt-2">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Discount</span>
-                <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Delivery Fee</span>
-                <span className="font-bold text-gray-900">฿{shippingFee.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
-                <span>Total</span>
-                <span>฿{total.toLocaleString()}</span>
-              </div>
-            </div>
+            <CheckoutOrderSummary
+              items={checkoutItems}
+              subtotal={subtotal}
+              discount={discount}
+              shippingFee={shippingFee}
+              total={total}
+              discountCode={discountCode}
+              onDiscountCodeChange={setDiscountCode}
+              listClassName="space-y-3"
+              emptyClassName="text-xs text-gray-500 text-center py-2"
+              totalsClassName="space-y-2 text-sm pt-2"
+            />
           </div>
         )}
       </div>
@@ -357,116 +326,24 @@ const CheckoutPage = () => {
             </div>
 
             {/* 2. Delivery Section */}
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Delivery</h2>
-              <div className="space-y-3">
-                {savedAddresses.length > 0 && (
-                  <div>
-                    <label htmlFor="saved-address" className="mb-1 block text-sm font-medium text-gray-900">Shipping address</label>
-                    <select id="saved-address" value={selectedAddressId} onChange={handleAddressSelection} className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900">
-                      {savedAddresses.map((address) => (
-                        <option key={address._id} value={address._id}>
-                          {address.isDefault ? 'Default: ' : ''}{address.recipientName} — {address.addressLine}, {address.province} {address.postalCode}
-                        </option>
-                      ))}
-                      <option value="new">Use a new address</option>
-                    </select>
-                  </div>
-                )}
-                <div className="relative">
-                  <label className="absolute text-[10px] uppercase font-semibold text-gray-400 left-4 top-2 pointer-events-none">
-                    Country/Region
-                  </label>
-                  <select
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className="w-full h-14 pt-4 pb-1 px-4 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-900 appearance-none cursor-pointer"
-                  >
-                    <option value="Thailand">Thailand</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                  <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      placeholder="First name"
-                      maxLength={80}
-                      aria-invalid={Boolean(fieldErrors.firstName)}
-                      className={inputClass('firstName')}
-                    />
-                    {fieldErrors.firstName && <p className="mt-1 text-xs text-red-600" role="alert">{fieldErrors.firstName}</p>}
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      placeholder="Last name"
-                      maxLength={80}
-                      aria-invalid={Boolean(fieldErrors.lastName)}
-                      className={inputClass('lastName')}
-                    />
-                    {fieldErrors.lastName && <p className="mt-1 text-xs text-red-600" role="alert">{fieldErrors.lastName}</p>}
-                  </div>
-                </div>
-
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="Address"
-                  maxLength={250}
-                  aria-invalid={Boolean(fieldErrors.address)}
-                  className={inputClass('address')}
-                />
-                {fieldErrors.address && <p className="-mt-2 text-xs text-red-600" role="alert">{fieldErrors.address}</p>}
-                <input
-                  type="text"
-                  name="apartment"
-                  value={formData.apartment}
-                  onChange={handleChange}
-                  placeholder="Apartment, suite, etc (optional)"
-                  className="w-full h-14 px-4 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900"
-                />
-
-                <ThaiLocationFields
-                  value={deliveryLocation}
-                  onChange={(value) => {
-                    addressTouched.current = true;
-                    setSelectedAddressId('new');
-                    setDeliveryLocation(value);
-                    if (value.province && value.postalCode) setFieldErrors((prev) => ({ ...prev, location: '' }));
-                  }}
-                  error={fieldErrors.location}
-                />
-
-                <input
-                  type="tel"
-                  name="telephone"
-                  value={formData.telephone}
-                  onChange={handleChange}
-                  placeholder="Telephone"
-                  autoComplete="tel"
-                  maxLength={24}
-                  aria-invalid={Boolean(fieldErrors.telephone)}
-                  className={inputClass('telephone')}
-                />
-                {fieldErrors.telephone && <p className="-mt-2 text-xs text-red-600" role="alert">{fieldErrors.telephone}</p>}
-                {selectedAddressId === 'new' && (
-                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                    <input type="checkbox" checked={saveAddress} onChange={(event) => setSaveAddress(event.target.checked)} className="w-4 h-4 rounded text-indigo-900 focus:ring-indigo-900" />
-                    Save this address to my account
-                  </label>
-                )}
-              </div>
-            </div>
+            <CheckoutDeliverySection
+              savedAddresses={savedAddresses}
+              selectedAddressId={selectedAddressId}
+              onSelectAddress={handleAddressSelection}
+              formData={formData}
+              onChange={handleChange}
+              deliveryLocation={deliveryLocation}
+              onLocationChange={(value) => {
+                addressTouched.current = true;
+                setSelectedAddressId('new');
+                setDeliveryLocation(value);
+                if (value.province && value.postalCode) setFieldErrors((prev) => ({ ...prev, location: '' }));
+              }}
+              fieldErrors={fieldErrors}
+              saveAddress={saveAddress}
+              onSaveAddressChange={setSaveAddress}
+              inputClass={inputClass}
+            />
 
             {/* 3. Shipping Method */}
             <div>
@@ -483,64 +360,24 @@ const CheckoutPage = () => {
               </select>
             </div>
 
-            <section aria-labelledby="payment-title">
-              <h2 id="payment-title" className="mb-4 text-xl font-bold text-gray-900">Payment</h2>
-              <p className="mb-3 text-xs text-gray-500">Card and PromptPay open Stripe test checkout. Cash on Delivery is paid on delivery.</p>
-              <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                {[
-                  { id: 'card', label: 'Credit Card', detail: paymentOptions.card ? 'Pay securely with Stripe test checkout' : 'Unavailable until Stripe test keys are configured', badges: 'VISA · MC', disabled: !paymentOptions.card },
-                  { id: 'promptpay', label: 'QR PromptPay', detail: paymentOptions.promptpay ? 'Pay with Stripe test checkout' : 'Unavailable for this Stripe test account', badges: 'PromptPay', disabled: !paymentOptions.promptpay },
-                  { id: 'cod', label: 'Cash on Delivery', detail: retryOrderId ? 'Unavailable when retrying an online payment' : 'Pay when your order is delivered', badges: '', disabled: Boolean(retryOrderId) },
-                ].map((method, index) => (
-                  <label key={method.id} className={`flex items-center justify-between gap-4 p-4 ${method.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${index < 2 ? 'border-b border-gray-100' : ''} ${paymentMethod === method.id ? 'bg-blue-50/40' : ''}`}>
-                    <span className="flex items-center gap-3">
-                      <input type="radio" name="paymentMethod" value={method.id} checked={paymentMethod === method.id} disabled={method.disabled} onChange={() => setPaymentMethod(method.id)} />
-                      <span>
-                        <span className="block text-sm font-medium text-gray-900">{method.label}</span>
-                        <span className="block text-xs text-gray-500">{method.detail}</span>
-                      </span>
-                    </span>
-                    {method.badges && <span className="shrink-0 text-xs font-semibold text-gray-500">{method.badges}</span>}
-                  </label>
-                ))}
-              </div>
-            </section>
+            <CheckoutPaymentSection
+              paymentMethod={paymentMethod}
+              onSelectPaymentMethod={setPaymentMethod}
+              paymentOptions={paymentOptions}
+              retryOrderId={retryOrderId}
+            />
 
             {/* --- 2. Order Summary ตัวเต็มด้านล่างเพจ (สำหรับมือถือ) --- */}
             <div className="lg:hidden space-y-4 pt-6 border-t border-gray-200">
               <h3 className="text-xl font-bold text-gray-900">Order Summary</h3>
-
-              <div className="space-y-4">
-                {checkoutItems.length > 0 ? (
-                  checkoutItems.map((item, index) => (
-                    <CheckOutItemCard
-                      key={item._id || item.id || index}
-                      item={item}
-                    />
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-500">No items in cart</p>
-                )}
-              </div>
-
-              <div className="space-y-3 text-sm pt-2">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal</span>
-                  <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Discount</span>
-                  <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Delivery Fee</span>
-                  <span className="font-bold text-gray-900">฿{shippingFee.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
-                  <span>Total</span>
-                  <span>฿{total.toLocaleString()}</span>
-                </div>
-              </div>
+              <CheckoutOrderSummary
+                items={checkoutItems}
+                subtotal={subtotal}
+                discount={discount}
+                shippingFee={shippingFee}
+                total={total}
+                showDiscountInput={false}
+              />
             </div>
 
             <div className="lg:hidden pt-2">
@@ -563,50 +400,17 @@ const CheckoutPage = () => {
 
             <h3 className="text-xl font-bold text-gray-900">Order Summary</h3>
 
-            <div className="space-y-4">
-              {checkoutItems.length > 0 ? (
-                checkoutItems.map((item, index) => (
-                  <CheckOutItemCard
-                    key={item._id || item.id || index}
-                    item={item}
-                  />
-                ))
-              ) : (
-                <p className="text-xs text-gray-500">No items in cart</p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                type="text"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value)}
-                placeholder="Discount code or gift card"
-                className="w-full h-11 px-4 rounded-xl border border-gray-300 text-xs focus:outline-none bg-white text-gray-900"
-              />
-              <button className="h-11 px-6 bg-[#251b74] hover:bg-indigo-900 text-white text-xs font-semibold rounded-lg transition-colors shrink-0">
-                Apply
-              </button>
-            </div>
-
-            <div className="pt-4 space-y-3 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span className="font-bold text-gray-900">฿{subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Discount</span>
-                <span className="font-bold text-red-500">-฿{discount.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Delivery Fee</span>
-                <span className="font-bold text-gray-900">฿{shippingFee.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
-                <span>Total</span>
-                <span className="text-gray-900">฿{total.toLocaleString()}</span>
-              </div>
-            </div>
+            <CheckoutOrderSummary
+              items={checkoutItems}
+              subtotal={subtotal}
+              discount={discount}
+              shippingFee={shippingFee}
+              total={total}
+              discountCode={discountCode}
+              onDiscountCodeChange={setDiscountCode}
+              discountWrapperClassName="flex items-center gap-2 pt-2"
+              totalsClassName="pt-4 space-y-3 text-sm"
+            />
 
             <div className="pt-2">
               {errorMessage && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{errorMessage}</p>}
