@@ -2,21 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import logo from "../../assets/logo/Zeta_Green_and_Jersey_Logo.png";
 import { Heart, ShoppingCart, ArrowRight, Menu, Search, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { cartService } from "../../services/cart.js";
 import { useAuth } from "../../contexts/authContext.js";
+import { useCart } from "../../contexts/CartContext.jsx";
 import UserMenu from "../navigation/UserMenu.jsx";
 import GuestUserMenu from "../navigation/GuestUserMenu.jsx";
 import CartHoverMenu from "../navigation/CartHoverMenu.jsx";
 import ProductSearch from "../navigation/ProductSearch.jsx";
 import { getDesktopNavigationItems } from "../../lib/navigation/navigation.js";
 
-const Navbar = ({ page = "home", cartCount = 0 }) => {
+const Navbar = ({ page = "home", cartCount }) => {
   const isHome = page === "home";
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, booting } = useAuth();
-  const [totalItems, setTotalItems] = useState(cartCount);
-  const [cartItems, setCartItems] = useState([]);
+  const { isAuthenticated } = useAuth();
+  const { cartItems, totalItems: contextTotalItems } = useCart();
+  const totalItems = typeof cartCount === "number" ? cartCount : contextTotalItems;
   const [cartHoverOpen, setCartHoverOpen] = useState(false);
   const cartTimeoutRef = useRef(null);
   const navRef = useRef(null);
@@ -64,31 +64,6 @@ const Navbar = ({ page = "home", cartCount = 0 }) => {
       if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
     };
   }, []);
-
-  // ซิงค์จำนวนสินค้าและรายการสินค้าจาก cartService
-  useEffect(() => {
-    if (booting) return;
-    const updateCartData = async () => {
-      try {
-        const { cart = [] } = await cartService.get({ guest: !isAuthenticated });
-        setCartItems(cart);
-        setTotalItems(cart.reduce((sum, item) => sum + (item.quantity || 1), 0));
-      } catch {
-        setCartItems([]);
-        setTotalItems(0);
-      }
-    };
-
-    updateCartData();
-
-    // ฟัง event เผื่อมีการอัปเดตตะกร้าจากแท็บอื่นหรือหน้าอื่น
-    window.addEventListener("storage", updateCartData);
-    window.addEventListener("cart-updated", updateCartData);
-    return () => {
-      window.removeEventListener("storage", updateCartData);
-      window.removeEventListener("cart-updated", updateCartData);
-    };
-  }, [cartCount, isAuthenticated, booting]);
 
   const handleScrollToSection = (sectionId) => (event) => {
     if (isHome) {

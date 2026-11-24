@@ -81,6 +81,10 @@ const Footer = () => {
                   <img
                     src={visa}
                     alt="visa-icon"
+                    width="44"
+                    height="24"
+                    loading="lazy"
+                    decoding="async"
                     className="h-6 w-auto object-contain"
                   />
                 </div>
@@ -88,6 +92,10 @@ const Footer = () => {
                   <img
                     src={discovercard}
                     alt="discovercard-icon"
+                    width="44"
+                    height="24"
+                    loading="lazy"
+                    decoding="async"
                     className="h-6 w-auto object-contain"
                   />
                 </div>
@@ -95,6 +103,10 @@ const Footer = () => {
                   <img
                     src={mastercard}
                     alt="mastercard-icon"
+                    width="44"
+                    height="28"
+                    loading="lazy"
+                    decoding="async"
                     className="h-7 w-auto object-contain"
                   />
                 </div>
@@ -102,6 +114,10 @@ const Footer = () => {
                   <img
                     src={jcb}
                     alt="jcb-icon"
+                    width="37"
+                    height="28"
+                    loading="lazy"
+                    decoding="async"
                     className="h-7 w-auto object-contain"
                   />
                 </div>
