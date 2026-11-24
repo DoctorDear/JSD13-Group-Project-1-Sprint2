@@ -7,7 +7,7 @@ import Footer from "../../components/layout/Footer";
 import HeroSection from "../../components/catalog/HeroSection";
 import { EUROPEAN_LEAGUES, THAI_LEAGUES, filterProductsByLeagues } from "../../lib/catalog/landingCatalog";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE_URL } from "../../lib/api/api.js";
 import {
   COLD_START_SLOW_NOTICE_DELAY_MS,
@@ -76,13 +76,23 @@ const ProductSection = ({
       });
     };
 
+    let rafId = null;
+    const scheduleUpdate = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        updateScrollState();
+      });
+    };
+
     updateScrollState();
-    productsElement.addEventListener("scroll", updateScrollState);
-    window.addEventListener("resize", updateScrollState);
+    productsElement.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate, { passive: true });
 
     return () => {
-      productsElement.removeEventListener("scroll", updateScrollState);
-      window.removeEventListener("resize", updateScrollState);
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+      productsElement.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
     };
   }, [products]);
 
@@ -309,12 +319,30 @@ const LandingPage = () => {
     }
   }, []);
 
+  const europeanArrivals = useMemo(
+    () =>
+      filterProductsByLeagues(
+        productsBySection["new-arrivals"] || [],
+        EUROPEAN_LEAGUES,
+      ).slice(0, 8),
+    [productsBySection],
+  );
+
+  const thaiLeagueArrivals = useMemo(
+    () =>
+      filterProductsByLeagues(
+        productsBySection["new-arrivals"] || [],
+        THAI_LEAGUES,
+      ).slice(0, 8),
+    [productsBySection],
+  );
+
   return (
     <div>
       <Navbar page="home" />
 
       <div className="-mt-24">
-        <HeroSection className="realtive w-full min-h-[500px]" />
+        <HeroSection className="relative w-full min-h-[500px]" />
       </div>
 
       <div>
@@ -326,9 +354,7 @@ const LandingPage = () => {
           key={id}
           id={id}
           title={title}
-          products={id === "new-arrivals"
-            ? filterProductsByLeagues(productsBySection[id] || [], EUROPEAN_LEAGUES).slice(0, 8)
-            : productsBySection[id]}
+          products={id === "new-arrivals" ? europeanArrivals : productsBySection[id]}
           error={error}
           loading={loading}
           loadingMessage={loadingMessage}
@@ -341,7 +367,7 @@ const LandingPage = () => {
       <ProductSection
         id="thai-league-arrivals"
         title="Thai League"
-        products={filterProductsByLeagues(productsBySection["new-arrivals"] || [], THAI_LEAGUES).slice(0, 8)}
+        products={thaiLeagueArrivals}
         error={error}
         loading={loading}
         loadingMessage={loadingMessage}

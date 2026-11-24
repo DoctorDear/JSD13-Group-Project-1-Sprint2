@@ -94,13 +94,13 @@ export default function App() {
 
 
 
-      {import.meta.env.DEV && <Route path="/profilebody" element={<Suspense fallback={loadingPage}><ProfileBody /></Suspense>} />}
+      {import.meta.env.DEV && <Route path="/profilebody" element={<ProfileBody />} />}
 
       {/* Authenticated pages */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/checkout" element={<Suspense fallback={loadingPage}><CheckoutPage /></Suspense>} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/products/:id/review" element={<SubmitReviewPage />} />
-        <Route path="/profile" element={<Suspense fallback={loadingPage}><ProfileBody /></Suspense>} />
+        <Route path="/profile" element={<ProfileBody />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
 
