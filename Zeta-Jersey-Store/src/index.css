@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark, cupcake;
+  themes: light --default;
 }
 
 @theme {
@@ -13,7 +13,7 @@
   --color-zeta-sub-lighter: #FDFF8D;
   --color-zeta-sub-dark: #5E6B00;
 
-  --color-zeta-muted: #9ca3af; 
+  --color-zeta-muted: #596273;
 }
 
 @keyframes cart-feedback-countdown {
