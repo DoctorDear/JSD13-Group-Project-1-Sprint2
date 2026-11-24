@@ -2,6 +2,19 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 
+/**
+ * Build cookie flags for the auth access token based on runtime environment.
+ */
+export function getAuthCookieOptions(env = process.env) {
+  const isProduction = env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+}
+
 export const register = async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -92,17 +105,13 @@ export const login = async (req, res, next) => {
       { expiresIn: "7d" },
     );
 
-    // 5. ส่ง Cookie ไปด้วย (สไตล์ Week 10)
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 วัน
-    });
+    // 5. ส่ง Cookie ไปด้วย
+    res.cookie("accessToken", token, getAuthCookieOptions());
 
-    // 6. ส่ง Response กลับ (ส่ง token ไปใน JSON เผื่อหน้าบ้านอยากเก็บใน localStorage ด้วย)
+    // 6. ส่ง Response กลับ (ไม่ส่ง raw token ซ้ำใน JSON body เพราะ verifyToken อ่านจาก HttpOnly Cookie)
     return res.status(200).json({
       success: true,
       message: "Login successful!",
-      token,
       user: {
         _id: user._id,
         firstName: user.firstName,
@@ -118,28 +127,48 @@ export const login = async (req, res, next) => {
 
 export const changePassword = async (req, res, next) => {
   try {
-    const { newPassword, confirmPassword } = req.body;
+    const { oldPassword, currentPassword, newPassword, confirmPassword } =
+      req.body || {};
+    const existingPassword = oldPassword ?? currentPassword;
 
-    // 1. ตรวจสอบว่ากรอกครบไหม
-    if (!newPassword || !confirmPassword) {
+    if (!existingPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: "Please provide both new password and confirm password",
+        message: "Please provide both current password and new password",
       });
     }
 
-    // 2. ตรวจสอบว่ารหัสผ่านใหม่ตรงกันไหม
-    if (newPassword !== confirmPassword) {
+    if (confirmPassword !== undefined && newPassword !== confirmPassword) {
       return res.status(400).json({
         success: false,
         message: "New password and confirm password do not match",
       });
     }
 
-    // 3. แฮชรหัสผ่านใหม่ด้วย bcrypt
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    if (newPassword === existingPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from current password",
+      });
+    }
 
-    // 4. อัปเดตลง MongoDB โดยใช้ userId ที่แกะได้จาก Token (req.user)
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(existingPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
     await User.findByIdAndUpdate(req.user.userId, {
       password: hashedPassword,
     });
@@ -170,7 +199,8 @@ export const getMe = async (req, res, next) => {
 
 // ออกจากระบบ (ล้าง Cookie)
 export const logout = (req, res) => {
-  res.clearCookie("accessToken");
+  const { httpOnly, secure, sameSite } = getAuthCookieOptions();
+  res.clearCookie("accessToken", { httpOnly, secure, sameSite });
   return res
     .status(200)
     .json({ success: true, message: "Logged out successfully!" });
