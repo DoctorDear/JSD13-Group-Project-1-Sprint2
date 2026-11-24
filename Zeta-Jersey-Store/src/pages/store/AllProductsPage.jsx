@@ -45,6 +45,7 @@ const AllProductsPage = () => {
     filters,
     loadProducts,
     loading,
+    loadingMessage,
     page,
     pageCount,
     priceBounds,
@@ -130,7 +131,17 @@ const AllProductsPage = () => {
                 {totalProducts} products
               </h2>
               <p className="mt-1 text-sm text-gray-500">
-                {loading ? "Finding the latest drops…" : "Shop the collection"}
+                {loading ? (
+                  <span className="inline-flex items-center gap-2" role="status">
+                    <span
+                      aria-hidden="true"
+                      className="loading loading-spinner loading-xs text-zeta-main"
+                    />
+                    <span>{loadingMessage}</span>
+                  </span>
+                ) : (
+                  "Shop the collection"
+                )}
               </p>
             </div>
 

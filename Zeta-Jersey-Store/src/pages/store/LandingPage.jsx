@@ -6,10 +6,16 @@ import Collections from "../../components/catalog/Collections";
 import Footer from "../../components/layout/Footer";
 import HeroSection from "../../components/catalog/HeroSection";
 import { EUROPEAN_LEAGUES, THAI_LEAGUES, filterProductsByLeagues } from "../../lib/catalog/landingCatalog";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+import { API_BASE_URL } from "../../lib/api/api.js";
+import {
+  COLD_START_SLOW_NOTICE_DELAY_MS,
+  fetchJsonWithRetry,
+  getColdStartErrorMessage,
+  getLoadingStatusMessage,
+  isAbortError,
+} from "../../lib/api/coldStartRetry.js";
 
 const productSections = [
   {
@@ -24,7 +30,15 @@ const productSections = [
   },
 ];
 
-const ProductSection = ({ id, title, products, error, loading }) => {
+const ProductSection = ({
+  id,
+  title,
+  products,
+  error,
+  loading,
+  loadingMessage,
+  onRetry,
+}) => {
   const productsRef = useRef(null);
   const [scrollState, setScrollState] = useState({
     canScrollLeft: false,
@@ -97,17 +111,46 @@ const ProductSection = ({ id, title, products, error, loading }) => {
       <h2 className="mt-6 text-3xl text-black font-bold">{title}</h2>
 
       {loading ? (
-        <div role="status" aria-label={`Loading ${title}`} className="flex gap-2 overflow-hidden py-4">
-          <span className="sr-only">Loading products…</span>
-          {[0, 1, 2, 3].map((index) => <div key={index} aria-hidden="true" className="w-[290px] shrink-0 space-y-4 p-5 motion-safe:animate-pulse">
-            <div className="aspect-square rounded-xl bg-zeta-main-lighter" />
-            <div className="h-5 w-3/4 rounded bg-zeta-main-lighter" />
-            <div className="h-5 w-1/2 rounded bg-zeta-main-lighter" />
-            <div className="h-32 rounded bg-zeta-main-lighter" />
-          </div>)}
+        <div role="status" aria-label={`Loading ${title}`} className="py-4">
+          <div className="flex items-center gap-2 pb-2 text-sm text-zeta-muted">
+            <span
+              aria-hidden="true"
+              className="loading loading-spinner loading-sm text-zeta-main"
+            />
+            <span>{loadingMessage}</span>
+          </div>
+          <div className="flex gap-2 overflow-hidden">
+            {[0, 1, 2, 3].map((index) => (
+              <div
+                key={index}
+                aria-hidden="true"
+                className="w-[290px] shrink-0 space-y-4 p-5 motion-safe:animate-pulse"
+              >
+                <div className="aspect-square rounded-xl bg-zeta-main-lighter" />
+                <div className="h-5 w-3/4 rounded bg-zeta-main-lighter" />
+                <div className="h-5 w-1/2 rounded bg-zeta-main-lighter" />
+                <div className="h-32 rounded bg-zeta-main-lighter" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : error ? (
-        <p className="py-10 text-center text-zeta-muted">{error}</p>
+        <div
+          role="alert"
+          className="flex flex-col items-center gap-4 py-10 text-center"
+        >
+          <p className="text-zeta-muted">{error}</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 rounded-xl bg-zeta-main px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#241878]"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Retry
+            </button>
+          )}
+        </div>
       ) : (
         <div className="relative py-4">
           {hasOverflow && (
@@ -174,38 +217,85 @@ const ProductSection = ({ id, title, products, error, loading }) => {
 
 const LandingPage = () => {
   const [productsBySection, setProductsBySection] = useState({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    setRetryAttempt(0);
+    setIsWakingUp(false);
+    setReloadKey((prev) => prev + 1);
+  };
 
   useEffect(() => {
     const controller = new AbortController();
+    const slowTimer = setTimeout(() => {
+      if (!controller.signal.aborted) {
+        setIsWakingUp(true);
+      }
+    }, COLD_START_SLOW_NOTICE_DELAY_MS);
 
     const fetchProducts = async () => {
       try {
         const sectionResults = await Promise.all(
           productSections.map(async ({ id, query }) => {
-            const response = await fetch(
-              `${API_BASE_URL}/v1/products?${query}`,
-              { signal: controller.signal },
+            const data = await fetchJsonWithRetry(
+              `${API_BASE_URL}/products?${query}`,
+              {
+                signal: controller.signal,
+                errorMessage: `Unable to load ${id} products`,
+                onRetry: ({ attempt }) => {
+                  if (!controller.signal.aborted) {
+                    setIsWakingUp(true);
+                    setRetryAttempt((prev) => Math.max(prev, attempt));
+                  }
+                },
+              },
             );
 
-            if (!response.ok) {
-              throw new Error(`Unable to load ${id} products`);
-            }
-
-            return [id, await response.json()];
+            return [id, data];
           }),
         );
 
+        if (controller.signal.aborted) return;
         setProductsBySection(Object.fromEntries(sectionResults));
+        setError(null);
+        setLoading(false);
+        setRetryAttempt(0);
+        setIsWakingUp(false);
       } catch (err) {
-        if (err.name !== "AbortError") setError(err.message);
+        if (!controller.signal.aborted && !isAbortError(err)) {
+          setError(
+            getColdStartErrorMessage(
+              err,
+              "Unable to load products right now. Please try again.",
+            ),
+          );
+          setLoading(false);
+          setIsWakingUp(false);
+        }
+      } finally {
+        clearTimeout(slowTimer);
       }
     };
 
     fetchProducts();
 
-    return () => controller.abort();
-  }, []);
+    return () => {
+      clearTimeout(slowTimer);
+      controller.abort();
+    };
+  }, [reloadKey]);
+
+  const loadingMessage = getLoadingStatusMessage({
+    isWakingUp,
+    retryAttempt,
+    defaultMessage: "Loading products...",
+  });
 
   useEffect(() => {
     if (window.location.hash) {
@@ -240,7 +330,9 @@ const LandingPage = () => {
             ? filterProductsByLeagues(productsBySection[id] || [], EUROPEAN_LEAGUES).slice(0, 8)
             : productsBySection[id]}
           error={error}
-          loading={!error && !productsBySection[id]}
+          loading={loading}
+          loadingMessage={loadingMessage}
+          onRetry={handleRetry}
         />
       ))}
 
@@ -251,7 +343,9 @@ const LandingPage = () => {
         title="Thai League"
         products={filterProductsByLeagues(productsBySection["new-arrivals"] || [], THAI_LEAGUES).slice(0, 8)}
         error={error}
-        loading={!error && !productsBySection["new-arrivals"]}
+        loading={loading}
+        loadingMessage={loadingMessage}
+        onRetry={handleRetry}
       />
 
       <Footer />

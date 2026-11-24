@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import ProductCard from "../catalog/ProductCard";
 import { api } from "../../lib/api/api.js";
+import {
+  COLD_START_SLOW_NOTICE_DELAY_MS,
+  getColdStartErrorMessage,
+  getLoadingStatusMessage,
+  withColdStartRetry,
+} from "../../lib/api/coldStartRetry.js";
 
 const sortByTab = {
   "Best Sellers": "best-selling",
@@ -9,25 +15,63 @@ const sortByTab = {
 
 function ProfileProductSection({ activeProductTab, onProductTabChange }) {
   const [result, setResult] = useState({ key: "", products: [], error: "" });
+  const [wakeState, setWakeState] = useState({
+    key: "",
+    isWakingUp: false,
+    retryAttempt: 0,
+  });
   const [retryCount, setRetryCount] = useState(0);
   const sort = sortByTab[activeProductTab];
   const requestKey = `${sort}:${retryCount}`;
 
   useEffect(() => {
     const controller = new AbortController();
+    const slowTimer = setTimeout(() => {
+      if (!controller.signal.aborted) {
+        setWakeState((prev) => ({
+          key: requestKey,
+          isWakingUp: true,
+          retryAttempt: prev.key === requestKey ? prev.retryAttempt : 0,
+        }));
+      }
+    }, COLD_START_SLOW_NOTICE_DELAY_MS);
 
-    api.get(`/products?sort=${sort}&limit=6`, { signal: controller.signal })
+    withColdStartRetry(
+      () => api.get(`/products?sort=${sort}&limit=6`, { signal: controller.signal }),
+      {
+        signal: controller.signal,
+        onRetry: ({ attempt }) => {
+          if (!controller.signal.aborted) {
+            setWakeState({
+              key: requestKey,
+              isWakingUp: true,
+              retryAttempt: attempt,
+            });
+          }
+        },
+      },
+    )
       .then((products) => {
         if (!Array.isArray(products)) throw new Error("Could not read the product catalog.");
         if (!controller.signal.aborted) setResult({ key: requestKey, products, error: "" });
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
-          setResult({ key: requestKey, products: [], error: error.message || "Could not load products." });
+          setResult({
+            key: requestKey,
+            products: [],
+            error: getColdStartErrorMessage(error, "Could not load products."),
+          });
         }
+      })
+      .finally(() => {
+        clearTimeout(slowTimer);
       });
 
-    return () => controller.abort();
+    return () => {
+      clearTimeout(slowTimer);
+      controller.abort();
+    };
   }, [requestKey, sort]);
 
   return (
@@ -53,7 +97,19 @@ function ProfileProductSection({ activeProductTab, onProductTabChange }) {
       </div>
 
       {result.key !== requestKey ? (
-        <p role="status" className="text-sm text-zeta-muted">Loading products...</p>
+        <div role="status" className="flex items-center gap-2 text-sm text-zeta-muted">
+          <span aria-hidden="true" className="loading loading-spinner loading-sm text-zeta-main" />
+          <span>
+            {getLoadingStatusMessage(
+              wakeState.key === requestKey
+                ? {
+                    isWakingUp: wakeState.isWakingUp,
+                    retryAttempt: wakeState.retryAttempt,
+                  }
+                : undefined,
+            )}
+          </span>
+        </div>
       ) : result.error ? (
         <div role="alert" className="rounded-xl border border-red-200 bg-white p-6 text-sm text-red-700">
           <p>{result.error}</p>

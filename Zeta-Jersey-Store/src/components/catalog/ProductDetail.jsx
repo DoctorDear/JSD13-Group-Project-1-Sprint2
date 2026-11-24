@@ -1,8 +1,15 @@
-import { Ruler, ShoppingBag } from "lucide-react";
+import { RefreshCw, Ruler, ShoppingBag } from "lucide-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { getProductLeague } from "../../lib/catalog/productCatalog";
 import { api } from "../../lib/api/api.js";
+import {
+  COLD_START_SLOW_NOTICE_DELAY_MS,
+  getColdStartErrorMessage,
+  getLoadingStatusMessage,
+  isRetryableColdStartError,
+  withColdStartRetry,
+} from "../../lib/api/coldStartRetry.js";
 import { cartService } from "../../services/cart.js";
 import { isPersonalizationEligible } from "../../lib/personalization/personalizationPreview.js";
 import { useAuth } from '../../contexts/authContext.js';
@@ -17,19 +24,52 @@ const ProductDetail = () => {
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [canRetry, setCanRetry] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [adding, setAdding] = useState(false);
   const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
   const { id } = useParams();
   const location = useLocation();
   const { isAuthenticated, booting } = useAuth();
 
+  const handleRetry = () => {
+    setError(null);
+    setCanRetry(false);
+    setRetryAttempt(0);
+    setIsWakingUp(false);
+    setLoading(true);
+    setReloadKey((prev) => prev + 1);
+  };
+
   useEffect(() => {
     const controller = new AbortController();
+    const slowTimer = setTimeout(() => {
+      if (!controller.signal.aborted) {
+        setIsWakingUp(true);
+      }
+    }, COLD_START_SLOW_NOTICE_DELAY_MS);
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await api.get(`/products/${id}`, { signal: controller.signal });
+        setCanRetry(false);
+        setRetryAttempt(0);
+        setIsWakingUp(false);
+        const data = await withColdStartRetry(
+          () => api.get(`/products/${id}`, { signal: controller.signal }),
+          {
+            signal: controller.signal,
+            onRetry: ({ attempt }) => {
+              if (!controller.signal.aborted) {
+                setIsWakingUp(true);
+                setRetryAttempt(attempt);
+              }
+            },
+          },
+        );
         if (controller.signal.aborted) return;
         setProduct(
           data.product
@@ -38,14 +78,33 @@ const ProductDetail = () => {
         );
         setVariants(data.variants || []);
       } catch (err) {
-        if (!controller.signal.aborted) setError(err.message);
+        if (!controller.signal.aborted) {
+          const retryable = isRetryableColdStartError(err);
+          setCanRetry(retryable || (err?.status ?? 0) >= 500);
+          setError(
+            retryable
+              ? getColdStartErrorMessage(
+                  err,
+                  "Unable to load this product right now. Please try again.",
+                )
+              : err.message || "Product not found",
+          );
+        }
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        clearTimeout(slowTimer);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+          setIsWakingUp(false);
+          setRetryAttempt(0);
+        }
       }
     };
     if (id) fetchProduct();
-    return () => controller.abort();
-  }, [id]);
+    return () => {
+      clearTimeout(slowTimer);
+      controller.abort();
+    };
+  }, [id, reloadKey]);
 
   useLayoutEffect(() => {
     if (loading || !product) return;
@@ -79,23 +138,51 @@ const ProductDetail = () => {
     }
   };
 
+  const loadingMessage = getLoadingStatusMessage({
+    isWakingUp,
+    retryAttempt,
+    defaultMessage: "Loading product...",
+  });
+
   if (loading)
     return (
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-12">
-        <div className="aspect-[4/5] animate-pulse rounded-3xl bg-slate-100" />
-        <div className="space-y-5 py-2">
-          <div className="h-6 w-40 animate-pulse rounded-full bg-slate-100" />
-          <div className="h-12 w-4/5 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-8 w-32 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-24 w-full animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-28 w-full animate-pulse rounded-2xl bg-slate-100" />
+      <div className="mx-auto min-h-[calc(100vh-4rem)] max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <div role="status" className="mb-6 flex items-center gap-2 text-sm text-zeta-muted">
+          <span
+            aria-hidden="true"
+            className="loading loading-spinner loading-sm text-zeta-main"
+          />
+          <span>{loadingMessage}</span>
+        </div>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="aspect-[4/5] animate-pulse rounded-3xl bg-slate-100" />
+          <div className="space-y-5 py-2">
+            <div className="h-6 w-40 animate-pulse rounded-full bg-slate-100" />
+            <div className="h-12 w-4/5 animate-pulse rounded-lg bg-slate-100" />
+            <div className="h-8 w-32 animate-pulse rounded-lg bg-slate-100" />
+            <div className="h-24 w-full animate-pulse rounded-lg bg-slate-100" />
+            <div className="h-28 w-full animate-pulse rounded-2xl bg-slate-100" />
+          </div>
         </div>
       </div>
     );
   if (error || !product)
     return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 text-center text-red-500">
-        {error || "Not found product"}
+      <div
+        role="alert"
+        className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center gap-4 px-4 py-12 text-center"
+      >
+        <p className="text-red-500">{error || "Not found product"}</p>
+        {canRetry && (
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="inline-flex items-center gap-2 rounded-xl bg-zeta-main px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#241878]"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Retry
+          </button>
+        )}
       </div>
     );
 
