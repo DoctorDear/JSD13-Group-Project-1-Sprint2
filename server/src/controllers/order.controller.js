@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
-import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
 import { syncStripeOrder } from "./stripe.controller.js";
-import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
-import { pricePersonalization } from "../lib/personalization.js";
 import { validateShippingAddress } from "../lib/shippingAddressValidation.js";
+import {
+  reserveAndPriceItems,
+  rollbackReservedStock,
+} from "../services/checkoutReservation.js";
 
 // 1. ฟังก์ชันดูรายละเอียดออเดอร์เดี่ยว
 export const getOrderById = async (req, res) => {
@@ -50,7 +51,7 @@ export const getOrderById = async (req, res) => {
 
 // 2. ฟังก์ชันสร้างออเดอร์ใหม่ (Checkout)
 export const createOrder = async (req, res) => {
-  const reserved = [];
+  let reserved = [];
   try {
     const userId = req.user.userId;
     const { shippingAddress, paymentMethod = "cod" } = req.body;
@@ -68,95 +69,15 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    let totalAmount = 0;
-    const orderItems = [];
-
-    for (const item of user.cart) {
-      // ป้องกันกรณี item.productId เป็น null หรือ undefined
-      const prodId =
-        item.productId && item.productId._id
-          ? item.productId._id
-          : item.productId;
-
-      if (!prodId) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid product reference in cart",
-        });
-      }
-
-      const product = await Product.findById(prodId);
-
-      if (!product || product.isActive === false) {
-        return res.status(404).json({
-          success: false,
-          message: `Product not found`,
-        });
-      }
-
-      const customNumber = item.customNumber === undefined || item.customNumber === null ? null : String(item.customNumber);
-      orderItems.push({
-        productId: product._id,
-        sku: product.sku,
-        name: product.name,
-        price: product.price,
-        size: item.size || product.size,
-        quantity: item.quantity,
-        customName: item.customName || "",
-        customNumber,
-        sleeveBadge: item.sleeveBadge || "none",
+    const reservation = await reserveAndPriceItems(user.cart, { mode: "cod" });
+    if (!reservation.ok) {
+      return res.status(reservation.status).json({
+        success: false,
+        message: reservation.message,
       });
     }
-
-    const rollbackReserved = async () => {
-      for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
-      reserved.length = 0;
-    };
-
-    // Price each item from the active template immediately before reserving its stock.
-    for (const item of orderItems) {
-      const product = await Product.findById(item.productId);
-      if (!product || product.isActive === false) {
-        await rollbackReserved();
-        return res.status(404).json({ success: false, message: "Product not found" });
-      }
-      if (product.quantity < item.quantity) {
-        await rollbackReserved();
-        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
-      }
-      const template = await resolvePersonalizationTemplate(product);
-      const hasPrintChoices = Boolean(item.customName || item.customNumber !== null);
-      if (!template && (hasPrintChoices || item.sleeveBadge !== "none")) {
-        await rollbackReserved();
-        return res.status(400).json({ success: false, message: "Personalization is not available for this product" });
-      }
-      const priced = template
-        ? pricePersonalization({ product, template, printEnabled: hasPrintChoices, customName: item.customName, customNumber: item.customNumber, sleeveBadge: item.sleeveBadge })
-        : { customName: "", customNumber: null, namePrice: 0, numberPrice: 0, sleeveBadge: "none", badgePrice: 0, unitPrice: product.price };
-      if (!priced) {
-        await rollbackReserved();
-        return res.status(400).json({ success: false, message: "Invalid personalization choices" });
-      }
-      Object.assign(item, {
-        price: priced.unitPrice,
-        customName: priced.customName,
-        customNumber: priced.customNumber,
-        sleeveBadge: priced.sleeveBadge,
-        namePrice: priced.namePrice,
-        numberPrice: priced.numberPrice,
-        badgePrice: priced.badgePrice,
-      });
-      const updated = await Product.findOneAndUpdate(
-        { _id: item.productId, quantity: { $gte: item.quantity } },
-        { $inc: { quantity: -item.quantity } },
-      );
-      if (!updated) {
-        await rollbackReserved();
-        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${item.name}` });
-      }
-      reserved.push(item);
-      totalAmount += item.price * item.quantity;
-    }
+    reserved = reservation.reserved;
+    const { items: orderItems, totalAmount } = reservation;
 
     const orderNumber = `ZT-${new mongoose.Types.ObjectId().toString().toUpperCase()}`;
 
@@ -178,7 +99,7 @@ export const createOrder = async (req, res) => {
       data: newOrder,
     });
   } catch (error) {
-    for (const held of reserved) await Product.findByIdAndUpdate(held.productId, { $inc: { quantity: held.quantity } });
+    await rollbackReservedStock(reserved);
     return res.status(500).json({
       success: false,
       message: "Server Error",
