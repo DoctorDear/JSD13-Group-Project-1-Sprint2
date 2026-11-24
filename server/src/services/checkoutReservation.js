@@ -1,9 +1,10 @@
 import { Product } from "../models/Product.model.js";
 import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
-import { pricePersonalization } from "../lib/personalization.js";
-
-const normalizedNumber = (value) =>
-  value === undefined || value === null ? null : String(value);
+import {
+  pricePersonalization,
+  normalizePersonalizationNumber,
+  normalizeSleeveBadge,
+} from "../lib/personalization.js";
 
 function failure(status, message) {
   return { ok: false, status, message };
@@ -109,8 +110,8 @@ export async function reserveAndPriceItems(sourceItems, options = {}) {
       size: sourceItem.size || product.size,
       quantity,
       customName: sourceItem.customName || "",
-      customNumber: normalizedNumber(sourceItem.customNumber),
-      sleeveBadge: sourceItem.sleeveBadge || "none",
+      customNumber: normalizePersonalizationNumber(sourceItem.customNumber),
+      sleeveBadge: normalizeSleeveBadge(sourceItem.sleeveBadge),
       namePrice: sourceItem.namePrice ?? 0,
       numberPrice: sourceItem.numberPrice ?? 0,
       badgePrice: sourceItem.badgePrice ?? 0,

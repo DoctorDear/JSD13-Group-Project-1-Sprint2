@@ -1,7 +1,11 @@
 import User from "../models/User.model.js";
 import { Product } from "../models/Product.model.js";
 import { resolvePersonalizationTemplate } from "../lib/personalizationTemplate.js";
-import { pricePersonalization } from "../lib/personalization.js";
+import {
+  pricePersonalization,
+  normalizeCartPersonalization,
+  samePersonalization,
+} from "../lib/personalization.js";
 import mongoose from "mongoose";
 
 export const getWishlist = async (req, res, next) => {
@@ -84,19 +88,6 @@ export const getCart = async (req, res) => {
   }
 };
 
-const normalizeCartPersonalization = ({ customName, customNumber }) => {
-  const name = customName === undefined || customName === null ? "" : customName;
-  if (typeof name !== "string") return null;
-  const providedName = name;
-
-  let number = customNumber;
-  if (number === undefined || number === null || number === "") number = null;
-  if (number !== null && (typeof number !== "string" || !/^\d{1,2}$/.test(number))) return null;
-  if (Boolean(providedName) !== Boolean(number)) return null;
-
-  return { customName: providedName, customNumber: number };
-};
-
 // 2. POST /api/v1/users/cart - เพิ่มสินค้าลงตะกร้า (ถ้าซ้ำไซส์เดิมให้บวกทบจำนวน)
 export const addToCart = async (req, res) => {
   try {
@@ -159,9 +150,7 @@ export const addToCart = async (req, res) => {
         item.productId &&
         String(item.productId._id || item.productId) === String(productId) &&
         item.size === size &&
-        (item.customName || "") === line.customName &&
-        (item.customNumber === undefined || item.customNumber === null ? null : String(item.customNumber)) === line.customNumber &&
-        (item.sleeveBadge || "none") === line.sleeveBadge,
+        samePersonalization(item, line),
     );
 
     if (existingItemIndex > -1) {
