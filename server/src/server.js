@@ -10,6 +10,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { corsOptions } from "./config/cors.js";
 import { stripeWebhook, reconcileStripeOrders } from "./controllers/stripe.controller.js";
+import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 
 export const app = express();
 
@@ -56,12 +57,7 @@ if (process.env.NODE_ENV !== "production") {
 app.use("/api/v1", apiRouter);
 
 // Centralize Error Handling Middleware
-app.use((err, req, res, next) => {
-  return res.status(500).json({
-    error: "Something went wrong on the server...",
-    message: err.message,
-  });
-});
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
