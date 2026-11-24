@@ -14,10 +14,10 @@ const MAX_IMAGE_PIXELS = 25_000_000;
 
 export async function uploadImage(req, res) {
   if (!req.file || !req.file.buffer?.length) {
-    return res.status(400).json({ message: "Choose an image to upload." });
+    return res.status(400).json({ success: false, message: "Choose an image to upload." });
   }
   if (!IMAGE_PURPOSES.has(req.body?.purpose)) {
-    return res.status(400).json({ message: "Choose a valid image purpose." });
+    return res.status(400).json({ success: false, message: "Choose a valid image purpose." });
   }
 
   let metadata;
@@ -27,17 +27,17 @@ export async function uploadImage(req, res) {
       animated: true,
     }).metadata();
   } catch {
-    return res.status(415).json({ message: "The uploaded file is not a valid supported image." });
+    return res.status(415).json({ success: false, message: "The uploaded file is not a valid supported image." });
   }
 
   const imageFormat = IMAGE_FORMATS[metadata.format];
   if (!imageFormat || (metadata.pages || 1) > 1) {
-    return res.status(415).json({ message: "Use a non-animated JPEG, PNG, or WebP image." });
+    return res.status(415).json({ success: false, message: "Use a non-animated JPEG, PNG, or WebP image." });
   }
   const width = metadata.width || 0;
   const height = metadata.height || 0;
   if (!width || !height || width * height > MAX_IMAGE_PIXELS) {
-    return res.status(415).json({ message: "Image dimensions must be 25 megapixels or smaller." });
+    return res.status(415).json({ success: false, message: "Image dimensions must be 25 megapixels or smaller." });
   }
 
   try {
@@ -60,6 +60,6 @@ export async function uploadImage(req, res) {
       height,
     });
   } catch {
-    return res.status(503).json({ message: "Image storage is unavailable. Please try again later." });
+    return res.status(503).json({ success: false, message: "Image storage is unavailable. Please try again later." });
   }
 }

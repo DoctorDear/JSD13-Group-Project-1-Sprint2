@@ -7,7 +7,7 @@ export function validateUploadOrigin(req, res, next) {
   if (!origin) return next();
 
   if (!isAllowedOrigin(origin)) {
-    return res.status(403).json({ message: "This website is not allowed to upload images." });
+    return res.status(403).json({ success: false, message: "This website is not allowed to upload images." });
   }
   return next();
 }
@@ -18,7 +18,7 @@ export const imageUploadRateLimit = rateLimit({
   standardHeaders: "draft-8",
   legacyHeaders: false,
   keyGenerator: (req) => String(req.user.userId),
-  message: { message: "Too many image uploads. Please try again in a minute." },
+  message: { success: false, message: "Too many image uploads. Please try again in a minute." },
 });
 
 export const parseImageUpload = multer({
@@ -31,8 +31,9 @@ export function handleImageUploadParseError(error, _req, res, _next) {
   if (error instanceof multer.MulterError) {
     const tooLarge = error.code === "LIMIT_FILE_SIZE";
     return res.status(tooLarge ? 413 : 400).json({
+      success: false,
       message: tooLarge ? "Images must be 5 MB or smaller." : "Upload exactly one file and a purpose.",
     });
   }
-  return res.status(400).json({ message: "Could not read the uploaded image." });
+  return res.status(400).json({ success: false, message: "Could not read the uploaded image." });
 }
