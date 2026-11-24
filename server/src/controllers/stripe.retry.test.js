@@ -3,7 +3,13 @@ import assert from "node:assert/strict";
 import Order from "../models/Order.model.js";
 import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
-import { createCheckoutSessionWithClient, syncStripeOrder } from "./stripe.controller.js";
+import {
+  buildCheckoutSessionPayload,
+  buildStripeLineItems,
+  createCheckoutSessionWithClient,
+  syncStripeOrder,
+  validateStripePaymentMethod,
+} from "./stripe.controller.js";
 
 test("failed payment retry keeps the original order number and ID", async () => {
   const originals = {
@@ -105,5 +111,76 @@ test("stale failed retry releases reserved stock once", async () => {
   } finally {
     Order.findOneAndUpdate = originalFindOneAndUpdate;
     Product.findByIdAndUpdate = originalProductUpdate;
+  }
+});
+
+test("validateStripePaymentMethod validates card, promptpay flag, and unsupported methods", () => {
+  const prevPromptPay = process.env.STRIPE_PROMPTPAY_ENABLED;
+  try {
+    assert.equal(validateStripePaymentMethod("card"), null);
+    assert.equal(validateStripePaymentMethod("cod"), "Choose Card or PromptPay");
+
+    process.env.STRIPE_PROMPTPAY_ENABLED = "false";
+    assert.equal(validateStripePaymentMethod("promptpay"), "PromptPay is not enabled for this Stripe account");
+
+    process.env.STRIPE_PROMPTPAY_ENABLED = "true";
+    assert.equal(validateStripePaymentMethod("promptpay"), null);
+  } finally {
+    if (prevPromptPay === undefined) delete process.env.STRIPE_PROMPTPAY_ENABLED;
+    else process.env.STRIPE_PROMPTPAY_ENABLED = prevPromptPay;
+  }
+});
+
+test("buildStripeLineItems and buildCheckoutSessionPayload format THB amounts, descriptions, and metadata", () => {
+  const prevFrontendUrl = process.env.FRONTEND_URL;
+  try {
+    process.env.FRONTEND_URL = "https://zeta.example.com";
+    const items = [
+      {
+        name: "Liverpool Home",
+        size: "L",
+        price: 3350,
+        quantity: 2,
+        customName: "SALAH",
+        customNumber: "11",
+        sleeveBadge: "premier-league",
+        namePrice: 200,
+        numberPrice: 150,
+        badgePrice: 100,
+      },
+    ];
+
+    const lineItems = buildStripeLineItems(items);
+    assert.equal(lineItems.length, 1);
+    assert.equal(lineItems[0].price_data.currency, "thb");
+    assert.equal(lineItems[0].price_data.unit_amount, 335000);
+    assert.equal(lineItems[0].price_data.product_data.name, "Liverpool Home (L) — premier-league");
+    assert.equal(lineItems[0].price_data.product_data.description, "Name: SALAH; Number: 11; Badge: premier-league");
+    assert.deepEqual(lineItems[0].price_data.product_data.metadata, {
+      customName: "SALAH",
+      customNumber: "11",
+      sleeveBadge: "premier-league",
+      namePrice: "200",
+      numberPrice: "150",
+      badgePrice: "100",
+      unitPrice: "3350",
+    });
+
+    const payload = buildCheckoutSessionPayload({
+      orderId: "order-123",
+      items,
+      paymentMethod: "card",
+      expiresAt: 1700000000,
+    });
+    assert.equal(payload.mode, "payment");
+    assert.deepEqual(payload.payment_method_types, ["card"]);
+    assert.equal(payload.client_reference_id, "order-123");
+    assert.deepEqual(payload.metadata, { orderId: "order-123" });
+    assert.equal(payload.success_url, "https://zeta.example.com/order-confirmation?orderId=order-123");
+    assert.equal(payload.cancel_url, "https://zeta.example.com/order-confirmation?orderId=order-123&cancelled=1");
+    assert.equal(payload.expires_at, 1700000000);
+  } finally {
+    if (prevFrontendUrl === undefined) delete process.env.FRONTEND_URL;
+    else process.env.FRONTEND_URL = prevFrontendUrl;
   }
 });
