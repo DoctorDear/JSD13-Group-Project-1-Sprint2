@@ -9,7 +9,14 @@ import {
   sortProducts,
 } from "../lib/catalog/productCatalog";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+import { API_BASE_URL } from "../lib/api/api.js";
+import {
+  COLD_START_SLOW_NOTICE_DELAY_MS,
+  fetchJsonWithRetry,
+  getLoadingStatusMessage,
+  isAbortError,
+} from "../lib/api/coldStartRetry.js";
+
 const catalogHistory = new Map();
 
 export default function useProductCatalog() {
@@ -20,7 +27,10 @@ export default function useProductCatalog() {
   const [products, setProducts] = useState(savedCatalog?.products ?? []);
   const [loading, setLoading] = useState(!savedCatalog);
   const [error, setError] = useState(savedCatalog?.error ?? null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const [page, setPage] = useState(savedCatalog?.page ?? 1);
+  const abortControllerRef = useRef(null);
 
   // Directly derive all filters from searchParams so URL is the single source of truth
   const search = searchParams.get("search") || "";
@@ -62,14 +72,34 @@ export default function useProductCatalog() {
   }, [searchParamsString]);
 
   const loadProducts = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     setError(null);
+    setRetryAttempt(0);
+    setIsWakingUp(false);
+
+    const slowTimer = setTimeout(() => {
+      if (!controller.signal.aborted) {
+        setIsWakingUp(true);
+      }
+    }, COLD_START_SLOW_NOTICE_DELAY_MS);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/products`);
-      if (!response.ok) throw new Error(`Catalog request failed (${response.status})`);
+      const payload = await fetchJsonWithRetry(`${API_BASE_URL}/products`, {
+        signal: controller.signal,
+        errorMessage: "Catalog request failed",
+        onRetry: ({ attempt }) => {
+          if (!controller.signal.aborted) {
+            setIsWakingUp(true);
+            setRetryAttempt(attempt);
+          }
+        },
+      });
+      if (controller.signal.aborted) return;
 
-      const payload = await response.json();
       const remoteProducts = Array.isArray(payload)
         ? payload
         : payload.products || payload.data || [];
@@ -78,22 +108,33 @@ export default function useProductCatalog() {
         throw new Error("Catalog response was not a list");
       }
       setProducts(remoteProducts);
-    } catch {
+    } catch (err) {
+      if (controller.signal.aborted || isAbortError(err)) return;
+
       const { default: productData } = await import("../data/products.json");
+      if (controller.signal.aborted) return;
       setProducts(productData);
       setError(
         "The live catalog is unavailable right now. Showing the saved demo catalog instead.",
       );
     } finally {
-      setLoading(false);
+      clearTimeout(slowTimer);
+      if (abortControllerRef.current === controller && !controller.signal.aborted) {
+        setLoading(false);
+        setIsWakingUp(false);
+        setRetryAttempt(0);
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (savedCatalog) return;
+    if (savedCatalog) return undefined;
     // The catalog request is an external synchronization; its state updates happen asynchronously.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProducts();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, [loadProducts, savedCatalog]);
 
   useEffect(() => {
@@ -218,6 +259,12 @@ export default function useProductCatalog() {
     })),
   ].filter(Boolean);
 
+  const loadingMessage = getLoadingStatusMessage({
+    isWakingUp,
+    retryAttempt,
+    defaultMessage: "Finding the latest drops…",
+  });
+
   return {
     actions,
     activeFilters,
@@ -227,6 +274,7 @@ export default function useProductCatalog() {
     filters,
     loadProducts,
     loading,
+    loadingMessage,
     page,
     pageCount,
     setPage,
