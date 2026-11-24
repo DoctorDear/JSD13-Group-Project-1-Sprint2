@@ -97,11 +97,11 @@ export const getReviewEligibility = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!isValidProductId(productId)) {
-      return res.status(400).json({ message: "Invalid product id" });
+      return res.status(400).json({ success: false, message: "Invalid product id" });
     }
 
     const product = await Product.exists({ _id: productId, isActive: true });
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
     const userId = req.user.userId;
     const [review, completedOrder] = await Promise.all([
@@ -122,12 +122,12 @@ export const getMyProductReview = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!isValidProductId(productId)) {
-      return res.status(400).json({ message: "Invalid product id" });
+      return res.status(400).json({ success: false, message: "Invalid product id" });
     }
 
     const review = await Review.findOne({ productId, userId: req.user.userId })
       .populate("userId", "firstName lastName");
-    if (!review) return res.status(404).json({ message: "Your review was not found" });
+    if (!review) return res.status(404).json({ success: false, message: "Your review was not found" });
 
     return res.status(200).json({ review: serializeReview(review) });
   } catch (err) {
@@ -139,7 +139,7 @@ export const updateMyProductReview = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!isValidProductId(productId)) {
-      return res.status(400).json({ message: "Invalid product id" });
+      return res.status(400).json({ success: false, message: "Invalid product id" });
     }
 
     const input = req.body || {};
@@ -147,37 +147,37 @@ export const updateMyProductReview = async (req, res, next) => {
     if (input.rating !== undefined) {
       const rating = Number(input.rating);
       if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-        return res.status(400).json({ message: "rating must be an integer from 1 to 5" });
+        return res.status(400).json({ success: false, message: "rating must be an integer from 1 to 5" });
       }
       changes.rating = rating;
     }
     if (input.body !== undefined) {
       const body = String(input.body || "").trim();
       if (!body || body.length > 2000) {
-        return res.status(400).json({ message: "Review text must be 1 to 2000 characters" });
+        return res.status(400).json({ success: false, message: "Review text must be 1 to 2000 characters" });
       }
       changes.body = body;
     }
     if (input.title !== undefined) {
       const title = String(input.title || "").trim();
       if (title.length > 120) {
-        return res.status(400).json({ message: "Review title must be at most 120 characters" });
+        return res.status(400).json({ success: false, message: "Review title must be at most 120 characters" });
       }
       changes.title = title;
     }
     if (input.detailedRatings !== undefined) {
       const { value, error } = cleanDetailedRatings(input.detailedRatings);
-      if (error) return res.status(400).json({ message: error });
+      if (error) return res.status(400).json({ success: false, message: error });
       changes.detailedRatings = value;
     }
     if (input.isRecommended !== undefined) {
       if (typeof input.isRecommended !== "boolean") {
-        return res.status(400).json({ message: "isRecommended must be a boolean" });
+        return res.status(400).json({ success: false, message: "isRecommended must be a boolean" });
       }
       changes.isRecommended = input.isRecommended;
     }
     if (Object.keys(changes).length === 0) {
-      return res.status(400).json({ message: "No review changes provided" });
+      return res.status(400).json({ success: false, message: "No review changes provided" });
     }
 
     const review = await Review.findOneAndUpdate(
@@ -185,7 +185,7 @@ export const updateMyProductReview = async (req, res, next) => {
       { $set: changes },
       { new: true, runValidators: true },
     ).populate("userId", "firstName lastName");
-    if (!review) return res.status(404).json({ message: "Your review was not found" });
+    if (!review) return res.status(404).json({ success: false, message: "Your review was not found" });
 
     return res.status(200).json({ review: serializeReview(review) });
   } catch (err) {
@@ -197,7 +197,7 @@ export const getProductReviews = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!isValidProductId(productId)) {
-      return res.status(400).json({ message: "Invalid product id" });
+      return res.status(400).json({ success: false, message: "Invalid product id" });
     }
 
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
@@ -209,7 +209,7 @@ export const getProductReviews = async (req, res, next) => {
     const filter = { productId, status: "published" };
 
     if (req.query.rating && (!Number.isInteger(rating) || rating < 1 || rating > 5)) {
-      return res.status(400).json({ message: "rating must be a number from 1 to 5" });
+      return res.status(400).json({ success: false, message: "rating must be a number from 1 to 5" });
     }
     if (rating) filter.rating = rating;
 
@@ -310,21 +310,21 @@ export const createProductReview = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!isValidProductId(productId)) {
-      return res.status(400).json({ message: "Invalid product id" });
+      return res.status(400).json({ success: false, message: "Invalid product id" });
     }
 
     const rating = Number(req.body.rating);
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: "rating must be an integer from 1 to 5" });
+      return res.status(400).json({ success: false, message: "rating must be an integer from 1 to 5" });
     }
 
     const body = String(req.body.body || "").trim();
     if (!body) {
-      return res.status(400).json({ message: "Review text is required" });
+      return res.status(400).json({ success: false, message: "Review text is required" });
     }
 
     const { value: detailedRatings, error } = cleanDetailedRatings(req.body.detailedRatings);
-    if (error) return res.status(400).json({ message: error });
+    if (error) return res.status(400).json({ success: false, message: error });
 
     const [product, existingReview, order] = await Promise.all([
       Product.exists({ _id: productId, isActive: true }),
@@ -336,12 +336,12 @@ export const createProductReview = async (req, res, next) => {
       }).sort({ createdAt: -1 }),
     ]);
 
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
     if (existingReview) {
-      return res.status(409).json({ message: "You have already reviewed this product" });
+      return res.status(409).json({ success: false, message: "You have already reviewed this product" });
     }
     if (!order) {
-      return res.status(403).json({ message: "Only verified purchasers can review this product" });
+      return res.status(403).json({ success: false, message: "Only verified purchasers can review this product" });
     }
 
     const review = await Review.create({
@@ -362,7 +362,7 @@ export const createProductReview = async (req, res, next) => {
     return res.status(201).json({ review: serializeReview(review) });
   } catch (err) {
     if (err?.code === 11000) {
-      return res.status(409).json({ message: "You have already reviewed this product" });
+      return res.status(409).json({ success: false, message: "You have already reviewed this product" });
     }
     next(err);
   }

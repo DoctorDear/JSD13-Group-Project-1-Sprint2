@@ -26,7 +26,7 @@ export const getPersonalizationTemplateByGroupId = async (req, res, next) => {
       personalizationEnabled: true,
       personalizationGroupId: req.params.groupId,
     });
-    if (!template) return res.status(404).json({ error: "Personalization template not found" });
+    if (!template) return res.status(404).json({ success: false, message: "Personalization template not found" });
     return res.status(200).json({ template });
   } catch (error) {
     return next(error);
@@ -46,17 +46,17 @@ export const updatePersonalizationTemplate = async (req, res, next) => {
   try {
     const { groupId, ...updates } = req.body ?? {};
     if (typeof groupId !== "string" || !groupId.trim()) {
-      return res.status(400).json({ error: "groupId is required" });
+      return res.status(400).json({ success: false, message: "groupId is required" });
     }
     if (Object.keys(updates).some((field) => !PATCHABLE_TEMPLATE_FIELDS.has(field))) {
-      return res.status(400).json({ error: "Unsupported template field" });
+      return res.status(400).json({ success: false, message: "Unsupported template field" });
     }
     const template = await PersonalizationTemplate.findOneAndUpdate(
       { groupId },
       { $set: updates },
       { new: true, runValidators: true, strict: "throw" },
     );
-    if (!template) return res.status(404).json({ error: "Personalization template not found" });
+    if (!template) return res.status(404).json({ success: false, message: "Personalization template not found" });
     return res.status(200).json({ template });
   } catch (error) {
     return next(error);
