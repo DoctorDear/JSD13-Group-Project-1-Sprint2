@@ -5,16 +5,15 @@ import { Product } from "../models/Product.model.js";
 import User from "../models/User.model.js";
 import { validateShippingAddress } from "../lib/shippingAddressValidation.js";
 import {
+  normalizePersonalizationName,
+  normalizePersonalizationNumber,
+  normalizeSleeveBadge,
+  samePersonalization,
+} from "../lib/personalization.js";
+import {
   reserveAndPriceItems,
   rollbackReservedStock,
 } from "../services/checkoutReservation.js";
-
-const normalizedName = (value) => typeof value === "string" ? value.toUpperCase() : "";
-const normalizedNumber = (value) => value === undefined || value === null ? null : String(value);
-const samePersonalization = (left, right) =>
-  normalizedName(left.customName) === normalizedName(right.customName) &&
-  normalizedNumber(left.customNumber) === normalizedNumber(right.customNumber) &&
-  (left.sleeveBadge || "none") === (right.sleeveBadge || "none");
 
 const stripe = () => {
   if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) throw new Error("Stripe test secret key is not configured");
@@ -37,8 +36,8 @@ export function validateStripePaymentMethod(paymentMethod) {
 export function buildStripeLineItems(items) {
   return items.map((item) => {
     const customName = item.customName || "";
-    const customNumber = normalizedNumber(item.customNumber);
-    const sleeveBadge = item.sleeveBadge || "none";
+    const customNumber = normalizePersonalizationNumber(item.customNumber);
+    const sleeveBadge = normalizeSleeveBadge(item.sleeveBadge);
     const namePrice = item.namePrice ?? 0;
     const numberPrice = item.numberPrice ?? 0;
     const badgePrice = item.badgePrice ?? 0;
@@ -121,16 +120,16 @@ async function restoreCart(order) {
     if (existing) {
       if (order.payment?.cartCleared) existing.quantity += item.quantity;
       Object.assign(existing, {
-        customName: normalizedName(item.customName),
-        customNumber: normalizedNumber(item.customNumber),
-        sleeveBadge: item.sleeveBadge || "none",
+        customName: normalizePersonalizationName(item.customName),
+        customNumber: normalizePersonalizationNumber(item.customNumber),
+        sleeveBadge: normalizeSleeveBadge(item.sleeveBadge),
         namePrice: item.namePrice ?? 0,
         numberPrice: item.numberPrice ?? 0,
         badgePrice: item.badgePrice ?? 0,
         price: item.price,
       });
     } else {
-      user.cart.push({ productId: item.productId, size: item.size, customName: normalizedName(item.customName), customNumber: normalizedNumber(item.customNumber), sleeveBadge: item.sleeveBadge || "none", namePrice: item.namePrice ?? 0, numberPrice: item.numberPrice ?? 0, badgePrice: item.badgePrice ?? 0, quantity: item.quantity, price: item.price });
+      user.cart.push({ productId: item.productId, size: item.size, customName: normalizePersonalizationName(item.customName), customNumber: normalizePersonalizationNumber(item.customNumber), sleeveBadge: normalizeSleeveBadge(item.sleeveBadge), namePrice: item.namePrice ?? 0, numberPrice: item.numberPrice ?? 0, badgePrice: item.badgePrice ?? 0, quantity: item.quantity, price: item.price });
     }
   }
   await user.save();
