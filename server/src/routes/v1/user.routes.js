@@ -1,19 +1,18 @@
 import { Router } from "express";
+import { getProfile, updateProfile } from "../../controllers/profile.controller.js";
+import { addAddress, deleteAddress, updateAddress } from "../../controllers/address.controller.js";
 import {
-  getProfile,
-  updateProfile,
-  addAddress,
-  deleteAddress,
-  updateAddress,
   getCart,
   addToCart,
   updateCartItemQuantity,
   removeCartItem,
   clearCart,
+} from "../../controllers/cart.controller.js";
+import {
   getWishlist,
   addToWishlist,
   removeFromWishlist,
-} from "../../controllers/user.controller.js";
+} from "../../controllers/wishlist.controller.js";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 import { getMyReviews } from "../../controllers/review.controller.js";
 
