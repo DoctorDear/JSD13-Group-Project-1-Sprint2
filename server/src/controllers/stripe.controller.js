@@ -19,6 +19,72 @@ const stripe = () => {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
+const paymentMethodLabel = (paymentMethod) =>
+  paymentMethod === "card" ? "Credit Card" : "PromptPay";
+
+export function validateStripePaymentMethod(paymentMethod) {
+  if (!["card", "promptpay"].includes(paymentMethod)) {
+    return "Choose Card or PromptPay";
+  }
+  if (paymentMethod === "promptpay" && process.env.STRIPE_PROMPTPAY_ENABLED !== "true") {
+    return "PromptPay is not enabled for this Stripe account";
+  }
+  return null;
+}
+
+export function buildStripeLineItems(items) {
+  return items.map((item) => {
+    const customName = item.customName || "";
+    const customNumber = normalizedNumber(item.customNumber);
+    const sleeveBadge = item.sleeveBadge || "none";
+    const namePrice = item.namePrice ?? 0;
+    const numberPrice = item.numberPrice ?? 0;
+    const badgePrice = item.badgePrice ?? 0;
+
+    return {
+      price_data: {
+        currency: "thb",
+        unit_amount: Math.round(item.price * 100),
+        product_data: {
+          name: `${item.name} (${item.size})${badgePrice ? ` — ${sleeveBadge}` : ""}`,
+          description:
+            [
+              customName && `Name: ${customName}`,
+              customNumber !== null && `Number: ${customNumber}`,
+              sleeveBadge !== "none" && `Badge: ${sleeveBadge}`,
+            ]
+              .filter(Boolean)
+              .join("; ") || undefined,
+          metadata: {
+            customName,
+            customNumber: customNumber ?? "",
+            sleeveBadge,
+            namePrice: String(namePrice),
+            numberPrice: String(numberPrice),
+            badgePrice: String(badgePrice),
+            unitPrice: String(item.price),
+          },
+        },
+      },
+      quantity: item.quantity,
+    };
+  });
+}
+
+export function buildCheckoutSessionPayload({ orderId, items, paymentMethod, expiresAt }) {
+  const origin = process.env.FRONTEND_URL || "http://localhost:5173";
+  return {
+    mode: "payment",
+    payment_method_types: [paymentMethod],
+    line_items: buildStripeLineItems(items),
+    client_reference_id: orderId,
+    metadata: { orderId },
+    success_url: `${origin}/order-confirmation?orderId=${orderId}`,
+    cancel_url: `${origin}/order-confirmation?orderId=${orderId}&cancelled=1`,
+    expires_at: expiresAt,
+  };
+}
+
 async function removeOrderItemsFromCart(order) {
   if (!order.userId || order.payment?.cartCleared || order.payment?.cartManaged === false) return;
   const user = await User.findById(order.userId);
@@ -109,8 +175,8 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
   const reserved = [];
   try {
     const { shippingAddress, paymentMethod } = req.body;
-    if (!["card", "promptpay"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "Choose Card or PromptPay" });
-    if (paymentMethod === "promptpay" && process.env.STRIPE_PROMPTPAY_ENABLED !== "true") return res.status(400).json({ success: false, message: "PromptPay is not enabled for this Stripe account" });
+    const paymentMethodError = validateStripePaymentMethod(paymentMethod);
+    if (paymentMethodError) return res.status(400).json({ success: false, message: paymentMethodError });
     const shippingAddressError = validateShippingAddress(shippingAddress);
     if (shippingAddressError) return res.status(400).json({ success: false, message: shippingAddressError });
     client = stripeClient || stripe();
@@ -204,30 +270,19 @@ export const createCheckoutSessionWithClient = async (req, res, stripeClient) =>
         userId: req.user.userId,
         orderNumber: `ZT-${new mongoose.Types.ObjectId().toString().toUpperCase()}`,
         items, shippingAddress, totalAmount,
-        payment: { method: paymentMethod === "card" ? "Credit Card" : "PromptPay", status: "awaiting_payment", reservationState: "held", reservationExpiresAt: new Date(expiresAt * 1000), cartManaged: true },
+        payment: { method: paymentMethodLabel(paymentMethod), status: "awaiting_payment", reservationState: "held", reservationExpiresAt: new Date(expiresAt * 1000), cartManaged: true },
       });
     }
-    const origin = process.env.FRONTEND_URL || "http://localhost:5173";
-    session = await client.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: [paymentMethod],
-      line_items: items.map((item) => ({ price_data: { currency: "thb", unit_amount: Math.round(item.price * 100), product_data: {
-        name: `${item.name} (${item.size})${item.badgePrice ? ` — ${item.sleeveBadge}` : ""}`,
-        description: [item.customName && `Name: ${item.customName}`, item.customNumber !== null && `Number: ${item.customNumber}`, item.sleeveBadge !== "none" && `Badge: ${item.sleeveBadge}`].filter(Boolean).join("; ") || undefined,
-        metadata: { customName: item.customName, customNumber: item.customNumber ?? "", sleeveBadge: item.sleeveBadge, namePrice: String(item.namePrice), numberPrice: String(item.numberPrice), badgePrice: String(item.badgePrice), unitPrice: String(item.price) },
-      } }, quantity: item.quantity })),
-      client_reference_id: order.id,
-      metadata: { orderId: order.id },
-      success_url: `${origin}/order-confirmation?orderId=${order.id}`,
-      cancel_url: `${origin}/order-confirmation?orderId=${order.id}&cancelled=1`,
-      expires_at: expiresAt,
-    }, { idempotencyKey: sourceOrder ? `order-${order.id}-retry-${new mongoose.Types.ObjectId()}` : `order-${order.id}` });
+    session = await client.checkout.sessions.create(
+      buildCheckoutSessionPayload({ orderId: order.id, items, paymentMethod, expiresAt }),
+      { idempotencyKey: sourceOrder ? `order-${order.id}-retry-${new mongoose.Types.ObjectId()}` : `order-${order.id}` },
+    );
     if (sourceOrder) {
       const finalized = await Order.updateOne(
         { _id: order._id, "payment.status": "failed", "payment.reservationState": "restarting", "payment.retryStartedAt": order.payment.retryStartedAt },
         { $set: {
           items, shippingAddress, totalAmount, orderStatus: "pending",
-          "payment.method": paymentMethod === "card" ? "Credit Card" : "PromptPay",
+          "payment.method": paymentMethodLabel(paymentMethod),
           "payment.status": "awaiting_payment",
           "payment.reservationState": "held",
           "payment.reservationExpiresAt": new Date(expiresAt * 1000),
@@ -343,8 +398,8 @@ export const retryCheckoutSession = async (req, res) => {
   let previousSessionId;
   try {
     const { paymentMethod, shippingAddress } = req.body;
-    if (!["card", "promptpay"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "Choose Card or PromptPay" });
-    if (paymentMethod === "promptpay" && process.env.STRIPE_PROMPTPAY_ENABLED !== "true") return res.status(400).json({ success: false, message: "PromptPay is not enabled for this Stripe account" });
+    const paymentMethodError = validateStripePaymentMethod(paymentMethod);
+    if (paymentMethodError) return res.status(400).json({ success: false, message: paymentMethodError });
 
     order = await Order.findOne({ _id: req.params.id, userId: req.user.userId });
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
@@ -380,28 +435,11 @@ export const retryCheckoutSession = async (req, res) => {
       if (current.status === "expired") await releaseStock(order);
       else {
         const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
-        const origin = process.env.FRONTEND_URL || "http://localhost:5173";
-        replacement = await client.checkout.sessions.create({
-          mode: "payment",
-          payment_method_types: [paymentMethod],
-          line_items: order.items.map((item) => ({
-            price_data: {
-              currency: "thb",
-              unit_amount: Math.round(item.price * 100),
-              product_data: {
-                name: `${item.name} (${item.size})${item.badgePrice ? ` — ${item.sleeveBadge}` : ""}`,
-                description: [item.customName && `Name: ${item.customName}`, item.customNumber !== null && `Number: ${item.customNumber}`, item.sleeveBadge !== "none" && `Badge: ${item.sleeveBadge}`].filter(Boolean).join("; ") || undefined,
-              },
-            },
-            quantity: item.quantity,
-          })),
-          client_reference_id: order.id,
-          metadata: { orderId: order.id },
-          success_url: `${origin}/order-confirmation?orderId=${order.id}`,
-          cancel_url: `${origin}/order-confirmation?orderId=${order.id}&cancelled=1`,
-          expires_at: expiresAt,
-        }, { idempotencyKey: `order-${order.id}-retry-${current.id}-${paymentMethod}` });
-        order.payment.method = paymentMethod === "card" ? "Credit Card" : "PromptPay";
+        replacement = await client.checkout.sessions.create(
+          buildCheckoutSessionPayload({ orderId: order.id, items: order.items, paymentMethod, expiresAt }),
+          { idempotencyKey: `order-${order.id}-retry-${current.id}-${paymentMethod}` },
+        );
+        order.payment.method = paymentMethodLabel(paymentMethod);
         order.payment.status = "awaiting_payment";
         order.payment.stripeSessionId = replacement.id;
         order.payment.reservationState = "held";
