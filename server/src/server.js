@@ -1,6 +1,9 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yaml";
 import { connectDB } from "./config/db.js";
 import apiRouter from "./routes/v1/index.js";
 import cors from "cors";
@@ -22,6 +25,32 @@ app.get("/health", healthHandler);
 app.post("/api/v1/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(express.json());
 app.use(cookieParser());
+
+if (process.env.NODE_ENV !== "production") {
+  const openApiPath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../doc/openapi.yaml",
+  );
+
+  app.get("/api-docs.json", (req, res, next) => {
+    try {
+      const spec = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
+      return res.json(spec);
+    } catch (err) {
+      return next(err);
+    }
+  });
+
+  app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(null, {
+      swaggerOptions: {
+        url: "/api-docs.json",
+      },
+    }),
+  );
+}
 
 // กำหนด Prefix หลักของ API
 app.use("/api/v1", apiRouter);

@@ -1,0 +1,2181 @@
+openapi: 3.0.3
+info:
+  title: Zeta Jersey Store API
+  version: 1.0.0
+  description: |
+    Complete interactive API reference for the **Zeta Jersey Store** backend (Express 5 + MongoDB + Stripe + Cloudflare R2).
+
+    ### Authentication Notes
+    - Protected routes use an `httpOnly` cookie named **`accessToken`** verified by `verifyToken`.
+    - Admin routes additionally require `requireAdmin` (`user.role === "admin"`), returning `403` otherwise.
+    - **Quick test tip:** Call `POST /api/v1/auth/login` right here first — your browser will store the `accessToken` cookie automatically for subsequent requests.
+
+servers:
+  - url: /
+    description: Current server
+
+tags:
+  - name: System
+    description: Health check endpoint
+  - name: Auth
+    description: Registration, login, logout, session lookup, and password changes
+  - name: Users - Profile & Addresses
+    description: Authenticated user profile, shipping addresses, and personal review list
+  - name: Users - Cart
+    description: Shopping cart CRUD with server-side personalization pricing
+  - name: Users - Wishlist
+    description: Saved wishlist products
+  - name: Products
+    description: Storefront catalog and Admin inventory management
+  - name: Reviews
+    description: Verified-purchaser product reviews, eligibility checks, and summaries
+  - name: Orders & Stripe
+    description: COD checkout, Stripe Checkout sessions, resume/retry, webhooks, and Admin order management
+  - name: Personalization Templates
+    description: Jersey print/badge preview templates (public lookup + Admin CRUD)
+  - name: Uploads
+    description: Admin image uploads to Cloudflare R2 with Sharp validation & thumbnails
+
+paths:
+  # ============================================================================
+  # SYSTEM
+  # ============================================================================
+  /health:
+    get:
+      tags: [System]
+      summary: Server health check
+      description: Public lightweight liveness endpoint (no DB or auth required). Also used by Render cold-start checks.
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # ============================================================================
+  # AUTH (/api/v1/auth)
+  # ============================================================================
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user account
+      description: Creates a new user with bcrypt-hashed password (12 salt rounds). Does not auto-login or set a cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password]
+              properties:
+                firstName:
+                  type: string
+                  example: Dear
+                lastName:
+                  type: string
+                  example: Zeta
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "Secret123!"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "User registered successfully!" }
+                  data:
+                    $ref: "#/components/schemas/UserSummary"
+        "400":
+          description: Missing required fields or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      description: Validates credentials, issues a 7-day JWT, sets an `httpOnly` `accessToken` cookie, and also returns `token` in the JSON body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "Secret123!"
+      responses:
+        "200":
+          description: Login successful (sets httpOnly `accessToken` cookie)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Login successful!" }
+                  token: { type: string }
+                  user:
+                    $ref: "#/components/schemas/UserSummary"
+        "400":
+          description: Missing fields or invalid email/password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current session
+      description: Clears the `accessToken` cookie via `res.clearCookie("accessToken")`. Public route (no auth guard).
+      responses:
+        "200":
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Logged out successfully!" }
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      description: Looks up the logged-in user by `req.user.userId` and returns the user document excluding `password`.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Authenticated user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user:
+                    $ref: "#/components/schemas/UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/auth/change-password:
+    patch:
+      tags: [Auth]
+      summary: Change current user's password
+      description: Hashes and replaces the logged-in user's password. Note that current password is not required by the current implementation.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newPassword, confirmPassword]
+              properties:
+                newPassword:
+                  type: string
+                  format: password
+                  example: "NewSecret123!"
+                confirmPassword:
+                  type: string
+                  format: password
+                  example: "NewSecret123!"
+      responses:
+        "200":
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Password changed successfully!" }
+        "400":
+          description: Missing fields or passwords do not match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ============================================================================
+  # USERS - PROFILE, ADDRESSES & MY REVIEWS (/api/v1/users)
+  # ============================================================================
+  /api/v1/users/profile:
+    get:
+      tags: [Users - Profile & Addresses]
+      summary: Get authenticated user's full profile
+      description: Returns user profile including addresses, cart, and wishlist (excluding password).
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: User profile returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user:
+                    $ref: "#/components/schemas/UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      tags: [Users - Profile & Addresses]
+      summary: Update profile and/or default address
+      description: Updates `firstName`, `lastName`, `phone`, and optionally updates (or creates) the user's default `address`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName: { type: string, minLength: 2, example: Dear }
+                lastName: { type: string, minLength: 2, example: Zeta }
+                phone: { type: string, example: "0812345678" }
+                address:
+                  $ref: "#/components/schemas/ShippingAddress"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Profile updated successfully" }
+                  user:
+                    $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ErrorResponse"
+                  - type: object
+                    properties:
+                      errors:
+                        type: array
+                        items: { type: string }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/users/reviews:
+    get:
+      tags: [Users - Profile & Addresses]
+      summary: List reviews written by the current user
+      description: Returns all reviews authored by `req.user.userId`, newest first, with populated product summary.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: User's reviews returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        product:
+                          type: object
+                          nullable: true
+                          properties:
+                            id: { type: string }
+                            name: { type: string }
+                            images:
+                              type: array
+                              items: { type: string }
+                        orderId: { type: string, nullable: true }
+                        rating: { type: integer }
+                        detailedRatings:
+                          $ref: "#/components/schemas/DetailedRatings"
+                        isRecommended: { type: boolean, nullable: true }
+                        title: { type: string }
+                        body: { type: string }
+                        status: { type: string, enum: [pending, published, hidden] }
+                        createdAt: { type: string, format: date-time }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/users/address:
+    post:
+      tags: [Users - Profile & Addresses]
+      summary: Add a new shipping address
+      description: "Appends an address to `user.addresses`. If `isDefault: true`, unsets `isDefault` on all existing addresses."
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ShippingAddress"
+                - type: object
+                  required: [recipientName, phone, addressLine, province, postalCode]
+                  properties:
+                    isDefault: { type: boolean, example: true }
+      responses:
+        "201":
+          description: Address added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Address added successfully" }
+                  addresses:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Address"
+        "400":
+          description: Missing required address fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/users/address/{addressId}:
+    patch:
+      tags: [Users - Profile & Addresses]
+      summary: Update a shipping address by subdocument ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ShippingAddress"
+                - type: object
+                  properties:
+                    isDefault: { type: boolean }
+      responses:
+        "200":
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Address updated successfully" }
+                  address:
+                    $ref: "#/components/schemas/Address"
+                  addresses:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Address"
+        "400":
+          description: Empty required field or no valid update fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User or address not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags: [Users - Profile & Addresses]
+      summary: Delete a shipping address by subdocument ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Address deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Address deleted successfully" }
+                  addresses:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Address"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User or address not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ============================================================================
+  # USERS - CART (/api/v1/users/cart)
+  # ============================================================================
+  /api/v1/users/cart:
+    get:
+      tags: [Users - Cart]
+      summary: Get current user's cart
+      description: Returns `user.cart` with populated `productId` details.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Cart returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  cart:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CartItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags: [Users - Cart]
+      summary: Add item to cart (merges identical product + size + personalization)
+      description: |
+        Validates product availability and personalization rules (`customName` and `customNumber` must be provided together; number is 0–99), calculates prices server-side via `pricePersonalization`, and increments quantity if an identical line already exists.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, size, quantity]
+              properties:
+                productId: { type: string, example: "65f1a2b3c4d5e6f7a8b9c0d1" }
+                size: { type: string, example: "L" }
+                quantity: { type: integer, minimum: 1, example: 1 }
+                customName: { type: string, example: "SALAH" }
+                customNumber: { type: string, nullable: true, example: "11" }
+                sleeveBadge:
+                  type: string
+                  enum: [none, premier-league, premier-league-racism]
+                  default: none
+      responses:
+        "200":
+          description: Item added to cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Added to cart successfully" }
+                  cart:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CartItem"
+        "400":
+          description: Invalid product/size/quantity or invalid personalization choices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Product or user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags: [Users - Cart]
+      summary: Clear all items from cart
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Cart cleared successfully" }
+                  cart:
+                    type: array
+                    items: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/users/cart/{itemId}:
+    patch:
+      tags: [Users - Cart]
+      summary: Update cart item quantity
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          description: MongoDB subdocument `_id` of the cart line item
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 1, example: 2 }
+      responses:
+        "200":
+          description: Cart item quantity updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Cart item quantity updated" }
+                  cart:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CartItem"
+        "400":
+          description: Quantity is less than 1 or not an integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User or cart item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags: [Users - Cart]
+      summary: Remove a single cart item
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Item removed from cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Item removed from cart" }
+                  cart:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CartItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ============================================================================
+  # USERS - WISHLIST (/api/v1/users/wishlist)
+  # ============================================================================
+  /api/v1/users/wishlist:
+    get:
+      tags: [Users - Wishlist]
+      summary: Get current user's wishlist
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Populated wishlist products returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  wishlist:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/users/wishlist/{productId}:
+    post:
+      tags: [Users - Wishlist]
+      summary: Add product to wishlist (idempotent via $addToSet)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated wishlist returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  wishlist:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid product ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Product or user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags: [Users - Wishlist]
+      summary: Remove product from wishlist
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated wishlist returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  wishlist:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid product ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ============================================================================
+  # PRODUCTS (/api/v1/products)
+  # ============================================================================
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: List active storefront products
+      description: Supports search across `name`, `description`, `tag`, exact case-insensitive filters (`category`, `edition`, `tag`), `sort=best-selling` (aggregated from non-cancelled orders), and `limit` (max 50). Returns a raw JSON array.
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          description: Hyphens are converted to spaces (e.g. `premier-league` -> `premier league`)
+          schema: { type: string }
+        - name: edition
+          in: query
+          schema: { type: string }
+        - name: tag
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, best-selling]
+            default: newest
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50 }
+      responses:
+        "200":
+          description: Array of active products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+    post:
+      tags: [Products]
+      summary: "[Admin] Create a new product"
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data:
+                    $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid product body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+
+  /api/v1/products/admin:
+    get:
+      tags: [Products]
+      summary: "[Admin] List all products including inactive items"
+      description: Same filters/sorting as `GET /api/v1/products`, but sets `req.includeInactiveProducts = true`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: edition
+          in: query
+          schema: { type: string }
+        - name: tag
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [newest, best-selling], default: newest }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50 }
+      responses:
+        "200":
+          description: Array of all products (active + inactive)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+
+  /api/v1/products/{id}:
+    get:
+      tags: [Products]
+      summary: Get single active product with variants & personalization template
+      description: Fetches the product, any active sibling variants sharing the same `groupId`, and its resolved `personalizationTemplate`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product detail payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: "#/components/schemas/Product"
+                  variants:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  personalizationTemplate:
+                    $ref: "#/components/schemas/PersonalizationTemplate"
+                    nullable: true
+        "404":
+          description: Product not found or inactive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+
+    patch:
+      tags: [Products]
+      summary: "[Admin] Update a product by ID"
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "update product completed " }
+        "400":
+          description: Invalid payload or product not found (note controller returns 400 when not found)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+
+    delete:
+      tags: [Products]
+      summary: "[Admin] Delete a product by ID"
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Product successfully deleted" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+
+  # ============================================================================
+  # REVIEWS (/api/v1/products/{productId}/reviews)
+  # ============================================================================
+  /api/v1/products/{productId}/reviews:
+    get:
+      tags: [Reviews]
+      summary: List published reviews + aggregated rating summary for a product
+      description: Paginated list of published reviews along with average rating, recommendation rate, detailed rating averages, rating distribution, and top tags.
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+        - name: rating
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 5 }
+        - name: tags
+          in: query
+          description: Comma-separated tag filter (e.g. `Breathable,True to size`)
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, oldest, highest, lowest, helpful]
+            default: newest
+      responses:
+        "200":
+          description: Paginated reviews and aggregated summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReviewSerialized"
+                  summary:
+                    type: object
+                    properties:
+                      count: { type: integer }
+                      averageRating: { type: number }
+                      recommendRate: { type: integer, description: "Percentage 0-100" }
+                      detailedRatings:
+                        $ref: "#/components/schemas/DetailedRatings"
+                      distribution:
+                        type: object
+                        additionalProperties: { type: integer }
+                      tags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name: { type: string }
+                            count: { type: integer }
+                  pagination:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      pageCount: { type: integer }
+        "400":
+          description: Invalid productId or rating query param
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+    post:
+      tags: [Reviews]
+      summary: Submit a verified-purchaser product review
+      description: Requires a `completed` order containing `productId` and enforces one review per user per product (unique index + 409 check).
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating, body]
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5, example: 5 }
+                title: { type: string, maxLength: 120, example: "Great fabric quality" }
+                body: { type: string, maxLength: 2000, example: "Fits true to size and print looks sharp." }
+                detailedRatings:
+                  $ref: "#/components/schemas/DetailedRatings"
+                tags:
+                  type: array
+                  maxItems: 10
+                  items: { type: string }
+                isRecommended: { type: boolean, example: true }
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review:
+                    $ref: "#/components/schemas/ReviewSerialized"
+        "400":
+          description: Invalid productId, rating, body, or detailedRatings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User has no completed order containing this product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "409":
+          description: User has already reviewed this product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /api/v1/products/{productId}/reviews/eligibility:
+    get:
+      tags: [Reviews]
+      summary: Check whether current user can review this product
+      description: Checks if the user has a `completed` order with `productId` and has not already submitted a review.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Eligibility flags returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canReview: { type: boolean }
+                  hasReviewed: { type: boolean }
+        "400":
+          description: Invalid productId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  /api/v1/products/{productId}/reviews/mine:
+    get:
+      tags: [Reviews]
+      summary: Get current user's existing review for this product
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: User's review returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review:
+                    $ref: "#/components/schemas/ReviewSerialized"
+        "400":
+          description: Invalid productId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+    patch:
+      tags: [Reviews]
+      summary: Update current user's existing review for this product
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                title: { type: string, maxLength: 120 }
+                body: { type: string, minLength: 1, maxLength: 2000 }
+                detailedRatings:
+                  $ref: "#/components/schemas/DetailedRatings"
+                isRecommended: { type: boolean }
+      responses:
+        "200":
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review:
+                    $ref: "#/components/schemas/ReviewSerialized"
+        "400":
+          description: Invalid input or no changes provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+  # ============================================================================
+  # ORDERS & STRIPE (/api/v1/orders + /api/v1/stripe/webhook)
+  # ============================================================================
+  /api/v1/orders/payment-options:
+    get:
+      tags: [Orders & Stripe]
+      summary: Check enabled Stripe payment methods
+      description: Public endpoint returning whether `card` and `promptpay` are configured via server environment variables (`sk_test_*`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PROMPTPAY_ENABLED`).
+      responses:
+        "200":
+          description: Available online payment methods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card: { type: boolean }
+                  promptpay: { type: boolean }
+
+  /api/v1/orders/my-orders:
+    get:
+      tags: [Orders & Stripe]
+      summary: List current user's orders
+      description: Returns orders belonging to `req.user.userId`, newest first, with populated item images/active flags.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: User's orders returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  count: { type: integer }
+                  orders:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/orders:
+    post:
+      tags: [Orders & Stripe]
+      summary: Create a Cash-on-Delivery (COD) order from current cart
+      description: |
+        Only accepts `paymentMethod: "cod"`. Validates shipping address, re-prices every cart item server-side, atomically decrements product stock (rolling back on failure), creates the order, and empties the user's cart.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shippingAddress]
+              properties:
+                paymentMethod:
+                  type: string
+                  enum: [cod]
+                  default: cod
+                shippingAddress:
+                  $ref: "#/components/schemas/ShippingAddress"
+      responses:
+        "201":
+          description: COD order created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Order created successfully" }
+                  data:
+                    $ref: "#/components/schemas/Order"
+        "400":
+          description: Non-COD method, invalid address, empty cart, invalid personalization, or insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: A product in cart was not found or is inactive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags: [Orders & Stripe]
+      summary: "[Admin] List all orders in the system"
+      description: Supports optional `status` filter and `sort` (`newest` or `oldest`).
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, processing, shipped, completed, cancelled]
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, oldest]
+            default: newest
+      responses:
+        "200":
+          description: All matching orders returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  count: { type: integer }
+                  orders:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid status filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+
+  /api/v1/orders/checkout-session:
+    post:
+      tags: [Orders & Stripe]
+      summary: Start a Stripe Checkout Session from current cart
+      description: |
+        1. Reconciles any previously `held` Stripe orders for this user (returns `409` if one just expired so the user reviews their restored cart).
+        2. Re-prices personalization server-side and atomically reserves stock (`reservationState: "held"`, expires in 30 minutes).
+        3. Creates a Stripe Checkout Session (`currency: "thb"`, idempotency key `order-<id>`), saves `stripeSessionId`, removes ordered items from cart, and returns the hosted Stripe `url`.
+        4. Automatically expires the Stripe session and rolls back stock on any error.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paymentMethod, shippingAddress]
+              properties:
+                paymentMethod:
+                  type: string
+                  enum: [card, promptpay]
+                  example: card
+                shippingAddress:
+                  $ref: "#/components/schemas/ShippingAddress"
+      responses:
+        "201":
+          description: Stripe Checkout Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  url: { type: string, format: uri }
+                  orderId: { type: string }
+        "400":
+          description: Invalid paymentMethod, PromptPay disabled, invalid address, empty cart, or invalid item/personalization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Earlier checkout still preparing/expired, or insufficient stock during atomic reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Stripe or server error (reserved stock rolled back)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [Orders & Stripe]
+      summary: Get single order details (Owner or Admin)
+      description: Verifies ownership or admin role. Also triggers `syncStripeOrder(order)` on read to reconcile pending Stripe payments if webhook delivery lagged.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Order returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is neither the order owner nor an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/orders/{id}/checkout-session:
+    get:
+      tags: [Orders & Stripe]
+      summary: Resume an active Stripe Checkout Session for an unpaid order
+      description: Looks up a `held` order owned by the user, checks Stripe to confirm the session is still `open`, and returns its hosted checkout `url`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Active Stripe Checkout URL returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  url: { type: string, format: uri }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Active held checkout not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Stripe checkout session is no longer open
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/orders/{id}/checkout-session/retry:
+    post:
+      tags: [Orders & Stripe]
+      summary: Retry payment on an existing unpaid/failed Stripe order
+      description: |
+        Restarts Stripe checkout on the **same order** (without touching the user's current cart):
+        - If the previous session is still `open`, marks `reservationState: "restarting"`, expires the old Stripe session, and creates a replacement session keeping the reserved stock.
+        - If the previous attempt already failed/released stock, re-reserves stock from `order.items` and opens a fresh Stripe session.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paymentMethod]
+              properties:
+                paymentMethod:
+                  type: string
+                  enum: [card, promptpay]
+                  example: card
+                shippingAddress:
+                  $ref: "#/components/schemas/ShippingAddress"
+                  description: Optional override; defaults to the existing order's shippingAddress
+      responses:
+        "201":
+          description: Replacement Stripe Checkout Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  url: { type: string, format: uri }
+                  orderId: { type: string }
+        "400":
+          description: Invalid paymentMethod, PromptPay disabled, or unavailable item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Order not eligible, already paid, concurrent retry in progress, or insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/orders/{id}/status:
+    patch:
+      tags: [Orders & Stripe]
+      summary: "[Admin] Update order fulfillment status"
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Accepts either `orderStatus` or `status`
+              properties:
+                orderStatus:
+                  type: string
+                  enum: [pending, processing, shipped, completed, cancelled]
+                  example: shipped
+                status:
+                  type: string
+                  enum: [pending, processing, shipped, completed, cancelled]
+      responses:
+        "200":
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Order status updated successfully" }
+                  order:
+                    $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid ObjectId or invalid status enum
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/stripe/webhook:
+    post:
+      tags: [Orders & Stripe]
+      summary: "[Stripe] Receive signed Stripe webhook events"
+      description: |
+        Mounted in `server.js` **before** `express.json()` using `express.raw({ type: "application/json" })` so Stripe's HMAC signature verification receives the exact raw request body.
+        - Handles `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, and `checkout.session.expired`.
+        - Ignores events from stale/replaced sessions (`stripeSessionId !== session.id`) or orders currently in `restarting` state.
+        - Returns `503` if the order record is not found yet so Stripe retries delivery.
+      parameters:
+        - name: stripe-signature
+          in: header
+          required: true
+          description: Stripe HMAC signature header verified against `STRIPE_WEBHOOK_SECRET`
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Raw Stripe Event JSON payload
+      responses:
+        "200":
+          description: Event processed or safely ignored
+        "400":
+          description: Invalid or missing Stripe webhook signature
+        "500":
+          description: Unexpected webhook processing error
+        "503":
+          description: Order not yet found (signals Stripe to retry)
+
+  # ============================================================================
+  # PERSONALIZATION TEMPLATES (/api/v1/personalization-templates)
+  # ============================================================================
+  /api/v1/personalization-templates/{groupId}:
+    get:
+      tags: [Personalization Templates]
+      summary: Get active personalization template by groupId
+      description: Public endpoint used by the storefront jersey customizer preview.
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          example: LFC-2627-HOME
+          schema: { type: string }
+      responses:
+        "200":
+          description: Template returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    $ref: "#/components/schemas/PersonalizationTemplate"
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+
+  /api/v1/personalization-templates:
+    get:
+      tags: [Personalization Templates]
+      summary: "[Admin] List all personalization templates"
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: All templates sorted by `groupId`
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PersonalizationTemplate"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+
+    post:
+      tags: [Personalization Templates]
+      summary: "[Admin] Create a personalization template"
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonalizationTemplate"
+      responses:
+        "201":
+          description: Template created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    $ref: "#/components/schemas/PersonalizationTemplate"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+
+    patch:
+      tags: [Personalization Templates]
+      summary: "[Admin] Update a personalization template by groupId"
+      description: Identifies template via `groupId` in body. Only whitelisted patchable fields (`active`, `backImageUrl`, `viewBox`, `name`, `number`, `sleeveBadge`, `sleeveBadgeOptions`) are allowed.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  required: [groupId]
+                  properties:
+                    groupId: { type: string, example: "LFC-2627-HOME" }
+                - $ref: "#/components/schemas/PersonalizationTemplate"
+      responses:
+        "200":
+          description: Template updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    $ref: "#/components/schemas/PersonalizationTemplate"
+        "400":
+          description: Missing `groupId` or unsupported field in payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/ForbiddenAdmin"
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegacyError"
+
+  # ============================================================================
+  # UPLOADS (/api/v1/uploads)
+  # ============================================================================
+  /api/v1/uploads/images:
+    post:
+      tags: [Uploads]
+      summary: "[Admin] Upload an image to Cloudflare R2"
+      description: |
+        Protected by 6 middleware layers: `verifyToken` → `requireAdmin` → `validateUploadOrigin` → `imageUploadRateLimit` (20 req/min per admin user) → `parseImageUpload` (Multer memoryStorage, max 5 MB) → `handleImageUploadParseError`.
+        Validates real image bytes via `sharp` (non-animated JPEG, PNG, or WebP, ≤ 25 MP), uploads to Cloudflare R2, and generates thumbnails automatically when `purpose === "product"`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, purpose]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Non-animated JPEG, PNG, or WebP image (max 5 MB, ≤ 25 MP)
+                purpose:
+                  type: string
+                  enum: [product, product-back, template-back]
+      responses:
+        "201":
+          description: Image uploaded to R2
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key: { type: string, example: "uploads/product/uuid.webp" }
+                  url: { type: string, format: uri }
+                  contentType: { type: string, example: "image/webp" }
+                  size: { type: integer }
+                  width: { type: integer }
+                  height: { type: integer }
+        "400":
+          description: Missing file, invalid purpose, or malformed multipart upload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not admin or disallowed `Origin` header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "413":
+          description: File exceeds 5 MB limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "415":
+          description: Unsupported/animated image format or exceeds 25 megapixels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "429":
+          description: Rate limit exceeded (20 uploads per minute per admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+        "503":
+          description: Cloudflare R2 storage unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageError"
+
+# ==============================================================================
+# REUSABLE COMPONENTS
+# ==============================================================================
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+
+  responses:
+    Unauthorized:
+      description: Missing, invalid, or expired `accessToken` cookie
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ForbiddenAdmin:
+      description: Authenticated user does not have `admin` role
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+
+    MessageError:
+      type: object
+      properties:
+        message: { type: string }
+
+    LegacyError:
+      type: object
+      properties:
+        error: { type: string }
+
+    UserSummary:
+      type: object
+      properties:
+        _id: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [user, admin] }
+
+    UserProfile:
+      allOf:
+        - $ref: "#/components/schemas/UserSummary"
+        - type: object
+          properties:
+            phone: { type: string }
+            addresses:
+              type: array
+              items:
+                $ref: "#/components/schemas/Address"
+            cart:
+              type: array
+              items:
+                $ref: "#/components/schemas/CartItem"
+            wishlist:
+              type: array
+              items: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    ShippingAddress:
+      type: object
+      properties:
+        recipientName: { type: string, example: "Somchai Jaidee" }
+        phone: { type: string, example: "0812345678" }
+        addressLine: { type: string, example: "123 Sukhumvit Rd" }
+        subdistrict: { type: string, example: "Khlong Toei" }
+        district: { type: string, example: "Khlong Toei" }
+        province: { type: string, example: "Bangkok" }
+        postalCode: { type: string, example: "10110" }
+
+    Address:
+      allOf:
+        - type: object
+          properties:
+            _id: { type: string }
+            isDefault: { type: boolean }
+        - $ref: "#/components/schemas/ShippingAddress"
+
+    CartItem:
+      type: object
+      properties:
+        _id: { type: string }
+        productId:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/Product"
+        size: { type: string, example: "L" }
+        customName: { type: string }
+        customNumber: { type: string, nullable: true }
+        sleeveBadge: { type: string, enum: [none, premier-league, premier-league-racism] }
+        namePrice: { type: number }
+        numberPrice: { type: number }
+        badgePrice: { type: number }
+        quantity: { type: integer, minimum: 1 }
+        price: { type: number }
+
+    ProductInput:
+      type: object
+      required: [sku, name, description, price, quantity]
+      properties:
+        sku: { type: string, example: "LFC-2627-HOME-PLY" }
+        groupId: { type: string, nullable: true, example: "LFC-2627-HOME" }
+        personalizationEnabled: { type: boolean, default: false }
+        personalizationGroupId: { type: string, nullable: true }
+        edition: { type: string, nullable: true, example: "Player Edition" }
+        brand: { type: string, default: "Adidas" }
+        name: { type: string, example: "Liverpool Home Jersey 26/27" }
+        description: { type: string }
+        price: { type: number, minimum: 0, example: 2900 }
+        originalPrice: { type: number, default: 0 }
+        cost: { type: number, default: 0 }
+        quantity: { type: integer, minimum: 0, example: 25 }
+        tag:
+          type: array
+          items: { type: string }
+        category: { type: string, default: "Premier League" }
+        fit: { type: string, nullable: true, enum: [slim, regular, relaxed, oversized] }
+        kitType: { type: string, nullable: true, enum: [home, away, third, goalkeeper, training, lifestyle] }
+        activity: { type: string, enum: [football, training, lifestyle], default: football }
+        images:
+          type: array
+          items: { type: string }
+        backImageUrl: { type: string }
+        sizes:
+          type: array
+          items: { type: string }
+          example: ["S", "M", "L", "XL", "2XL"]
+        isActive: { type: boolean, default: true }
+
+    Product:
+      allOf:
+        - type: object
+          properties:
+            _id: { type: string }
+            date: { type: string, format: date-time }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+        - $ref: "#/components/schemas/ProductInput"
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/Product"
+        cartItemId: { type: string }
+        sku: { type: string }
+        name: { type: string }
+        edition: { type: string, nullable: true }
+        size: { type: string }
+        customName: { type: string }
+        customNumber: { type: string, nullable: true }
+        sleeveBadge: { type: string, enum: [none, premier-league, premier-league-racism] }
+        namePrice: { type: number }
+        numberPrice: { type: number }
+        badgePrice: { type: number }
+        price: { type: number }
+        quantity: { type: integer }
+
+    Order:
+      type: object
+      properties:
+        _id: { type: string }
+        orderNumber: { type: string, example: "ZT-65F1A2B3C4D5E6F7A8B9C0D1" }
+        userId:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/UserSummary"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        shippingAddress:
+          $ref: "#/components/schemas/ShippingAddress"
+        payment:
+          type: object
+          properties:
+            method: { type: string, example: "Credit Card" }
+            status: { type: string, example: "paid" }
+            paidAt: { type: string, format: date-time, nullable: true }
+            transactionId: { type: string }
+            stripeSessionId: { type: string }
+            reservationState: { type: string, enum: [held, restarting, committed, released] }
+            reservationExpiresAt: { type: string, format: date-time, nullable: true }
+            retryStartedAt: { type: string, format: date-time, nullable: true }
+            cartCleared: { type: boolean }
+            cartManaged: { type: boolean }
+            replacedBy: { type: string, nullable: true }
+        totalAmount: { type: number }
+        orderStatus:
+          type: string
+          enum: [pending, processing, shipped, completed, cancelled]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    DetailedRatings:
+      type: object
+      properties:
+        comfort: { type: number, nullable: true, minimum: 1, maximum: 5 }
+        quality: { type: number, nullable: true, minimum: 1, maximum: 5 }
+        fit: { type: number, nullable: true, minimum: 1, maximum: 5 }
+        length: { type: number, nullable: true, minimum: 1, maximum: 5 }
+
+    ReviewSerialized:
+      type: object
+      properties:
+        id: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        detailedRatings:
+          $ref: "#/components/schemas/DetailedRatings"
+        title: { type: string }
+        body: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        isRecommended: { type: boolean, nullable: true }
+        verifiedPurchase: { type: boolean }
+        helpfulCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        reviewer:
+          type: object
+          properties:
+            name: { type: string }
+            initials: { type: string }
+
+    PersonalizationTextStyle:
+      type: object
+      required: [x, y, fontId, fontSize, fontWeight, letterSpacing, fill, stroke, strokeWidth]
+      properties:
+        x: { type: number }
+        y: { type: number }
+        fontId: { type: string, enum: [barlow-condensed-900] }
+        fontSize: { type: number }
+        fontWeight: { type: number }
+        letterSpacing: { type: number }
+        fill: { type: string, example: "#FFFFFF" }
+        stroke: { type: string, example: "#000000" }
+        strokeWidth: { type: number }
+
+    PersonalizationTemplate:
+      type: object
+      required: [groupId, active, backImageUrl, viewBox, name, number, sleeveBadge, sleeveBadgeOptions]
+      properties:
+        _id: { type: string }
+        groupId: { type: string, example: "LFC-2627-HOME" }
+        active: { type: boolean, default: true }
+        backImageUrl: { type: string }
+        viewBox:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items: { type: number }
+        name:
+          $ref: "#/components/schemas/PersonalizationTextStyle"
+        number:
+          $ref: "#/components/schemas/PersonalizationTextStyle"
+        sleeveBadge:
+          type: object
+          required: [x, y, rotate, skewY, scaleX, scaleY, zoomViewBox, clipPath]
+          properties:
+            x: { type: number }
+            y: { type: number }
+            rotate: { type: number }
+            skewY: { type: number }
+            scaleX: { type: number }
+            scaleY: { type: number }
+            zoomViewBox:
+              type: array
+              minItems: 4
+              maxItems: 4
+              items: { type: number }
+            clipPath: { type: string }
+        sleeveBadgeOptions:
+          type: array
+          items:
+            type: string
+            enum: [none, premier-league, premier-league-racism]
